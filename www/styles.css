@@ -1801,100 +1801,122 @@ ul, ol {
 }
 
 
-/* ===== FIX: Mobile Portrait (มือถือแนวตั้ง) ===== */
+/* ===================================================== */
+/* RESPONSIVE: มือถือแนวตั้ง (Portrait)                   */
+/* ===================================================== */
+
+/* สำหรับหน้าจอแคบกว่า 768px และอยู่ในแนวตั้ง */
 @media (max-width: 768px) and (orientation: portrait) {
+
+    /* ---------- พื้นที่หลัก ---------- */
     .glass-card {
-        padding: 1rem !important;
+        padding: 0.75rem !important;
     }
 
-    /* Clock Cards */
+    /* ---------- นาฬิกาปัจจุบัน (Clock) ---------- */
+    .clock-container {
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: center !important;
+        align-items: center !important;
+        gap: 0.5rem !important;
+        margin: 0.5rem 0 !important;
+        flex-wrap: wrap !important;
+    }
     .clock-card {
         width: 70px !important;
-        height: 90px !important;
+        height: 80px !important;
+        padding: 0.3rem 0 !important;
     }
     .clock-number {
-        font-size: 2.2rem !important;
+        font-size: 2rem !important;
     }
     .clock-label {
         font-size: 0.6rem !important;
     }
+    /* ปรับ AM/PM badge ให้เล็กลงและอยู่ติดกัน */
     .am-pm-badge {
-        font-size: 0.8rem !important;
-        padding: 0.3rem 0.7rem !important;
+        font-size: 0.7rem !important;
+        padding: 0.2rem 0.6rem !important;
         margin-left: 0 !important;
-    }
-    .clock-container {
-        gap: 0.25rem !important;
-        margin-left: 0 !important;
-        justify-content: center !important;
     }
 
-    /* Stop Clock - เรียงแนวตั้ง */
+    /* ---------- Stop Clock (นาฬิกาตั้งเวลาหยุด) ---------- */
     .stop-clock-container {
+        display: flex !important;
         flex-direction: column !important;
         align-items: center !important;
-        gap: 10px !important;
+        gap: 0.8rem !important;
+        margin-top: 0.5rem !important;
     }
+
+    /* แต่ละการ์ดของ Hr, Min, Sec และ Status */
     .stop-clock-card {
-        min-width: auto !important;
-        width: 100% !important;
-        max-width: 160px !important;
+        width: auto !important;
+        min-width: 0 !important;
+        max-width: 180px !important;
         margin: 0 auto !important;
+        padding: 0.3rem 0.8rem !important;
     }
+
+    /* ปรับการ์ดของ Min + Sec + Status ให้อยู่ในแนวตั้งทั้งหมด */
     .stop-right-column {
         width: 100% !important;
-    }
-    .stop-min-sec-row {
+        display: flex !important;
         flex-direction: column !important;
-        gap: 8px !important;
-        align-items: stretch !important;
+        align-items: center !important;
+        gap: 0.6rem !important;
     }
-    .stop-min-sec-row .stop-clock-card {
-        width: auto !important;
-        margin: 0 !important;
+
+    /* จัดกลุ่ม Min และ Sec ให้อยู่แถวเดียวกัน (แนวนอน) แต่ Status แยกด้านล่าง */
+    .stop-min-sec-row {
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: center !important;
+        gap: 0.8rem !important;
+        flex-wrap: wrap !important;
     }
+
+    /* ส่วนปุ่ม Timer Toggle + Status */
+    .timer-toggle-row {
+        margin-top: 0 !important;
+    }
+    .timer-status {
+        font-size: 0.7rem !important;
+        margin-top: 0.2rem !important;
+        text-align: center !important;
+    }
+
+    /* ขนาดตัวเลขและปุ่ม +/– */
     .stop-clock-number {
         font-size: 1.4rem !important;
     }
     .adj-btn {
-        width: 32px !important;
-        height: 32px !important;
-        font-size: 1.1rem !important;
+        width: 30px !important;
+        height: 30px !important;
+        font-size: 1rem !important;
+    }
+    .stop-clock-label {
+        font-size: 0.6rem !important;
+    }
+    .stop-ampm {
+        font-size: 0.65rem !important;
     }
 
-    /* ปุ่ม Play ใหญ่ */
+    /* ปุ่มเปิด/ปิด Timer */
+    .btn-timer {
+        padding: 0.3rem 1rem !important;
+        font-size: 0.7rem !important;
+    }
+
+    /* ---------- ปุ่มเล่นเพลง ---------- */
     .play-button-large {
         width: 48px !important;
         height: 48px !important;
-        font-size: 1.5rem !important;
+        font-size: 1.4rem !important;
     }
 
-    /* Info Panel */
-    .info-panel {
-        padding: 0.8rem !important;
-        margin-top: 1rem !important;
-    }
-    .song-title {
-        font-size: 1.2rem !important;
-    }
-    .melody-notes {
-        gap: 0.3rem !important;
-    }
-
-    /* Support Section */
-    .support-content {
-        flex-direction: column !important;
-        text-align: center !important;
-    }
-    .support-buttons {
-        justify-content: center !important;
-    }
-    .btn-support {
-        font-size: 0.75rem !important;
-        padding: 0.4rem 0.8rem !important;
-    }
-
-    /* Header */
+    /* ---------- Header และ User Info ---------- */
     .flex-wrap.justify-between {
         flex-direction: column !important;
         align-items: center !important;
@@ -1902,17 +1924,37 @@ ul, ol {
         text-align: center !important;
     }
     .logo-icon {
-        width: 50px !important;
-        height: 50px !important;
+        width: 45px !important;
+        height: 45px !important;
     }
     .app-title {
-        font-size: 1.3rem !important;
+        font-size: 1.2rem !important;
     }
     .user-info {
         font-size: 0.7rem !important;
     }
 
-    /* Forms */
+    /* ---------- Info Panel ---------- */
+    .info-panel {
+        padding: 0.7rem !important;
+        margin-top: 1rem !important;
+    }
+    .song-title {
+        font-size: 1.1rem !important;
+    }
+    .melody-notes {
+        gap: 0.3rem !important;
+        flex-wrap: wrap !important;
+    }
+    .storage-status {
+        position: relative !important;
+        margin-top: 0.5rem !important;
+        justify-content: center !important;
+        padding-right: 0 !important;
+        font-size: 0.65rem !important;
+    }
+
+    /* ---------- Form Elements ---------- */
     .form-group .flex.gap-2 {
         flex-direction: column !important;
         gap: 0.5rem !important;
@@ -1924,43 +1966,86 @@ ul, ol {
     .modal-content {
         max-width: 95% !important;
         width: 95% !important;
+        margin: 1rem auto !important;
     }
 
-    /* Hide/Adjust storage status (absolute right may overlap) */
-    .storage-status {
-        position: relative !important;
-        margin-top: 0.5rem !important;
+    /* ---------- Support Section ---------- */
+    .support-content {
+        flex-direction: column !important;
+        text-align: center !important;
+        gap: 0.8rem !important;
+    }
+    .support-buttons {
         justify-content: center !important;
-        padding-right: 0 !important;
-        font-size: 0.7rem !important;
+    }
+    .btn-support {
+        font-size: 0.75rem !important;
+        padding: 0.4rem 0.8rem !important;
     }
 
-    /* DestiBlue footer */
+    /* ---------- Footer ---------- */
     .destiblue-footer a {
-        font-size: 0.85rem !important;
+        font-size: 0.8rem !important;
         flex-wrap: wrap !important;
         justify-content: center !important;
+        gap: 0.3rem !important;
     }
 }
 
-/* สำหรับมือถือขนาดเล็กมาก (< 400px) */
-@media (max-width: 400px) and (orientation: portrait) {
+/* ===================================================== */
+/* ปรับเพิ่มเติมสำหรับหน้าจอที่แคบมาก (< 480px portrait) */
+/* ===================================================== */
+@media (max-width: 480px) and (orientation: portrait) {
     .clock-card {
         width: 60px !important;
-        height: 80px !important;
+        height: 70px !important;
     }
     .clock-number {
-        font-size: 1.8rem !important;
+        font-size: 1.6rem !important;
+    }
+    .clock-label {
+        font-size: 0.55rem !important;
+    }
+    .am-pm-badge {
+        font-size: 0.65rem !important;
+        padding: 0.15rem 0.5rem !important;
     }
     .stop-clock-number {
         font-size: 1.2rem !important;
     }
     .adj-btn {
-        width: 28px !important;
-        height: 28px !important;
+        width: 26px !important;
+        height: 26px !important;
+        font-size: 0.9rem !important;
+    }
+    .stop-min-sec-row {
+        gap: 0.5rem !important;
     }
     .btn-timer {
-        padding: 5px 12px !important;
-        font-size: 0.7rem !important;
+        font-size: 0.65rem !important;
+        padding: 0.25rem 0.8rem !important;
+    }
+    .play-button-large {
+        width: 42px !important;
+        height: 42px !important;
+        font-size: 1.2rem !important;
+    }
+    .glass-card {
+        padding: 0.5rem !important;
+    }
+}
+
+/* ===================================================== */
+/* ป้องกันการล้นของ stop-min-sec-row ในกรณีที่เบียดเกินไป */
+/* ===================================================== */
+@media (max-width: 380px) and (orientation: portrait) {
+    .stop-min-sec-row {
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 0.5rem !important;
+    }
+    .stop-min-sec-row .stop-clock-card {
+        width: 100% !important;
+        max-width: 140px !important;
     }
 }
