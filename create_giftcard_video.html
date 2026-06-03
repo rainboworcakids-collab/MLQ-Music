@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>MLQ Music - ซองเพลง DNA (V12.3 - Pre/Post Effect อิสระ, ปรับระดับเสียง)</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="tailwind-built.css">
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- QR Code Library -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fix-webm-duration@1.0.5/fix-webm-duration.js"></script>
+
+    <script src="https://unpkg.com/tone@14.7.77/build/Tone.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config/supabase-config.js"></script>
+
+    <!-- MLQ Music Engine Modules -->
+    <script src="js/debug-logger.js"></script>
+    <script src="js/data-contract.js?v=2.1"></script>
+    <script src="js/client_edge-function-integration.js?v=3.9"></script>   
+    <script src="js/app-main.js?v=7.9"></script>
+    <script src="js/form-psychomatrix.js?v=3.6.4"></script>
+    <script src="js/form-ui.js?v=2.9.7"></script>
+    <script src="js/music-preset-cache.js"></script>  
+    <script src="js/music-styles.js?v=5.8"></script>
+    <script src="js/nature-sounds.js?v=2.0"></script>
+    <script src="js/music-audio.js?v=6.9.6"></script> 
+    <script src="js/music-prerender.js?v=1.6"></script>
+    <script src="js/storytelling-engine.js?v=1.3"></script>
+
+    <!-- ไฟล์กลาง render การ์ด -->
+    <script src="js/giftcard-render.js"></script>
+
+    <style>
+        /* ========== สไตล์หลัก (คงเดิม) ========== */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: linear-gradient(145deg, #f9f3e9, #fff0e0);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+        .gift-container {
+            max-width: 500px;
+            width: 100%;
+            margin: 0 auto;
+            text-align: center;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+        }
+        .greeting-card {
+            width: 100%;
+            max-width: 420px;
+            margin: 0 auto;
+            background: transparent;
+            border-radius: 28px;
+            padding: 0;
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+        
+        .mlq-premium-card { 
+            background: #ffffff; 
+            border-radius: 28px; 
+            padding: 16px; 
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); 
+            width: 100%; 
+            margin: 0 auto; 
+        }
+        .mlq-card-bg-layer { 
+            border-radius: 20px; 
+            padding: 24px 18px; 
+            position: relative; 
+            overflow: hidden; 
+            background-size: cover; 
+            background-position: center; 
+        }
+        .mlq-glass-shield { 
+            background: rgba(255, 255, 255, 0.75); 
+            backdrop-filter: blur(8px); 
+            -webkit-backdrop-filter: blur(8px); 
+            border-radius: 20px; 
+            padding: 20px 16px; 
+            border: 1px solid rgba(255, 255, 255, 0.4); 
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05); 
+        }
+        .greeting-icon { font-size: 3.2rem; margin-bottom: 0.75rem; text-align: center; }
+        
+        .mlq-uploaded-img {
+            width: auto;
+            max-width: 85%;
+            height: auto;
+            max-height: 220px;
+            object-fit: contain;
+            margin: 0 auto;
+            border: none;
+            box-shadow: none;
+            display: block;
+        }
+        
+        .mlq-card-title { font-size: 1.5rem; font-weight: 700; color: #1e293b; margin-bottom: 8px; text-align: center; }
+        .mlq-card-msg { font-size: 0.95rem; line-height: 1.5; color: #334155; white-space: pre-wrap; text-align: center; }
+        .mlq-sender { 
+            font-size: 1rem; 
+            font-weight: 700; 
+            color: #d97706; 
+            text-align: right; 
+            margin-top: 20px; 
+            padding-top: 12px; 
+            border-top: 2px dashed rgba(217, 119, 6, 0.3); 
+            display: flex; 
+            align-items: center; 
+            justify-content: flex-end; 
+            gap: 8px; 
+        }
+        .mlq-sender i { font-size: 1.1rem; color: #f59e0b; }
+        .mlq-sender span { 
+            background: linear-gradient(135deg, #fef3c7, #ffedd5); 
+            padding: 4px 12px; 
+            border-radius: 40px; 
+            display: inline-block; 
+        }
+        
+        .qr-container { 
+            margin-top: 24px; 
+            text-align: center; 
+            padding: 16px; 
+            background: white; 
+            border-radius: 20px; 
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05); 
+        }
+        .qr-container p { font-size: 0.75rem; color: #6b7280; margin-top: 8px; }
+        
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0px;
+            min-width: auto;
+            max-width: 100%;
+            border: none;
+            border-radius: 60px;
+            font-size: 1rem;
+            font-weight: 600;
+            font-family: inherit;
+            color: white;
+            cursor: pointer;
+            background: linear-gradient(105deg, #dc2626, #b91c1c);
+            background-size: 120% auto;
+            box-shadow: 0 10px 20px -5px rgba(220, 38, 38, 0.3);
+            transition: all 0.3s ease;
+            width: auto;
+            margin: 16px auto;
+        }
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-3px) scale(1.02);
+            background: linear-gradient(105deg, #b91c1c, #991b1b);
+            box-shadow: 0 18px 25px -10px rgba(185, 28, 28, 0.4);
+        }
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .btn-inner { display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.05); border-radius: 60px; padding: 1px 25px 1px 1px; width: auto; }
+        .logo-icon { width: 68px; height: 68px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+        .btn-text { display: flex; flex-direction: column; align-items: flex-start; text-align: left; }
+        .btn-small-text { font-size: 0.9rem; font-weight: 500; color: #ffe0e0; line-height: 1.2; padding-left: 8px; }
+        .btn-primary .modal-title { font-size: 1.2rem; font-weight: 700; margin: 0; color: white; line-height: 1.3; }
+        
+        .timer-status {
+            color: #fbbf24;
+            font-size: 0.9rem;
+            text-align: center;
+            font-weight: 600;
+            background: rgba(0,0,0,0.3);
+            padding: 4px 12px;
+            border-radius: 40px;
+            white-space: nowrap;
+            margin-left: 10px;
+        }
+        .action-row { display: flex; justify-content: center; gap: 16px; align-items: center; margin: 16px 0 8px; flex-wrap: wrap; }
+        .story-trigger-btn { background: linear-gradient(135deg, #f5d0a9, #f7bc7a); border: none; padding: 6px 14px; border-radius: 40px; font-size: 0.75rem; font-weight: 600; color: #4a2c14; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-register-small { background: linear-gradient(105deg, #6366f1 0%, #8b5cf6 100%); color: white; padding: 6px 14px; border-radius: 40px; font-size: 0.75rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s; }
+        .btn-register-small:hover { transform: scale(1.02); opacity: 0.9; }
+        .detail-section { margin-top: 1rem; display: none; text-align: left; max-height: 300px; overflow-y: auto; padding-right: 8px; }
+        .detail-section.open { display: block; }
+        .story-text { font-size: 0.85rem; color: #5a4a3a; background: #fef9e7; border-radius: 12px; padding: 12px; border-left: 4px solid #f59e0b; line-height: 1.6; }
+        .insight-card { background: #fff; border-radius: 20px; padding: 16px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); text-align: center; }
+        .dna-badge { background: linear-gradient(135deg, #f5d0a9, #f7bc7a); padding: 4px 12px; border-radius: 30px; font-size: 0.7rem; font-weight: 600; display: inline-block; }
+        .loading-spinner { border: 3px solid #f3f3f3; border-top: 3px solid #f59e0b; border-radius: 50%; width: 32px; height: 32px; animation: spin 1s linear infinite; margin: 0 auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .video-status {
+            background: #fef3c7;
+            padding: 6px 16px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #b45309;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 8px;
+        }
+        .video-status.recording { background: #fee2e2; color: #b91c1c; }
+        .video-status.success { background: #d1fae5; color: #065f46; }
+        
+        .format-selector {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin: 12px 0 8px;
+            background: rgba(255,255,240,0.6);
+            padding: 6px 16px;
+            border-radius: 40px;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .format-selector label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #7c5c3a;
+        }
+        .format-selector select {
+            background: white;
+            border: 1px solid #e2c8a8;
+            border-radius: 40px;
+            padding: 4px 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+        }
+        
+        #inviteModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(12px);
+            z-index: 20000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+        @media (max-width: 540px) {
+            .greeting-card { max-width: 340px; }
+            .logo-icon { width: 50px; height: 50px; }
+            .btn-small-text { font-size: 0.7rem; }
+            .btn-primary .modal-title { font-size: 0.9rem; }
+            .timer-status { font-size: 0.7rem; padding: 2px 8px; }
+            .btn-inner { padding: 1px 16px 1px 1px; gap: 6px; }
+            .format-selector { gap: 0.5rem; padding: 4px 12px; }
+            .format-selector select { font-size: 0.7rem; padding: 2px 8px; }
+        }
+
+        .theme-premium.card-opened::before,
+        .theme-premium.card-opened::after,
+        .theme-premium-wedding.card-opened::before,
+        .theme-premium-wedding.card-opened::after,
+        .theme-premium-birthday.card-opened::before,
+        .theme-premium-birthday.card-opened::after {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+<div class="gift-container">
+    <div class="greeting-card" id="greetingCard">
+        <div id="cardContent">
+            <div class="loading-spinner"></div>
+        </div>
+    </div>
+    
+    <div class="format-selector">
+        <label>📀 รูปแบบไฟล์:</label>
+        <select id="videoFormatSelect">
+            <option value="mp4" selected>MP4 (แนะนำ สำหรับ PC / Android / iOS)</option>
+            <option value="webm">WebM (สำหรับ Chrome/Android)</option>
+        </select>
+    </div>
+    
+    <div style="text-align: center; margin: 20px 0 10px;">
+        <button id="recordAndPlayBtn" class="btn-primary" disabled>
+            <div class="btn-inner">
+                <img class="logo-icon" src="icons/icon-512x512.png" alt="MLQ-Music">
+                <div class="btn-text">
+                    <span class="btn-small-text">บันทึกวิดีโอ</span>
+                    <h2 class="modal-title">Rec & Download</h2>
+                </div>
+                <div id="timerStatus" class="timer-status">⏳ โหลด...</div> 
+            </div>
+        </button>
+    </div>
+    <div id="videoStatusMsg" class="video-status"></div>
+</div>
+
+<script>
+    // ========== V12.3: Pre/Post Stage แยกอิสระ (Effect เล่นได้แม้ไม่มี Voice) + ปรับระดับเสียง ==========
+    
+    // ควบคุมระดับเสียง Pre/Post Effect (0.0 - 1.0) — ปรับตามต้องการ
+    const PRE_POST_EFFECT_INTENSITY = 0.7;
+    
+    async function getQrDataUrl(text, size = 240) {
+        return new Promise((resolve) => {
+            const div = document.createElement('div');
+            let resolved = false;
+            try {
+                new QRCode(div, {
+                    text: text,
+                    width: size,
+                    height: size,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.M
+                });
+                let attempts = 0;
+                const maxAttempts = 30;
+                const check = () => {
+                    if (resolved) return;
+                    const img = div.querySelector('img');
+                    const canvas = div.querySelector('canvas');
+                    if (img && img.src && img.src.startsWith('data:')) {
+                        resolved = true;
+                        resolve(img.src);
+                        return;
+                    }
+                    if (canvas) {
+                        try {
+                            const dataUrl = canvas.toDataURL();
+                            if (dataUrl && dataUrl.startsWith('data:image')) {
+                                resolved = true;
+                                resolve(dataUrl);
+                                return;
+                            }
+                        } catch(e) {}
+                    }
+                    attempts++;
+                    if (attempts < maxAttempts) {
+                        setTimeout(check, 100);
+                    } else {
+                        console.warn('QR generation timeout, skipping QR');
+                        resolved = true;
+                        resolve('');
+                    }
+                };
+                setTimeout(check, 100);
+            } catch(e) {
+                console.warn("QR generation error", e);
+                resolve('');
+            }
+        });
+    }
+    
+    let activeVoicePlayer = null;
+    
+    function playVoiceWithTone(url) {
+        return new Promise((resolve, reject) => {
+            if (!url) {
+                resolve();
+                return;
+            }
+            if (activeVoicePlayer) {
+                try { activeVoicePlayer.stop(); activeVoicePlayer.dispose(); } catch(e) {}
+                activeVoicePlayer = null;
+            }
+            const player = new Tone.Player(url, () => {
+                player.onstop = () => {
+                    try { player.dispose(); } catch(e) {}
+                    activeVoicePlayer = null;
+                    resolve();
+                };
+                player.start();
+                activeVoicePlayer = player;
+            }).toDestination();
+            player.onerror = (err) => {
+                console.error('Tone.Player error:', err);
+                try { player.dispose(); } catch(e) {}
+                activeVoicePlayer = null;
+                reject(err);
+            };
+        });
+    }
+    
+    // เล่น Nature Effect (เสียงธรรมชาติ) ใช้ intensity คงที่ PRE_POST_EFFECT_INTENSITY
+    async function playNatureEffect(effect, destination, durationSec) {
+        if (!effect || !effect.type) {
+            console.warn('[V12.3] playNatureEffect skipped: no effect or type', effect);
+            return;
+        }
+        const intensity = PRE_POST_EFFECT_INTENSITY;
+        console.log(`[V12.3] Playing nature effect: ${effect.type}, intensity=${intensity}, duration=${durationSec}s, destination=${destination === Tone.Destination ? 'Tone.Destination' : 'other'}`);
+        try {
+            const instance = await window.NatureSounds.create(effect.type, intensity, Tone.now(), durationSec, destination);
+            if (instance) {
+                if (instance.connect) instance.connect(destination);
+                await new Promise(resolve => setTimeout(resolve, durationSec * 1000));
+                if (instance.stop) instance.stop();
+                console.log(`[V12.3] Nature effect ${effect.type} finished`);
+            } else {
+                console.warn(`[V12.3] NatureSounds.create returned null for ${effect.type}`);
+            }
+        } catch(e) {
+            console.error("[V12.3] Nature effect error:", e);
+        }
+    }
+    
+    function escapeHtml(s) {
+        if (!s) return '';
+        return String(s).replace(/[&<>]/g, m => m === '&' ? '&amp;' : (m === '<' ? '&lt;' : '&gt;'));
+    }
+    
+    // ========== MediaRecorder (ปรับลำดับ Pre/Post 3 วินาที) ==========
+    (function() {
+        let mediaRecorder = null;
+        let recordedChunks = [];
+        let animationId = null;
+        let canvas = null;
+        let recorderDestination = null;
+        let combinedStream = null;
+        let isRecording = false;
+        let recordingStartTime = 0;
+        let stopRecordingTimeout = null;
+        let dnaStarted = false;
+        let effectDurationSec = 4;   // Pre/Post stage 4 วินาที
+        
+        const mainBtn = document.getElementById('recordAndPlayBtn');
+        const timerStatusEl = document.getElementById('timerStatus');
+        const statusDiv = document.getElementById('videoStatusMsg');
+        const formatSelect = document.getElementById('videoFormatSelect');
+        
+        // ตัวแปร dynamic (จะถูกเซ็ตจาก window.currentSongDNA)
+        let videoDurationSec = 15;
+        let preImageUrl = null;     // intro_image_url
+        let postImageUrl = null;    // outro_image_url
+        let preVoiceUrl = null;
+        let postVoiceUrl = null;
+        let preEffect = null;
+        let postEffect = null;
+        
+        function setStatus(msg, type = 'info') {
+            if (!statusDiv) return;
+            statusDiv.classList.remove('recording', 'success');
+            if (type === 'recording') statusDiv.classList.add('recording');
+            else if (type === 'success') statusDiv.classList.add('success');
+            statusDiv.innerHTML = `<i class="fas ${type === 'recording' ? 'fa-circle' : (type === 'success' ? 'fa-check-circle' : 'fa-info-circle')}"></i> ${msg}`;
+        }
+        
+        function updateButtonState(recording) {
+            if (!mainBtn) return;
+            if (recording) {
+                mainBtn.disabled = true;
+                if (timerStatusEl) timerStatusEl.innerHTML = '⏺️ 00:00';
+            } else {
+                mainBtn.disabled = false;
+                if (timerStatusEl) timerStatusEl.innerHTML = `🎬 ${videoDurationSec}s`;
+            }
+        }
+        
+        function hardStopMusic() {
+            if (window.AudioController && window.AudioController.isPlaying) {
+                window.AudioController.stop();
+            }
+            if (window.Tone) {
+                Tone.Transport.cancel(0);
+                Tone.Transport.stop();
+                Tone.Transport.position = 0;
+            }
+            if (activeVoicePlayer) {
+                try { activeVoicePlayer.stop(); activeVoicePlayer.dispose(); } catch(e) {}
+                activeVoicePlayer = null;
+            }
+        }
+        
+        async function setupToneAudioStream() {
+            if (!Tone || !Tone.context) throw new Error('Tone not ready');
+            if (!recorderDestination) {
+                recorderDestination = Tone.context.createMediaStreamDestination();
+                Tone.Destination.connect(recorderDestination);
+                console.log('[V12.3] Tone destination connected to recorder stream');
+            }
+            return recorderDestination.stream;
+        }
+        
+        function stopRecordingAndSave() {
+            if (!isRecording || !mediaRecorder) return;
+            if (mediaRecorder.state === 'recording') {
+                if (stopRecordingTimeout) clearTimeout(stopRecordingTimeout);
+                if (typeof mediaRecorder.requestData === 'function') mediaRecorder.requestData();
+                mediaRecorder.stop();
+            }
+            isRecording = false;
+            if (animationId) cancelAnimationFrame(animationId);
+            if (combinedStream) {
+                combinedStream.getTracks().forEach(t => t.stop());
+                combinedStream = null;
+            }
+            hardStopMusic();
+            const cardDiv = document.querySelector('#cardContent .mlq-premium-card');
+            if (cardDiv) cardDiv.classList.remove('card-opened');
+        }
+        
+        function getMimeTypeForFormat(format) {
+            const mp4Codecs = ['video/mp4;codecs=avc1', 'video/mp4;codecs=h264', 'video/mp4'];
+            const webmCodecs = ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'];
+            const codecs = (format === 'mp4') ? mp4Codecs : webmCodecs;
+            for (const codec of codecs) {
+                if (MediaRecorder.isTypeSupported(codec)) {
+                    return codec;
+                }
+            }
+            return (format === 'mp4') ? 'video/mp4' : 'video/webm';
+        }
+        
+        function downloadFixedBlob(blob, durationMs, mimeType) {
+            return new Promise((resolve) => {
+                if (mimeType.startsWith('video/webm') && typeof fixWebmDuration === 'function') {
+                    fixWebmDuration(blob, durationMs, (fixedBlob) => {
+                        resolve(fixedBlob);
+                    });
+                } else {
+                    resolve(blob);
+                }
+            });
+        }
+        
+        function showImageOnCanvas(ctx, canvas, imgUrl, durationSec) {
+            return new Promise((resolve) => {
+                if (!imgUrl) {
+                    setTimeout(resolve, durationSec * 1000);
+                    return;
+                }
+                const img = new Image();
+                img.crossOrigin = 'Anonymous';
+                img.onload = () => {
+                    try {
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        const scale = Math.max(canvas.width / img.width, canvas.height / img.height);
+                        const x = (canvas.width - img.width * scale) / 2;
+                        const y = (canvas.height - img.height * scale) / 2;
+                        ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+                        setTimeout(resolve, durationSec * 1000);
+                    } catch(e) {
+                        console.error('[V12.3] Error drawing image:', e);
+                        setTimeout(resolve, durationSec * 1000);
+                    }
+                };
+                img.onerror = (err) => {
+                    console.error('[V12.3] Cannot load image:', imgUrl, err);
+                    setTimeout(resolve, durationSec * 1000);
+                };
+                img.src = imgUrl;
+            });
+        }
+        
+        async function startRecordAndPlay() {
+            // ปิด prerender
+            if (window.MusicPrerenderController) {
+                try {
+                    if (typeof window.MusicPrerenderController.stop === 'function') window.MusicPrerenderController.stop();
+                    if (typeof window.MusicPrerenderController.disable === 'function') window.MusicPrerenderController.disable();
+                    window.MusicPrerenderController.active = false;
+                } catch(e) {}
+            }
+            
+            // อ่านค่า dynamic จาก window.currentSongDNA (V12.x structure)
+            if (window.currentSongDNA) {
+                videoDurationSec = (window.currentSongDNA.duration_sec !== undefined && window.currentSongDNA.duration_sec !== null) 
+                    ? window.currentSongDNA.duration_sec : 15;
+                preImageUrl = window.currentSongDNA.intro_image_url || null;
+                postImageUrl = window.currentSongDNA.outro_image_url || null;
+                preVoiceUrl = window.currentSongDNA.pre_voice_url || null;
+                postVoiceUrl = window.currentSongDNA.post_voice_url || null;
+                preEffect = window.currentSongDNA.pre_effect || null;
+                postEffect = window.currentSongDNA.post_effect || null;
+                console.log(`[V12.3] Loaded: dur=${videoDurationSec}s, preImg=${preImageUrl}, postImg=${postImageUrl}, preVoice=${!!preVoiceUrl}, postVoice=${!!postVoiceUrl}, preEffect=${preEffect?.type}, postEffect=${postEffect?.type}`);
+            } else {
+                videoDurationSec = 15;
+                preImageUrl = null;
+                postImageUrl = null;
+                preVoiceUrl = null;
+                postVoiceUrl = null;
+                preEffect = null;
+                postEffect = null;
+                console.warn('[V12.3] window.currentSongDNA not found, using defaults');
+            }
+            
+            if (timerStatusEl) timerStatusEl.innerHTML = `🎬 ${videoDurationSec}s`;
+            
+            const cardDiv = document.querySelector('#cardContent .mlq-premium-card');
+            if (!cardDiv) {
+                setStatus('ไม่พบการ์ด กรุณาโหลดหน้าใหม่', 'error');
+                return;
+            }
+            cardDiv.classList.add('card-opened');
+            cardDiv.offsetHeight;
+            
+            setStatus('📷 กำลังเรนเดอร์การ์ด...', 'info');
+            
+            // 1. เรนเดอร์การ์ดเป็น canvas
+            let cardCanvas;
+            try {
+                cardCanvas = await html2canvas(cardDiv, {
+                    scale: 2,
+                    useCORS: true,
+                    backgroundColor: null,
+                    logging: false,
+                    windowWidth: cardDiv.scrollWidth,
+                    windowHeight: cardDiv.scrollHeight
+                });
+            } catch(e) {
+                setStatus(`เรนเดอร์การ์ดล้มเหลว: ${e.message}`, 'error');
+                cardDiv.classList.remove('card-opened');
+                return;
+            }
+            
+            // 2. เตรียม Audio Stream (ยังไม่ต้องเริ่ม Tone ที่นี่)
+            let audioStream;
+            try {
+                audioStream = await setupToneAudioStream();
+                if (!audioStream.getAudioTracks().length) throw new Error('Audio stream ไม่มี track เสียง');
+                audioStream.getAudioTracks().forEach(t => t.enabled = true);
+            } catch(e) {
+                setStatus(`เชื่อมต่อเสียงไม่สำเร็จ: ${e.message}`, 'error');
+                cardDiv.classList.remove('card-opened');
+                return;
+            }
+            
+            // 3. สร้าง canvas stream + รวม streams
+            const canvasWidth = cardCanvas.width;
+            const canvasHeight = cardCanvas.height;
+            canvas = document.createElement('canvas');
+            canvas.width = canvasWidth;
+            canvas.height = canvasHeight;
+            const ctx = canvas.getContext('2d');
+            const canvasStream = canvas.captureStream(30);
+            const tracks = [...canvasStream.getVideoTracks(), ...audioStream.getAudioTracks()];
+            combinedStream = new MediaStream(tracks);
+            
+            const selectedFormat = formatSelect.value;
+            let mimeType = getMimeTypeForFormat(selectedFormat);
+            const isMP4 = mimeType.startsWith('video/mp4');
+            console.log(`[V12.3] Format: ${selectedFormat}, mimeType: ${mimeType}, duration: ${videoDurationSec}s`);
+            
+            let recorderOptions = { mimeType };
+            try {
+                recorderOptions.videoBitsPerSecond = 2500000;
+                recorderOptions.audioBitsPerSecond = 128000;
+            } catch(e) {}
+            
+            mediaRecorder = new MediaRecorder(combinedStream, recorderOptions);
+            recordedChunks = [];
+            mediaRecorder.ondataavailable = e => {
+                if (e.data && e.data.size > 0) recordedChunks.push(e.data);
+            };
+            
+            mediaRecorder.onstop = async () => {
+                const rawBlob = new Blob(recordedChunks, { type: mimeType });
+                let totalDurationSec = effectDurationSec + videoDurationSec + (postVoiceUrl ? effectDurationSec : 0);
+                const totalDurationMs = totalDurationSec * 1000;
+                const finalBlob = await downloadFixedBlob(rawBlob, totalDurationMs, mimeType);
+                const now = new Date();
+                const timestamp = `${now.getFullYear()}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}_${String(now.getHours()).padStart(2,'0')}${String(now.getMinutes()).padStart(2,'0')}${String(now.getSeconds()).padStart(2,'0')}`;
+                const ext = isMP4 ? 'mp4' : 'webm';
+                const filename = `MLQ_Gift_${videoDurationSec}s_${timestamp}.${ext}`;
+                const url = URL.createObjectURL(finalBlob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                setStatus(`✅ บันทึกวิดีโอสำเร็จ (${ext.toUpperCase()})`, 'success');
+                updateButtonState(false);
+                if (timerStatusEl) timerStatusEl.innerHTML = `🎬 ${videoDurationSec}s`;
+            };
+            
+            // เริ่มบันทึก
+            mediaRecorder.start(1000);
+            isRecording = true;
+            updateButtonState(true);
+            recordingStartTime = Date.now();
+            
+            // ฟังก์ชันวาดการ์ดปกติ
+            function drawCardFrame() {
+                if (!canvas || !ctx || !isRecording) return;
+                ctx.drawImage(cardCanvas, 0, 0, canvas.width, canvas.height);
+                animationId = requestAnimationFrame(drawCardFrame);
+            }
+            
+            // ===== เปิด Tone context ก่อน Pre stage =====
+            if (Tone.context.state !== 'running') {
+                await Tone.start();
+                await Tone.context.resume();
+                console.log('[V12.3] Tone context started before Pre stage');
+            }
+            
+            // ===== PRE STAGE (อิสระ: ทำงานถ้ามีอย่างน้อย 1 ใน Voice/Image/Effect) =====
+            const preTasks = [];
+            if (preVoiceUrl) preTasks.push(playVoiceWithTone(preVoiceUrl));
+            if (preImageUrl) preTasks.push(showImageOnCanvas(ctx, canvas, preImageUrl, effectDurationSec));
+            if (preEffect) preTasks.push(playNatureEffect(preEffect, Tone.Destination, effectDurationSec));
+            if (preTasks.length > 0) {
+                setStatus('🎬 Pre stage: รูป + เสียง + Effect (3s)...', 'info');
+                await Promise.all(preTasks);
+            }
+            
+            // เริ่มวาดการ์ด และเริ่ม DNA Music
+            drawCardFrame();
+            
+            const startDNA = () => {
+                if (window.AudioController && window.currentSongDNA) {
+                    if (window.AudioController.isPlaying) window.AudioController.stop();
+                    window.AudioController.handleCombinedDNA(window.currentSongDNA.defaultDNA, window.currentSongDNA.customDNA);
+                    window.AudioController.play();
+                    dnaStarted = true;
+                    console.log('[V12.3] DNA Music started');
+                }
+            };
+            startDNA();
+            
+            // ตั้งเวลาหยุดบันทึก (หลัง DNA ครบ duration)
+            stopRecordingTimeout = setTimeout(async () => {
+                if (!isRecording) return;
+                console.log('[V12.3] DNA duration finished, stopping DNA music');
+                if (window.AudioController && window.AudioController.isPlaying) {
+                    window.AudioController.stop();
+                }
+                
+                // หยุดวาดการ์ดก่อนแสดง Post stage
+                if (animationId) cancelAnimationFrame(animationId);
+                
+                // ===== POST STAGE (อิสระ: ทำงานถ้ามีอย่างน้อย 1 ใน Voice/Image/Effect) =====
+                const postTasks = [];
+                if (postVoiceUrl) postTasks.push(playVoiceWithTone(postVoiceUrl));
+                if (postImageUrl) postTasks.push(showImageOnCanvas(ctx, canvas, postImageUrl, effectDurationSec));
+                if (postEffect) postTasks.push(playNatureEffect(postEffect, Tone.Destination, effectDurationSec));
+                if (postTasks.length > 0) {
+                    setStatus('🎬 Post stage: รูป + เสียง + Effect (3s)...', 'info');
+                    await Promise.all(postTasks);
+                }
+                
+                // หยุด MediaRecorder
+                if (mediaRecorder && mediaRecorder.state === 'recording') {
+                    mediaRecorder.stop();
+                }
+                setStatus('⏹️ สิ้นสุดการบันทึก', 'info');
+            }, videoDurationSec * 1000);
+            
+            // ตัวนับเวลาที่แสดงบน UI (เฉพาะช่วง DNA)
+            let lastRemaining = videoDurationSec;
+            const progressInterval = setInterval(() => {
+                if (!isRecording) return;
+                let elapsed = (Date.now() - recordingStartTime) / 1000;
+                let remaining = Math.max(0, videoDurationSec - elapsed);
+                let remainingInt = Math.ceil(remaining);
+                if (remainingInt !== lastRemaining) {
+                    lastRemaining = remainingInt;
+                    if (timerStatusEl) {
+                        let mins = Math.floor(remainingInt / 60);
+                        let secs = remainingInt % 60;
+                        let timeStr = `${mins.toString().padStart(2,'0')}:${secs.toString().padStart(2,'0')}`;
+                        timerStatusEl.innerHTML = `⏺️ ${timeStr}`;
+                    }
+                    setStatus(`🎬 กำลังบันทึก... เหลือ ${remainingInt} วินาที`, 'recording');
+                }
+                if (elapsed >= videoDurationSec) {
+                    clearInterval(progressInterval);
+                }
+            }, 200);
+        }
+        
+        if (mainBtn) {
+            mainBtn.addEventListener('click', startRecordAndPlay);
+        }
+        
+        window.forceStopAllMusic = function() {
+            hardStopMusic();
+            if (mediaRecorder && mediaRecorder.state === 'recording') {
+                mediaRecorder.stop();
+            }
+            if (stopRecordingTimeout) clearTimeout(stopRecordingTimeout);
+            isRecording = false;
+            const cardDiv = document.querySelector('#cardContent .mlq-premium-card');
+            if (cardDiv) cardDiv.classList.remove('card-opened');
+            updateButtonState(false);
+            if (timerStatusEl) timerStatusEl.innerHTML = `🎬 ${videoDurationSec}s`;
+            setStatus('⏹️ หยุดการบันทึก', 'info');
+        };
+        
+        // ตรวจสอบ DNA พร้อม
+        let dnaReadyInterval = setInterval(() => {
+            if (window.musicDNAReady && window.currentSongDNA) {
+                clearInterval(dnaReadyInterval);
+                if (mainBtn) {
+                    mainBtn.disabled = false;
+                    const dur = (window.currentSongDNA.duration_sec !== undefined) ? window.currentSongDNA.duration_sec : 15;
+                    if (timerStatusEl) timerStatusEl.innerHTML = `🎬 ${dur}s`;
+                    setStatus('💡 กดปุ่มเพื่อบันทึกวิดีโอ (V12.3 - Effect อิสระ, ปรับระดับเสียง)', 'info');
+                }
+            } else {
+                if (mainBtn && mainBtn.disabled === false) mainBtn.disabled = true;
+                if (timerStatusEl && !timerStatusEl.innerHTML.includes('โหลด')) {
+                    timerStatusEl.innerHTML = '⏳ โหลด...';
+                }
+                setStatus('⏳ กำลังโหลดข้อมูลเพลง...', 'info');
+            }
+        }, 300);
+        
+        setTimeout(() => {
+            if (dnaReadyInterval) {
+                clearInterval(dnaReadyInterval);
+                if (mainBtn && mainBtn.disabled) {
+                    mainBtn.disabled = false;
+                    const dur = (window.currentSongDNA?.duration_sec !== undefined) ? window.currentSongDNA.duration_sec : 15;
+                    if (timerStatusEl) timerStatusEl.innerHTML = `🎬 ${dur}s`;
+                    setStatus('💡 พร้อมบันทึก (force) กดปุ่มเพื่อบันทึก', 'info');
+                }
+            }
+        }, 10000);
+    })();
+    
+    // ========== โหลดข้อมูลการ์ด และดึง payload (แบบใหม่ pre_voice, post_voice, effect) ==========
+    document.addEventListener('DOMContentLoaded', async () => {
+        console.log('🎁 create_giftcard_video V12.3 - Pre/Post Effect อิสระ, ปรับระดับเสียง');
+        
+        await new Promise(resolve => {
+            const check = setInterval(() => {
+                if (window.AppMainController && window.DataContract && window.FormPsychomatrixController && 
+                    window.MusicStylesController && window.MusicPresetCache) {
+                    clearInterval(check); resolve(true);
+                }
+            }, 100);
+        });
+        try {
+            window.AppMainController?.initialize();
+            window.FormUIController?.initialize();
+            window.MusicStylesController?.initialize();
+            window.AudioController?.initialize();
+        } catch(e) { console.warn(e); }
+        
+        const supabase = window.supabaseClient || window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+        const shortId = new URLSearchParams(window.location.search).get('song');
+        if (!shortId) { document.getElementById('cardContent').innerHTML = '<p class="text-red-500">❌ ไม่พบซองเพลง</p>'; return; }
+        
+        let song = null;
+        const { data: direct } = await supabase.from('user_songs').select('*').eq('short_id', shortId).maybeSingle();
+        if (direct) song = direct;
+        if (!song) { document.getElementById('cardContent').innerHTML = '<p class="text-red-500">❌ ไม่พบซอง</p>'; return; }
+        supabase.from('user_songs').update({ views_count: (song.views_count||0)+1 }).eq('id', song.id).then();
+        
+        const payload = song.payload || {};
+        const userData = payload.user_data || {};
+        let receiverName = payload.receiverName || '';
+        let senderName = payload.senderName || '';
+        if (!receiverName && userData.fullName) receiverName = userData.fullName;
+        if (!receiverName && userData.nickname) receiverName = userData.nickname;
+        if (!senderName && payload.sender) senderName = payload.sender;
+        if (!senderName && userData.senderName) senderName = userData.senderName;
+        
+        const templateId = song.card_template_id || 'classic';
+        const customMsg = payload.custom_message || null;
+        const imageUrl = song.image_url || null;
+        let template = null;
+        try {
+            const { data: tmpl } = await supabase.from('card_templates').select('*').eq('id', templateId).single();
+            if (tmpl) template = tmpl;
+        } catch(e) {}
+        if (!template) template = { bg_gradient: 'linear-gradient(145deg, #f9f3e9, #fff0e0)', icon: '🎵', default_message: 'ซองดนตรีถึงคุณ' };
+        
+        let defaultDNA = null, customDNA = { sequence: [], tempo: 90, instruments: [] };
+        if (payload.musicDNA && payload.musicDNA.defaultDNA && payload.musicDNA.defaultDNA.sequence) {
+            defaultDNA = payload.musicDNA.defaultDNA;
+            customDNA = payload.musicDNA.customDNA || customDNA;
+        } else {
+            defaultDNA = { sequence: [{ note: "C4", duration: "4n", time: 0 }], instruments: ["piano"], config: { bpm: 80 } };
+        }
+        if (!defaultDNA?.sequence) { document.getElementById('cardContent').innerHTML = '<p class="text-red-500">DNA error</p>'; return; }
+        if (!defaultDNA.instruments) defaultDNA.instruments = ["piano"];
+        
+        // ฟิลด์ใหม่: pre_voice_url, post_voice_url, pre_effect, post_effect
+        const preVoiceUrl = payload.pre_voice_url || null;
+        const postVoiceUrl = payload.post_voice_url || null;
+        const preEffect = payload.pre_effect || null;
+        const postEffect = payload.post_effect || null;
+        const durationSec = (payload.duration_sec !== undefined && payload.duration_sec !== null) ? payload.duration_sec : 15;
+        const preImageUrl = payload.intro_image_url || null;   // ใช้ intro_image_url เป็น Pre Image
+        const postImageUrl = payload.outro_image_url || null;  // ใช้ outro_image_url เป็น Post Image
+        
+        window.currentSongDNA = { 
+            defaultDNA, customDNA,
+            pre_voice_url: preVoiceUrl,
+            post_voice_url: postVoiceUrl,
+            pre_effect: preEffect,
+            post_effect: postEffect,
+            duration_sec: durationSec,
+            intro_image_url: preImageUrl,
+            outro_image_url: postImageUrl
+        };
+        window.musicDNAReady = true;
+        console.log(`[V12.3] Payload loaded: duration=${durationSec}s, preImg=${preImageUrl}, postImg=${postImageUrl}, preVoice=${!!preVoiceUrl}, postVoice=${!!postVoiceUrl}, preEffect=${preEffect?.type}, postEffect=${postEffect?.type}`);
+        
+        const playUrl = song.play_url || `${window.location.origin}${window.location.pathname}?song=${shortId}`;
+        const edition = payload.edition || 'premium';
+        const themeClass = payload.theme_class || 'theme-classic';
+        
+        if (typeof window.loadEditionCSS === 'function') window.loadEditionCSS(edition);
+        else {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = `css/gift-card-${edition}.css?v=6.0`;
+            document.head.appendChild(link);
+        }
+        
+        let qrDataUrl = '';
+        try {
+            qrDataUrl = await getQrDataUrl(playUrl, 180);
+        } catch(e) { console.warn("QR generation failed", e); }
+        
+        const cardContainer = document.getElementById('cardContent');
+        if (typeof window.renderMLQGiftCard === 'function') {
+            window.renderMLQGiftCard(cardContainer, {
+                bgGradient: template.bg_gradient,
+                bgImageUrl: template.background_image_url || null,
+                icon: template.icon,
+                receiverName: receiverName,
+                message: customMsg || template.default_message,
+                imageUrl: imageUrl,
+                senderName: senderName,
+                themeClass: themeClass,
+                qrDataUrl: qrDataUrl,
+                showBadge: false
+            });
+        }
+        
+        const destinyBlueprint = payload.destinyBlueprint || null;
+        const storyHtml = destinyBlueprint ? `<div class="story-text">✨ ${escapeHtml(destinyBlueprint).replace(/\n/g,'<br>')}</div>` : `<div class="story-text">✨ เสียงเพลงจากพิมพ์เขียวชีวิตของคุณ</div>`;
+        cardContainer.insertAdjacentHTML('beforeend', `
+            <div id="detailSection" class="detail-section">
+                ${storyHtml}
+                <div class="insight-card">
+                    <div class="dna-badge">🧬 MUSIC DNA</div>
+                    <p class="text-sm mt-2">Life Path ${payload.numerology?.lifePath || '?'} / Destiny ${payload.numerology?.destiny || '?'}</p>
+                </div>
+            </div>
+            <div class="action-row">
+                <button id="toggleDetailBtn" class="story-trigger-btn"><i class="fas fa-book-open"></i> Music DNA Story</button>
+                <a href="https://mission-mlq.com" target="_blank" class="btn-register-small"><i class="fas fa-music"></i> Free! Music-MLQ</a>
+            </div>
+        `);
+        document.getElementById('toggleDetailBtn')?.addEventListener('click', () => {
+            document.getElementById('detailSection')?.classList.toggle('open');
+        });
+    });
+</script>
+
+<div id="inviteModal" style="display: none;"></div>
+</body>
+</html>
