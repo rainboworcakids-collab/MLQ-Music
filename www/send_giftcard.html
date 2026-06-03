@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MLQ Music - สร้างซองเพลง V8.0 (แยก Pre/Post Voice + Effect)</title>
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="description" content="สร้างเพลงส่วนตัวจากตัวเลขวันเกิดและชื่อของคุณ ฟรี">
+    <link rel="icon" href="icons/icon-72x72.png" type="image/png">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="tailwind-built.css">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="css/gift-card-base.css">
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: linear-gradient(145deg, #f9f3e9, #fff0e0);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            padding: 24px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .part-card {
+            background: white;
+            border-radius: 40px;
+            padding: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        .part-card2 {
+            background: linear-gradient(105deg, #faf6f6 0%, #8b5cf6 100%);
+            border-radius: 40px;
+            padding: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        .form-input, input, textarea, select {
+            border: 1px solid #e2e8f0;
+            border-radius: 0.75rem;
+            padding: 0.75rem 1rem;
+            background-color: #f9fafb;
+            width: 100%;
+            transition: all 0.2s;
+        }
+        .form-input:focus, input:focus, textarea:focus, select:focus {
+            border-color: #818cf8;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(129,140,248,0.2);
+            background-color: white;
+        }
+        .form-label {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: #374151;
+        }
+        .btn-generate {
+            background: linear-gradient(105deg, #6366f1 0%, #8b5cf6 100%);
+            color: white;
+            font-weight: bold;
+            padding: 0.75rem 2rem;
+            border-radius: 9999px;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            font-size: 1.1rem;
+            transition: opacity 0.2s;
+        }
+        .btn-generate:disabled { opacity: 0.6; cursor: not-allowed; }
+        .preview-card { max-width: 420px; margin: 0 auto; }
+        .image-preview { max-width: 180px; max-height: 180px; border-radius: 14px; object-fit: cover; border: 2px solid #e2e8f0; margin: 8px auto; }
+        .qr-result { background: #fef3e8; border-radius: 24px; padding: 20px; margin-top: 30px; text-align: center; }
+        .hidden { display: none !important; }
+        .flex-buttons { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin: 20px 0; align-items: center; }
+        .btn-icon {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: white;
+            padding: 8px 20px;
+            border-radius: 40px;
+            text-decoration: none;
+            font-weight: 600;
+            border: 1px solid #ddd;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .btn-icon i { font-size: 1rem; }
+        .btn-icon:hover { background: #f0f0f0; transform: translateY(-2px); }
+        .bg-indigo-600 { background: #4f46e5; color: white; border: none; }
+        .bg-indigo-600:hover { background: #4338ca; }
+        .bg-green-600 { background: #16a34a; color: white; border: none; }
+        .bg-green-600:hover { background: #15803d; }
+        .bg-purple-600 { background: #9333ea; color: white; border: none; }
+        .bg-purple-600:hover { background: #7e22ce; }
+        .bg-amber-500 { background: #f59e0b; color: white; border: none; }
+        .bg-amber-500:hover { background: #d97706; }
+        .bg-red-600 { background: #dc2626; color: white; border: none; }
+        .bg-red-600:hover { background: #b91c1c; }
+        .dna-iframe-container iframe { width: 100%; height: 480px; border: none; background: white; margin-bottom: 20px; border-radius: 20px; }
+        @media (max-width: 640px) { .dna-iframe-container iframe { height: 480px; } }
+        .status-message { margin-top: 10px; padding: 8px; border-radius: 12px; font-size: 0.85rem; text-align: center; }
+        .status-loading { background: #e0e7ff; color: #1e3a8a; }
+        .status-error { background: #fee2e2; color: #991b1b; }
+        .status-success { background: #d1fae5; color: #065f46; }
+        .voice-preview, .image-preview-container {
+            background: #f3f4f6;
+            border-radius: 12px;
+            padding: 12px;
+            margin-top: 8px;
+        }
+        .voice-preview audio { width: 100%; border-radius: 8px; }
+        .image-preview-container img { max-width: 100%; max-height: 120px; border-radius: 8px; margin: 0 auto; display: block; }
+        /*
+        .ai-prompt-link {
+            background: #f0e6d2;
+            border-radius: 40px;
+            padding: 10px 20px;
+            margin: 16px 0 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .ai-prompt-link p { margin: 26px 30px 8px 0px;  font-size: 0.85rem; color: #2a1a9a; }
+        */
+        .ai-prompt-link a { background: #f5b042; color: #2c241a;  margin-left: 30px; padding: 16px 28px; border-radius: 40px; text-decoration: none; font-weight: 600; font-size: .9rem; transition: 0.2s; white-space: nowrap; }
+        .ai-prompt-link a:hover { background: #e09d2a; transform: scale(0.98); }
+        .two-column-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+        .tree-column-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .two-column-layout {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+        }
+        .effect-row {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        .effect-row select {
+            flex: 2;
+        }
+        .effect-row span {
+            flex: 1;
+            font-size: 0.8rem;
+            color: #4b5563;
+            background: #eef2ff;
+            padding: 0.25rem 0.5rem;
+            border-radius: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+<div class="container mt-8">
+    <div class="part-card">
+        <div class="text-center mb-6">
+            <h1 class="text-3xl font-bold text-amber-800">🎁 สร้างซองเพลงแห่งความประทับใจ</h1>
+            <p class="text-amber-700">สร้างการ์ดอวยพร และ การ์ดโปรโมท วิดีโอโปรโมท</p>
+        </div>
+
+        <!-- iframe สร้างเพลง เก็บ Storage ก่อน -->
+        <p class="text-xl text-blue-700">🎵 กรุณาสร้าง DNA ในส่วนด้านบนก่อน</p>
+        <div class="dna-iframe-container mt-12">
+            <iframe 
+                src="https://127.0.0.1:9454/product/MLQ/MLQ-Music/send_giftcard_music.html?v=1.202"
+                title="MLQ-Music DNA Creator" 
+                sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts allow-top-navigation-by-user-activation" 
+                allow="autoplay; encrypted-media; clipboard-write" 
+                loading="lazy">
+            </iframe>
+        </div>
+
+        <!-- เลือกธีม สร้างการ์ด  -->
+        <p class="text-xl text-blue-700">🖼️ เลือกแบรนด์, ธีมการ์ด, อัปโหลดรูป และเขียนคำอวยพร</p>
+        <div class="part-card2 space-y-5">
+            <div class="ml-2" >
+                <label class="form-label">🎯 แบรนด์</label>
+                <select id="brandSelect" class="form-input">
+                    <option value="mass">⚡ Mass (ปูพรม, เทศกาล)</option>
+                    <option value="indiv">👑 Individual (เฉพาะบุคคล)</option>
+                </select>
+                <div class="text-xs text-gray-500 mt-1">เลือกแบรนด์ก่อน ระบบจะแสดงการ์ดที่เกี่ยวข้อง</div>
+            </div>
+            <div>
+                <label class="form-label">🃏 เลือกธีมการ์ดอวยพร</label>
+                <select id="cardSelect" class="form-input" disabled>
+                    <option value="">กำลังโหลดธีม...</option>
+                </select>
+                <div id="templateStatus" class="status-message status-loading">⏳ กำลังโหลดธีมการ์ด...</div>
+                
+                <div class="mt-3">
+                    <p class="text-sm font-medium text-stone-500 mb-2">✨ ตัวอย่างการ์ด (QR จะเป็นตัวแทน)</p>
+                    <div id="cardPreview" class="preview-card"></div>
+                </div>
+            </div>
+
+
+            <div class="two-column-layout space-y-5">
+                <div>
+                    <label class="form-label">📸 รูปภาพประกอบการ์ด</label>
+                    <input type="file" id="cardImage" accept="image/jpeg,image/png,image/webp" class="form-input">
+                    <div id="imagePreviewContainer" class="mt-2 hidden">
+                        <img id="imagePreviewElement" src="" class="image-preview">
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">อัปโหลดรูปส่วนตัว (สูงสุด 2MB) จะแสดงบนการ์ดแบบสี่เหลี่ยมขอบมน</p>
+                </div>
+
+                <!-- Duration Selector -->
+                <div>
+                    <label class="form-label">⏱️ ระยะเวลาดนตรีในวิดีโอ (วินาที)</label>
+                    <select id="durationSelect" class="form-input">
+                        <option value="3">3 วินาที (สั้นมาก)</option>
+                        <option value="7">7 วินาที</option>
+                        <option value="15" selected>15 วินาที (มาตรฐาน)</option>
+                        <option value="30">30 วินาที</option>
+                        <option value="60">1 นาที</option>
+                        <option value="180">3 นาที</option>
+                    </select>
+                    <p class="text-xs text-gray-500 mt-1">เลือกความยาวของเพลง DNA ที่จะบันทึกในวิดีโอ (ไม่รวมเสียงพูด)</p>
+                </div>
+            </div>
+            <div class="tree-column-layout">
+                <!-- Pre Image (Intro) -->
+                <div>
+                    <label class="form-label">🖼️ รูปภาพก่อนเพลง (Pre Image)</label>
+                    <input type="file" id="preImageInput" accept="image/jpeg,image/png,image/webp" class="form-input">
+                    <div id="preImagePreviewContainer" class="mt-2 hidden image-preview-container">
+                        <img id="preImagePreviewElement" src="" alt="pre image preview">
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">รูปที่จะแสดงในช่วง Pre (3 วินาที) ถ้าไม่เลือกจะใช้การ์ดแทน</p>
+                </div>
+
+                <!-- Post Image (Outro) -->
+                <div>
+                    <label class="form-label">🖼️ รูปภาพหลังเพลง (Post Image)</label>
+                    <input type="file" id="postImageInput" accept="image/jpeg,image/png,image/webp" class="form-input">
+                    <div id="postImagePreviewContainer" class="mt-2 hidden image-preview-container">
+                        <img id="postImagePreviewElement" src="" alt="post image preview">
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">รูปที่จะแสดงในช่วง Post (3 วินาที) ถ้าไม่เลือกจะใช้การ์ดแทน</p>
+                </div>
+                <!-- AI Prompt Helper Link -->
+                <div class="ai-prompt-link">
+                    <p><i class="fas fa-magic text-amber-600"></i>ใช้ AI สร้าง Prompt ส้างรูปประกอบการ์ด</p>
+                    <a href="./create_prompt_giftcard.html" target="_blank">✨ สร้าง Prompt รูปภาพ AI ✨</a>
+                </div>
+
+            </div>
+            <div class="two-column-layout space-y-5">
+
+                <div>
+                    <label class="form-label">👤 ชื่อผู้รับ / ข้อความหลัก <span class="text-gray-400 text-xs">(เว้นว่างได้)</span></label>
+                    <input type="text" id="receiverName" class="form-input" placeholder="เช่น 250 HUNGRY, คุณพ่อ, ทีมขาย...">
+                    <p class="text-xs text-gray-500 mt-1">จะแสดงบนการ์ดตามที่คุณพิมพ์ (ถ้าเว้นว่างจะไม่แสดงข้อความ)</p>
+                </div>
+
+                <div>
+                    <label class="form-label">✍️ ชื่อผู้ส่ง / ข้อความท้าย <span class="text-gray-400 text-xs">(เว้นว่างได้)</span></label>
+                    <input type="text" id="senderName" class="form-input" placeholder="เช่น Gourmet Eats, MLQ Music, น้องโอม...">
+                    <p class="text-xs text-gray-500 mt-1">จะแสดงบรรทัดท้ายการ์ด ถ้าไม่ใส่จะไม่แสดง</p>
+                </div>
+            </div>    
+
+            <!-- แยก Pre Voice และ Post Voice -->
+            <div class="grid grid-cols-2 gap-4 mt-2">
+                <!-- Pre Voice Note -->
+                <div>
+                    <label class="form-label">🎙️ Pre Voice Note (ก่อนเพลง)</label>
+                    <div class="flex gap-2 mb-2">
+                        <button type="button" id="preRecordVoiceBtn" class="btn-icon bg-red-600">🔴 บันทึก</button>
+                        <input type="file" id="preVoiceFileInput" accept="audio/*" class="hidden">
+                        <button type="button" id="preUploadVoiceBtn" class="btn-icon">📁 อัปโหลด</button>
+                    </div>
+                    <div id="preVoicePreview" class="hidden voice-preview">
+                        <audio id="preVoiceAudio" controls class="w-full"></audio>
+                        <div class="flex justify-between mt-2">
+                            <span id="preVoiceFilename" class="text-xs text-gray-600"></span>
+                            <button type="button" id="preClearVoiceBtn" class="text-red-500 text-xs">🗑️ ลบ</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Post Voice Note -->
+                <div>
+                    <label class="form-label">🎙️ Post Voice Note (หลังเพลง)</label>
+                    <div class="flex gap-2 mb-2">
+                        <button type="button" id="postRecordVoiceBtn" class="btn-icon bg-red-600">🔴 บันทึก</button>
+                        <input type="file" id="postVoiceFileInput" accept="audio/*" class="hidden">
+                        <button type="button" id="postUploadVoiceBtn" class="btn-icon">📁 อัปโหลด</button>
+                    </div>
+                    <div id="postVoicePreview" class="hidden voice-preview">
+                        <audio id="postVoiceAudio" controls class="w-full"></audio>
+                        <div class="flex justify-between mt-2">
+                            <span id="postVoiceFilename" class="text-xs text-gray-600"></span>
+                            <button type="button" id="postClearVoiceBtn" class="text-red-500 text-xs">🗑️ ลบ</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pre Effect และ Post Effect (เสียงธรรมชาติ) -->
+            <div class="grid grid-cols-2 gap-4 mt-2">
+                <div>
+                    <label class="form-label">🌿 Pre Effect (เสียงธรรมชาติก่อนเพลง)</label>
+                    <div class="effect-row">
+                        <select id="preEffectSelect" class="form-input">
+                            <option value="">ไม่มี</option>
+                        </select>
+                        <!-- span>ระดับ 0.5</span -->
+                    </div>
+                </div>
+                <div>
+                    <label class="form-label">🌿 Post Effect (เสียงธรรมชาติหลังเพลง)</label>
+                    <div class="effect-row">
+                        <select id="postEffectSelect" class="form-input">
+                            <option value="">ไม่มี</option>
+                        </select>
+                        <!-- span>ระดับ 0.5</span -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-2">
+                <label class="form-label">💌 ข้อความอวยพร (ปรับแต่งได้)</label>
+                <textarea id="customMessage" rows="3" class="form-input" placeholder="พิมพ์คำอวยพรจากใจคุณ..."></textarea>
+            </div>
+        </div>
+
+        <div class="mt-2 flex justify-center">
+            <button id="generateGiftBtn" class="btn-generate" disabled>✨ สร้างซองเพลง</button>
+        </div>
+        <div id="qrResult" class="qr-result hidden">
+            <p class="text-lg font-semibold text-amber-800">✅ ซองเพลงของคุณพร้อมแล้ว!</p>
+            <div class="flex-buttons mb-6">
+                <a id="playLink" href="#" target="_blank" class="btn-icon bg-indigo-600">🔗 เปิดซองเพลง</a>
+                <button id="copyLinkBtn" class="btn-icon">📋 คัดลอกลิงก์</button>
+                <button id="downloadQrBtn" class="btn-icon bg-green-600">📥 ดาวน์โหลด QR</button>
+                <button id="downloadCompositeBtn" class="btn-icon bg-purple-600">🖼️ ดาวน์โหลดการ์ด+QR</button>
+                <a id="recordVideoBtn" class="btn-icon bg-red-600" href="#" target="_blank" style="pointer-events: none; opacity: 0.5;">🎥 บันทึกคลิป (WebM)</a>
+            </div>
+            <div id="cardComposite" class="composite-card" style="display: none;"></div>
+            <button id="shareCardBtn" class="btn-icon bg-amber-500">📤 แชร์การ์ด</button>
+            <p id="lifePathDisplay" class="text-sm text-stone-500 mt-3"></p>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="config/supabase-config.js"></script>
+<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+<script src="js/debug-logger.js"></script>
+<script src="js/giftcard-render.js"></script>
+<script src="js/nature-sounds.js?v=2.0"></script>
+
+<script>
+    (function() {
+        let currentUserPlan = 'premium';
+        console.log(`🚀 send_giftcard.html V8.0 - แยก Pre/Post Voice + Pre/Post Effect`);
+
+        // DOM elements - ส่วนเดิม
+        const cardSelect = document.getElementById('cardSelect');
+        const customMessageEl = document.getElementById('customMessage');
+        const previewEl = document.getElementById('cardPreview');
+        const imageInput = document.getElementById('cardImage');
+        const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+        const imagePreviewElement = document.getElementById('imagePreviewElement');
+        const brandSelect = document.getElementById('brandSelect');
+        const generateBtn = document.getElementById('generateGiftBtn');
+        const templateStatusDiv = document.getElementById('templateStatus');
+        const receiverNameInput = document.getElementById('receiverName');
+        const senderNameInput = document.getElementById('senderName');
+        const durationSelect = document.getElementById('durationSelect');
+
+        // Pre / Post Image (เปลี่ยนชื่อเพื่อความชัดเจน)
+        const preImageInput = document.getElementById('preImageInput');
+        const preImagePreviewContainer = document.getElementById('preImagePreviewContainer');
+        const preImagePreviewElement = document.getElementById('preImagePreviewElement');
+        const postImageInput = document.getElementById('postImageInput');
+        const postImagePreviewContainer = document.getElementById('postImagePreviewContainer');
+        const postImagePreviewElement = document.getElementById('postImagePreviewElement');
+
+        // Pre Voice elements
+        const preRecordVoiceBtn = document.getElementById('preRecordVoiceBtn');
+        const preVoiceFileInput = document.getElementById('preVoiceFileInput');
+        const preUploadVoiceBtn = document.getElementById('preUploadVoiceBtn');
+        const preVoicePreview = document.getElementById('preVoicePreview');
+        const preVoiceAudio = document.getElementById('preVoiceAudio');
+        const preVoiceFilenameSpan = document.getElementById('preVoiceFilename');
+        const preClearVoiceBtn = document.getElementById('preClearVoiceBtn');
+
+        // Post Voice elements
+        const postRecordVoiceBtn = document.getElementById('postRecordVoiceBtn');
+        const postVoiceFileInput = document.getElementById('postVoiceFileInput');
+        const postUploadVoiceBtn = document.getElementById('postUploadVoiceBtn');
+        const postVoicePreview = document.getElementById('postVoicePreview');
+        const postVoiceAudio = document.getElementById('postVoiceAudio');
+        const postVoiceFilenameSpan = document.getElementById('postVoiceFilename');
+        const postClearVoiceBtn = document.getElementById('postClearVoiceBtn');
+
+        // Pre/Post Effect
+        const preEffectSelect = document.getElementById('preEffectSelect');
+        const postEffectSelect = document.getElementById('postEffectSelect');
+
+        let allTemplates = [];
+        let currentTemplate = null;
+        let currentCustomMessage = '';
+        let currentImageDataUrl = null;
+        let currentReceiverName = '';
+        let currentSenderName = '';
+
+        // Voice Blobs
+        let currentPreVoiceBlob = null;
+        let currentPreVoiceUrl = null;
+        let currentPostVoiceBlob = null;
+        let currentPostVoiceUrl = null;
+
+        // Image blobs (Pre/Post)
+        let currentPreImageBlob = null;
+        let currentPostImageBlob = null;
+
+        let supabaseClient = null;
+        function getSupabaseClient() {
+            if (supabaseClient) return supabaseClient;
+            const url = window.SUPABASE_URL || 'https://oibubvhuiuurkxhnefsw.supabase.co';
+            const key = window.SUPABASE_ANON_KEY || 'sb_publishable_VY1yVYms2SrzuUFGFO2fpQ_MRmriNsh';
+            supabaseClient = window.supabase.createClient(url, key);
+            return supabaseClient;
+        }
+
+        function escapeHtml(s) {
+            if (!s) return '';
+            return String(s).replace(/[&<>]/g, m => m === '&' ? '&amp;' : (m === '<' ? '&lt;' : '&gt;'));
+        }
+
+        function downloadImage(dataUrl, filename) {
+            const link = document.createElement('a');
+            link.href = dataUrl;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // ========== Voice Upload Helpers (generic) ==========
+        async function uploadVoiceToSupabase(blob, fileName) {
+            const supabase = getSupabaseClient();
+            const fileExt = fileName.split('.').pop() || 'webm';
+            const uniqueName = `voice_${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${fileExt}`;
+            const { error } = await supabase.storage
+                .from('voice-memories')
+                .upload(uniqueName, blob, { cacheControl: '3600', upsert: false });
+            if (error) throw new Error(`Upload failed: ${error.message}`);
+            const { data: { publicUrl } } = supabase.storage.from('voice-memories').getPublicUrl(uniqueName);
+            return publicUrl;
+        }
+
+        function clearPreVoice() {
+            if (currentPreVoiceUrl) URL.revokeObjectURL(currentPreVoiceUrl);
+            currentPreVoiceBlob = null;
+            currentPreVoiceUrl = null;
+            preVoicePreview.classList.add('hidden');
+            preVoiceAudio.src = '';
+            preVoiceFilenameSpan.textContent = '';
+            if (preVoiceFileInput) preVoiceFileInput.value = '';
+        }
+
+        function clearPostVoice() {
+            if (currentPostVoiceUrl) URL.revokeObjectURL(currentPostVoiceUrl);
+            currentPostVoiceBlob = null;
+            currentPostVoiceUrl = null;
+            postVoicePreview.classList.add('hidden');
+            postVoiceAudio.src = '';
+            postVoiceFilenameSpan.textContent = '';
+            if (postVoiceFileInput) postVoiceFileInput.value = '';
+        }
+
+        function showVoicePreview(blob, filename, isPre) {
+            const url = URL.createObjectURL(blob);
+            if (isPre) {
+                preVoiceAudio.src = url;
+                preVoiceFilenameSpan.textContent = filename;
+                preVoicePreview.classList.remove('hidden');
+                if (currentPreVoiceUrl) URL.revokeObjectURL(currentPreVoiceUrl);
+                currentPreVoiceUrl = url;
+                currentPreVoiceBlob = blob;
+            } else {
+                postVoiceAudio.src = url;
+                postVoiceFilenameSpan.textContent = filename;
+                postVoicePreview.classList.remove('hidden');
+                if (currentPostVoiceUrl) URL.revokeObjectURL(currentPostVoiceUrl);
+                currentPostVoiceUrl = url;
+                currentPostVoiceBlob = blob;
+            }
+        }
+
+        async function handleVoiceFile(file, isPre) {
+            if (!file) return;
+            if (file.size > 10 * 1024 * 1024) {
+                alert('ไฟล์เสียงต้องไม่เกิน 10MB');
+                return;
+            }
+            if (!file.type.startsWith('audio/')) {
+                alert('กรุณาเลือกไฟล์เสียง (MP3, M4A, WEBM, WAV)');
+                return;
+            }
+            showVoicePreview(file, file.name, isPre);
+        }
+
+        // MediaRecorder สำหรับ Pre/Post Voice
+        let preMediaRecorder = null;
+        let postMediaRecorder = null;
+        let preRecordedChunks = [];
+        let postRecordedChunks = [];
+
+        async function startRecording(isPre) {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                alert('เบราว์เซอร์นี้ไม่รองรับการบันทึกเสียง กรุณาอัปโหลดไฟล์แทน');
+                return;
+            }
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                const recorder = new MediaRecorder(stream);
+                const chunks = [];
+                recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
+                recorder.onstop = () => {
+                    const blob = new Blob(chunks, { type: 'audio/webm' });
+                    const filename = `record_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.webm`;
+                    showVoicePreview(blob, filename, isPre);
+                    stream.getTracks().forEach(track => track.stop());
+                };
+                recorder.start();
+                const btn = isPre ? preRecordVoiceBtn : postRecordVoiceBtn;
+                btn.textContent = '⏹️ หยุด';
+                btn.classList.remove('bg-red-600');
+                btn.classList.add('bg-gray-600');
+                const stopHandler = () => {
+                    if (recorder.state === 'recording') recorder.stop();
+                    btn.textContent = '🔴 บันทึก';
+                    btn.classList.add('bg-red-600');
+                    btn.classList.remove('bg-gray-600');
+                    btn.removeEventListener('click', stopHandler);
+                };
+                btn.addEventListener('click', stopHandler, { once: true });
+                if (isPre) preMediaRecorder = recorder;
+                else postMediaRecorder = recorder;
+            } catch (err) {
+                console.error(err);
+                alert('ไม่สามารถเข้าถึงไมโครโฟนได้');
+            }
+        }
+
+        // ========== Image Preview ==========
+        function previewImage(file, container, imgElement) {
+            if (!file) {
+                container.classList.add('hidden');
+                imgElement.src = '';
+                return;
+            }
+            const url = URL.createObjectURL(file);
+            imgElement.src = url;
+            container.classList.remove('hidden');
+        }
+
+        // ========== Upload Image to gift-images bucket ==========
+        async function uploadImageToBucket(file, prefix) {
+            const supabase = getSupabaseClient();
+            const ext = file.name.split('.').pop();
+            const fileName = `${prefix}_${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${ext}`;
+            const { error } = await supabase.storage.from('gift-images').upload(fileName, file, { cacheControl: '3600', upsert: false });
+            if (error) throw new Error(`Image upload failed: ${error.message}`);
+            const { data: { publicUrl } } = supabase.storage.from('gift-images').getPublicUrl(fileName);
+            return publicUrl;
+        }
+
+        // ========== Refresh Preview (การ์ด) ==========
+        function refreshPreview() {
+            if (!currentTemplate) return;
+            const themeToUse = currentTemplate.theme_class || 'theme-classic';
+            const messageToShow = currentCustomMessage || currentTemplate.default_message || '';
+            window.renderMLQGiftCard(previewEl, {
+                bgGradient: currentTemplate.bg_gradient,
+                bgImageUrl: currentTemplate.background_image_url || null,
+                icon: currentTemplate.icon,
+                receiverName: currentReceiverName,
+                message: messageToShow,
+                imageUrl: currentImageDataUrl,
+                senderName: currentSenderName,
+                themeClass: themeToUse,
+                isPreview: true,
+                showBadge: true
+            });
+        }
+
+        // ========== Load Templates ==========
+        async function loadTemplates() {
+            templateStatusDiv.innerHTML = '⏳ กำลังโหลดธีมการ์ด...';
+            templateStatusDiv.className = 'status-message status-loading';
+            try {
+                const supabase = getSupabaseClient();
+                const { data, error } = await supabase
+                    .from('card_templates')
+                    .select('*, inspire_message_gift, brand_type, theme_class, is_premium')
+                    .order('sort_order');
+                if (error) throw error;
+                if (!data || data.length === 0) throw new Error('No templates found');
+                allTemplates = data;
+                updateCardSelectByBrand();
+                return true;
+            } catch (err) {
+                console.error(err);
+                templateStatusDiv.innerHTML = `❌ ${err.message}`;
+                templateStatusDiv.className = 'status-message status-error';
+                generateBtn.disabled = true;
+                cardSelect.disabled = true;
+                return false;
+            }
+        }
+
+        function updateCardSelectByBrand() {
+            const brandVal = brandSelect.value;
+            let filtered = allTemplates.filter(t => t.brand_type === brandVal);
+            if (filtered.length === 0) {
+                cardSelect.innerHTML = '<option value="">ไม่พบธีมสำหรับแบรนด์นี้</option>';
+                cardSelect.disabled = true;
+                generateBtn.disabled = true;
+                return;
+            }
+            cardSelect.innerHTML = filtered.map(t => {
+                const themeDisplay = t.theme_class ? ` (${t.theme_class.replace('theme-', '')})` : '';
+                return `<option value="${t.id}" data-theme="${t.theme_class || 'theme-classic'}" data-premium="${t.is_premium}">${t.name}${themeDisplay}</option>`;
+            }).join('');
+            cardSelect.disabled = false;
+            const firstId = cardSelect.value;
+            currentTemplate = filtered.find(t => t.id == firstId) || filtered[0];
+            customMessageEl.value = currentTemplate.default_message || '';
+            currentCustomMessage = customMessageEl.value;
+            window.loadEditionCSS(currentUserPlan);
+            refreshPreview();
+            generateBtn.disabled = false;
+            templateStatusDiv.innerHTML = `✅ โหลดธีมสำเร็จ (${filtered.length} แบบ) | ใช้ CSS = ${currentUserPlan.toUpperCase()}`;
+            templateStatusDiv.className = 'status-message status-success';
+            setTimeout(() => { if(templateStatusDiv) templateStatusDiv.style.display = 'none'; }, 3000);
+        }
+
+        async function onCardSelectChange() {
+            const tid = cardSelect.value;
+            const brandVal = brandSelect.value;
+            let filtered = allTemplates.filter(t => t.brand_type === brandVal);
+            const newTemplate = filtered.find(t => t.id == tid) || filtered[0];
+            if (!newTemplate) return;
+            currentTemplate = newTemplate;
+            customMessageEl.value = currentTemplate.default_message || '';
+            currentCustomMessage = customMessageEl.value;
+            window.loadEditionCSS(currentUserPlan);
+            refreshPreview();
+        }
+
+        function bindEvents() {
+            brandSelect.addEventListener('change', () => updateCardSelectByBrand());
+            cardSelect.addEventListener('change', onCardSelectChange);
+            customMessageEl.addEventListener('input', () => {
+                currentCustomMessage = customMessageEl.value;
+                refreshPreview();
+            });
+            receiverNameInput.addEventListener('input', () => {
+                currentReceiverName = receiverNameInput.value;
+                refreshPreview();
+            });
+            senderNameInput.addEventListener('input', () => {
+                currentSenderName = senderNameInput.value;
+                refreshPreview();
+            });
+            imageInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) {
+                    currentImageDataUrl = null;
+                    imagePreviewContainer.classList.add('hidden');
+                    imagePreviewElement.src = '';
+                    refreshPreview();
+                    return;
+                }
+                if (file.size > 2 * 1024 * 1024) {
+                    alert('รูปภาพมีขนาดใหญ่เกิน 2MB');
+                    imageInput.value = '';
+                    currentImageDataUrl = null;
+                    refreshPreview();
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    currentImageDataUrl = ev.target.result;
+                    imagePreviewElement.src = currentImageDataUrl;
+                    imagePreviewContainer.classList.remove('hidden');
+                    refreshPreview();
+                };
+                reader.readAsDataURL(file);
+            });
+
+            // Pre/Post Image
+            preImageInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) {
+                    preImagePreviewContainer.classList.add('hidden');
+                    preImagePreviewElement.src = '';
+                    currentPreImageBlob = null;
+                    return;
+                }
+                if (file.size > 2 * 1024 * 1024) {
+                    alert('Pre Image ขนาดใหญ่เกิน 2MB');
+                    preImageInput.value = '';
+                    currentPreImageBlob = null;
+                    preImagePreviewContainer.classList.add('hidden');
+                    return;
+                }
+                currentPreImageBlob = file;
+                previewImage(file, preImagePreviewContainer, preImagePreviewElement);
+            });
+            postImageInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (!file) {
+                    postImagePreviewContainer.classList.add('hidden');
+                    postImagePreviewElement.src = '';
+                    currentPostImageBlob = null;
+                    return;
+                }
+                if (file.size > 2 * 1024 * 1024) {
+                    alert('Post Image ขนาดใหญ่เกิน 2MB');
+                    postImageInput.value = '';
+                    currentPostImageBlob = null;
+                    postImagePreviewContainer.classList.add('hidden');
+                    return;
+                }
+                currentPostImageBlob = file;
+                previewImage(file, postImagePreviewContainer, postImagePreviewElement);
+            });
+        }
+
+        async function uploadImage(file) {
+            const supabase = getSupabaseClient();
+            const ext = file.name.split('.').pop();
+            const fileName = `gift_${Date.now()}.${ext}`;
+            const { error } = await supabase.storage.from('gift-images').upload(fileName, file, { cacheControl: '3600', upsert: false });
+            if (error) throw error;
+            const { data: { publicUrl } } = supabase.storage.from('gift-images').getPublicUrl(fileName);
+            return publicUrl;
+        }
+
+        function extractShortId(playUrl) {
+            try {
+                const url = new URL(playUrl, window.location.href);
+                return url.searchParams.get('song');
+            } catch(e) {
+                const match = playUrl.match(/[?&]song=([^&]+)/);
+                return match ? match[1] : null;
+            }
+        }
+
+        function getLocalStorageWithPrefix(key) {
+            return localStorage.getItem('gift_' + key);
+        }
+
+        // ========== Populate Effect Dropdowns from NatureSounds ==========
+        async function populateEffectDropdowns() {
+            // รอให้ NatureSounds โหลด
+            while (!window.NatureSounds || !window.NatureSounds.creators) {
+                await new Promise(r => setTimeout(r, 100));
+            }
+            const types = Object.keys(window.NatureSounds.creators).filter(k => !k.startsWith('_'));
+            const optionsHtml = types.map(t => `<option value="${t}">${t}</option>`).join('');
+            preEffectSelect.innerHTML = `<option value="">ไม่มี</option>${optionsHtml}`;
+            postEffectSelect.innerHTML = `<option value="">ไม่มี</option>${optionsHtml}`;
+        }
+
+        // ========== GENERATE BUTTON ==========
+        generateBtn.onclick = async () => {
+            const defaultDNAStr = getLocalStorageWithPrefix('psychomatrixMusicDefault');
+            const customDNAStr = getLocalStorageWithPrefix('psychomatrixMusicCustomStyle');
+            const numerologyStr = getLocalStorageWithPrefix('psychomatrixNumerologyData');
+
+            if (!defaultDNAStr || !customDNAStr || !numerologyStr) {
+                alert("⚠️ กรุณาสร้าง DNA และตัวเลขศาสตร์ก่อน โดยกรอกข้อมูลใน iframe ด้านบน");
+                return;
+            }
+
+            let defaultDNA, customDNA, numerology;
+            try {
+                defaultDNA = JSON.parse(defaultDNAStr);
+                customDNA = JSON.parse(customDNAStr);
+                numerology = JSON.parse(numerologyStr);
+            } catch(e) {
+                alert("ข้อมูล DNA ใน localStorage เสียหาย");
+                return;
+            }
+
+            if (!defaultDNA || !defaultDNA.sequence || !defaultDNA.instruments) {
+                alert("defaultDNA ไม่สมบูรณ์");
+                return;
+            }
+            if (!customDNA || !customDNA.sequence) {
+                customDNA = { sequence: [], tempo: 90, instruments: [] };
+            }
+
+            // ไม่ต้องใช้ naturePositionSelect อีกแล้ว (ลบไป)
+            // Effect เดิมใน natureEffects จะไม่ถูกส่งไป เพราะเราจะไม่ใช้ระบบเก่า
+            // แต่เผื่อมีข้อมูลเก่าใน DNA เราจะไม่ overwrite (ปล่อยไว้)
+
+            // อัปโหลด Pre Voice
+            let preVoiceUrl = null;
+            if (currentPreVoiceBlob) {
+                generateBtn.disabled = true;
+                generateBtn.innerText = "⏳ อัปโหลด Pre Voice...";
+                try {
+                    preVoiceUrl = await uploadVoiceToSupabase(currentPreVoiceBlob, preVoiceFilenameSpan.textContent || 'pre_voice.webm');
+                    console.log("Pre Voice uploaded:", preVoiceUrl);
+                } catch (err) {
+                    alert("อัปโหลด Pre Voice ไม่สำเร็จ: " + err.message);
+                    generateBtn.disabled = false;
+                    generateBtn.innerText = "✨ สร้างซองเพลง";
+                    return;
+                }
+            }
+
+            // อัปโหลด Post Voice
+            let postVoiceUrl = null;
+            if (currentPostVoiceBlob) {
+                generateBtn.innerText = "⏳ อัปโหลด Post Voice...";
+                try {
+                    postVoiceUrl = await uploadVoiceToSupabase(currentPostVoiceBlob, postVoiceFilenameSpan.textContent || 'post_voice.webm');
+                    console.log("Post Voice uploaded:", postVoiceUrl);
+                } catch (err) {
+                    alert("อัปโหลด Post Voice ไม่สำเร็จ: " + err.message);
+                    generateBtn.disabled = false;
+                    generateBtn.innerText = "✨ สร้างซองเพลง";
+                    return;
+                }
+            }
+
+            // อัปโหลด Pre / Post Image
+            let preImageUrl = null, postImageUrl = null;
+            if (currentPreImageBlob) {
+                try {
+                    preImageUrl = await uploadImageToBucket(currentPreImageBlob, 'pre');
+                } catch(e) { alert("อัปโหลด Pre Image ไม่สำเร็จ: " + e.message); return; }
+            }
+            if (currentPostImageBlob) {
+                try {
+                    postImageUrl = await uploadImageToBucket(currentPostImageBlob, 'post');
+                } catch(e) { alert("อัปโหลด Post Image ไม่สำเร็จ: " + e.message); return; }
+            }
+
+            // Effect objects (intensity คงที่ 0.5)
+            const preEffect = preEffectSelect.value ? { type: preEffectSelect.value, intensity: 0.5 } : null;
+            const postEffect = postEffectSelect.value ? { type: postEffectSelect.value, intensity: 0.5 } : null;
+
+            const durationSec = parseInt(durationSelect.value, 10);
+            const lifePath = numerology.lifePath;
+            const destiny = numerology.destinyNumber;
+            const rawBirthDate = "01/01/2000";
+            const birthTime = "06:30";
+            const cardId = cardSelect.value;
+            const customMessage = customMessageEl.value.trim();
+            const brand = brandSelect.value;
+            const mode = "gift";
+            const receiverName = receiverNameInput.value.trim();
+            const senderName = senderNameInput.value.trim();
+            
+            const filteredTemplates = allTemplates.filter(t => t.brand_type === brand);
+            const selectedTemplate = filteredTemplates.find(t => t.id == cardId) || filteredTemplates[0];
+            const themeClass = selectedTemplate ? (selectedTemplate.theme_class || 'theme-classic') : 'theme-classic';
+            const editionForCard = selectedTemplate?.is_premium ? 'premium' : 'basic';
+
+            generateBtn.disabled = true;
+            generateBtn.innerText = "⏳ กำลังอัปโหลดรูปและบันทึกซองเพลง...";
+
+            try {
+                let imageUrl = null;
+                const imageFile = imageInput.files[0];
+                if (imageFile) {
+                    try {
+                        imageUrl = await uploadImage(imageFile);
+                    } catch(uploadErr) {
+                        alert("อัปโหลดรูปไม่สำเร็จ (แต่จะดำเนินการต่อโดยไม่มีรูป)");
+                    }
+                }
+
+                let destinyBlueprint = getLocalStorageWithPrefix('current_destiny_blueprint');
+                if (!destinyBlueprint) {
+                    destinyBlueprint = `✨ เส้นทางชีวิตหมายเลข ${lifePath} ผสานกับพรหมลิขิต ${destiny} สร้างเป็นแรงสั่นสะเทือนทางดนตรีที่สะท้อนตัวตนของคุณ`;
+                }
+
+                const supabaseUrl = window.SUPABASE_URL;
+                const supabaseKey = window.SUPABASE_ANON_KEY;
+                if (!supabaseUrl || !supabaseKey) throw new Error('Missing Supabase config');
+
+                const payloadForEdge = {
+                    fullName: receiverName || '',
+                    birthDate: rawBirthDate,
+                    birthTime,
+                    card_template_id: cardId,
+                    custom_message: customMessage,
+                    numerologyData: { lifePath, destiny },
+                    musicDNA: { defaultDNA, customDNA },
+                    brand, mode,
+                    image_url: imageUrl,
+                    card_mode: "greeting",
+                    destinyBlueprint,
+                    receiverName: receiverName,
+                    senderName: senderName,
+                    theme_class: themeClass,
+                    edition: editionForCard,
+                    // ฟิลด์ใหม่ (แทนที่ voice_url เดิม)
+                    pre_voice_url: preVoiceUrl,
+                    post_voice_url: postVoiceUrl,
+                    pre_effect: preEffect,
+                    post_effect: postEffect,
+                    duration_sec: durationSec,
+                    intro_image_url: preImageUrl,   // ชื่อเดิม intro_image_url แต่ใช้เป็น Pre Image
+                    outro_image_url: postImageUrl   // ชื่อเดิม outro_image_url แต่ใช้เป็น Post Image
+                };
+
+                const edgeRes = await fetch(`${supabaseUrl}/functions/v1/generate-music-qr`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'apikey': supabaseKey },
+                    body: JSON.stringify(payloadForEdge)
+                });
+
+                const edgeData = await edgeRes.json();
+                if (!edgeRes.ok || !edgeData.success) throw new Error(edgeData.error || 'Edge function error');
+
+                const qrDataUrl = edgeData.qr_data_url;
+                const playUrl = edgeData.play_url;
+                const finalLifePath = edgeData.lifePath || lifePath;
+                const finalDestiny = edgeData.destiny || destiny;
+
+                document.getElementById('playLink').href = playUrl;
+                document.getElementById('lifePathDisplay').innerHTML = `✨ Life Path ${finalLifePath} | Destiny ${finalDestiny}`;
+                document.getElementById('qrResult').classList.remove('hidden');
+
+                document.getElementById('copyLinkBtn').onclick = () => {
+                    navigator.clipboard.writeText(playUrl);
+                    alert('คัดลอกลิงก์แล้ว');
+                };
+                document.getElementById('downloadQrBtn').onclick = () => downloadImage(qrDataUrl, 'QR-MLQMusic.png');
+
+                const cardDiv = document.getElementById('cardComposite');
+                window.renderMLQGiftCard(cardDiv, {
+                    bgGradient: selectedTemplate.bg_gradient,
+                    bgImageUrl: selectedTemplate.background_image_url || null,
+                    icon: selectedTemplate.icon,
+                    receiverName: receiverName,
+                    message: customMessage || selectedTemplate.default_message || '',
+                    imageUrl: imageUrl,
+                    senderName: senderName,
+                    themeClass: themeClass,
+                    qrDataUrl: qrDataUrl,
+                    showBadge: false
+                });
+                cardDiv.style.display = 'block';
+
+                cardDiv.addEventListener('click', (e) => {
+                    if (e.target.closest('.qr-in-card') || e.target.closest('.mlq-sender')) return;
+                    if (cardDiv.classList.contains('theme-premium')) {
+                        cardDiv.classList.toggle('open');
+                    }
+                });
+
+                document.getElementById('downloadCompositeBtn').onclick = async () => {
+                    try {
+                        const canvas = await html2canvas(cardDiv, { scale: 2, backgroundColor: null, useCORS: true });
+                        downloadImage(canvas.toDataURL('image/png'), 'MLQ-GreetingCard.png');
+                    } catch (err) {
+                        alert('ไม่สามารถสร้างภาพการ์ดได้ (CORS หรือรูปภาพ)');
+                    }
+                };
+                document.getElementById('shareCardBtn').onclick = async () => {
+                    try {
+                        const canvas = await html2canvas(cardDiv, { scale: 2, useCORS: true });
+                        const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
+                        const file = new File([blob], 'MLQ-GreetingCard.png', { type: 'image/png' });
+                        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                            await navigator.share({ title: 'MLQ Music', files: [file] });
+                        } else {
+                            const url = URL.createObjectURL(blob);
+                            downloadImage(url, 'MLQ-GreetingCard.png');
+                            URL.revokeObjectURL(url);
+                            alert('อุปกรณ์ไม่รองรับการแชร์ไฟล์');
+                        }
+                    } catch (e) {
+                        alert('แชร์ไม่สำเร็จ');
+                    }
+                };
+
+                const recordBtn = document.getElementById('recordVideoBtn');
+                const shortId = extractShortId(playUrl);
+                if (shortId) {
+                    recordBtn.href = `./create_giftcard_video.html?song=${shortId}`;
+                    recordBtn.style.pointerEvents = 'auto';
+                    recordBtn.style.opacity = '1';
+                    recordBtn.setAttribute('target', '_blank');
+                } else {
+                    recordBtn.href = playUrl + (playUrl.includes('?') ? '&video=1' : '?video=1');
+                    recordBtn.style.pointerEvents = 'auto';
+                    recordBtn.style.opacity = '1';
+                    recordBtn.setAttribute('target', '_blank');
+                }
+
+            } catch (err) {
+                console.error(err);
+                alert("เกิดข้อผิดพลาด: " + err.message);
+            } finally {
+                generateBtn.disabled = false;
+                generateBtn.innerText = "✨ สร้างซองเพลง";
+            }
+        };
+
+        // ========== Voice UI Events ==========
+        preUploadVoiceBtn.addEventListener('click', () => preVoiceFileInput.click());
+        preVoiceFileInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files[0]) handleVoiceFile(e.target.files[0], true);
+        });
+        preRecordVoiceBtn.addEventListener('click', () => startRecording(true));
+        preClearVoiceBtn.addEventListener('click', () => clearPreVoice());
+
+        postUploadVoiceBtn.addEventListener('click', () => postVoiceFileInput.click());
+        postVoiceFileInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files[0]) handleVoiceFile(e.target.files[0], false);
+        });
+        postRecordVoiceBtn.addEventListener('click', () => startRecording(false));
+        postClearVoiceBtn.addEventListener('click', () => clearPostVoice());
+
+        (async function init() {
+            await populateEffectDropdowns();
+            const success = await loadTemplates();
+            if (success) bindEvents();
+        })();
+    })();
+</script>
+</body>
+</html>

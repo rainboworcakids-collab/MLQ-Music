@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>MLQ Music - ดนตรีบำบัด & การหายใจ (CSS Animation Stable)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="tailwind-built.css">
+    <script src="https://unpkg.com/tone@14.7.77/build/Tone.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config/supabase-config.js"></script>
+    <!-- MLQ Music Engine Modules -->
+    <script src="js/debug-logger.js"></script>
+    <script src="js/data-contract.js"></script>
+    <script src="js/client-edge-function-integration.js"></script>
+    <script src="js/app-main.js"></script>
+    <script src="js/music-preset-cache.js"></script>
+    <script src="js/music-styles.js"></script>
+    <script src="js/nature-sounds.js"></script>
+    <script src="js/music-audio.js"></script>
+    <script src="js/music-prerender.js"></script>
+    <style>
+        body { background: #f8fafc; font-family: 'Inter', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .container { max-width: 500px; width: 100%; padding: 20px; }
+        .breathing-circle { 
+            width: 200px; height: 200px; border-radius: 50%; 
+            margin: 2rem auto; display: flex; align-items: center; justify-content: center; 
+            background: radial-gradient(circle at 30% 30%, #a5b4fc, #4f46e5); 
+            box-shadow: 0 0 30px rgba(79,70,229,0.4); 
+        }
+        /* CSS Keyframes เหมือน play-story สำเนา (2) ที่ใช้ได้ */
+        @keyframes inhaleAnim {
+            0% { transform: scale(1); }
+            100% { transform: scale(1.3); }
+        }
+        @keyframes holdAnim {
+            0% { transform: scale(1.3); }
+            100% { transform: scale(1.3); }
+        }
+        @keyframes exhaleAnim {
+            0% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+        @keyframes restAnim {
+            0% { transform: scale(1); }
+            100% { transform: scale(1); }
+        }
+        .breathing-circle.inhale { animation: inhaleAnim var(--dur, 4s) forwards ease-in-out; }
+        .breathing-circle.hold { animation: holdAnim var(--dur, 4s) forwards; }
+        .breathing-circle.exhale { animation: exhaleAnim var(--dur, 6s) forwards ease-in-out; }
+        .breathing-circle.rest { animation: restAnim var(--dur, 4s) forwards; }
+        
+        .step-title { font-size: 1.5rem; font-weight: 700; text-align: center; margin-bottom: 0.5rem; color: #1e293b; }
+        .step-instruction { text-align: center; color: #475569; margin-bottom: 1.5rem; font-size: 1.1rem; line-height: 1.6; }
+        .timer-text { font-size: 2rem; font-weight: 700; color: white; text-shadow: 0 0 10px rgba(0,0,0,0.7); }
+        .controls { display: flex; justify-content: center; gap: 1rem; margin-top: 1.5rem; flex-wrap: wrap; }
+        .btn { background: #4f46e5; color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 9999px; font-size: 1rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: all 0.2s; }
+        .btn:hover { background: #4338ca; transform: scale(0.98); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .hidden { display: none; }
+        .select-box, .time-btn { padding: 0.5rem 1rem; border-radius: 20px; border: 1px solid #ccc; font-size: 0.9rem; margin: 0.25rem; cursor: pointer; background: white; }
+        .time-btn.active { background: #4f46e5; color: white; border-color: #4f46e5; }
+        .modal { display: none; position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
+        .modal-content { background: white; padding: 30px; border-radius: 20px; max-width: 400px; text-align: left; }
+        .close-btn { float: right; background: none; border: none; font-size: 1.5rem; cursor: pointer; }
+        .countdown { font-size: 4rem; font-weight: 700; color: #4f46e5; text-align: center; }
+        .dna-option { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 15px 0 5px; font-size: 0.95rem; background: #f1f5f9; padding: 8px 16px; border-radius: 40px; width: fit-content; margin-left: auto; margin-right: auto; }
+        .dna-option input { width: 18px; height: 18px; cursor: pointer; }
+        .dna-option label { cursor: pointer; font-weight: 500; color: #1e293b; }
+        .inspire-box { background: #fef9e7; border-left: 4px solid #f59e0b; border-radius: 12px; padding: 12px 16px; margin: 16px 0; text-align: left; font-size: 0.85rem; line-height: 1.6; color: #5a4a3a; }
+        .cta-footer { margin: 1rem 0 0.5rem; text-align: center; }
+        .btn-cta { display: inline-block; background: #f59e0b; color: white; padding: 10px 24px; border-radius: 40px; font-size: 0.9rem; font-weight: 600; text-decoration: none; transition: all 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .btn-cta:hover { background: #d97706; transform: scale(1.02); }
+        .loading-spinner { border: 3px solid #e2e8f0; border-top: 3px solid #4f46e5; border-radius: 50%; width: 32px; height: 32px; animation: spin 0.8s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div id="loading" class="text-center p-6">⏳ กำลังโหลด...</div>
+    <div id="storyContent" class="hidden">
+        <div class="text-center mb-4">
+            <span id="cardIcon" class="text-5xl"></span>
+            <h2 id="cardName" class="text-xl font-bold text-gray-800 mt-2"></h2>
+        </div>
+        <div id="breathingUI" class="hidden">
+            <div class="flex flex-wrap justify-center items-center gap-2 mb-3">
+                <label>🧘 เทคนิค:</label>
+                <select id="techniqueSelect" class="select-box"></select>
+                <button id="infoBtn" class="btn" style="padding:0.5rem 1rem;">ℹ️</button>
+            </div>
+            <div class="flex justify-center flex-wrap gap-2 mb-4">
+                <span>⏱️ เวลา:</span>
+                <button class="time-btn active" data-min="1">1 นาที</button>
+                <button class="time-btn" data-min="3">3 นาที</button>
+                <button class="time-btn" data-min="5">5 นาที</button>
+                <button class="time-btn" data-min="7">7 นาที</button>
+                <button class="time-btn" data-min="10">10 นาที</button>
+            </div>
+            <div class="dna-option">
+                <input type="checkbox" id="enableDnaCheckbox" checked>
+                <label for="enableDnaCheckbox">🎵 เล่นเพลง DNA ประกอบการฝึก (ต่อเนื่อง)</label>
+            </div>
+        </div>
+        <div id="stepDisplay">
+            <div id="breathingCircle" class="breathing-circle"><span id="timerDisplay" class="timer-text"></span></div>
+            <div id="countdownDisplay" class="countdown hidden"></div>
+            <div class="step-title" id="stepTitle"></div>
+            <div class="step-instruction" id="stepInstruction"></div>
+        </div>
+        <div class="controls">
+            <button id="startBtn" class="btn">▶ เริ่มฝึก</button>
+            <button id="pauseBtn" class="btn hidden">⏸️ หยุดชั่วคราว</button>
+            <button id="skipBtn" class="btn hidden">⏭️ ข้าม</button>
+        </div>
+        <div id="completionMessage" class="hidden text-center mt-4">
+            <p class="text-green-600 font-semibold text-xl">✨ คุณทำครบตามเวลาแล้ว!</p>
+            <p class="text-gray-500 mt-2">การฝึกหายใจร่วมกับดนตรี DNA ช่วยบำบัดจิตใจ</p>
+        </div>
+    </div>
+    <div id="infoModal" class="modal"><div class="modal-content"><button class="close-btn" onclick="closeModal()">&times;</button><h3 id="modalTitle"></h3><p id="modalBody"></p></div></div>
+</div>
+<script>
+    (async function() {
+        const SUPABASE_URL = window.SUPABASE_URL;
+        const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY;
+        if (!SUPABASE_URL || !SUPABASE_ANON_KEY) { alert("Config error"); return; }
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        const params = new URLSearchParams(window.location.search);
+        const templateId = params.get('tid');
+        const songShortId = params.get('song');
+        if (!templateId) { document.getElementById('loading').innerHTML = '<p class="text-red-500">❌ ไม่พบรหัสการ์ด</p>'; return; }
+
+        const { data: template } = await supabase.from('card_templates').select('*').eq('id', templateId).single();
+        if (!template) { document.getElementById('loading').innerHTML = '<p class="text-red-500">❌ ไม่พบข้อมูลการ์ด</p>'; return; }
+
+        document.getElementById('loading').classList.add('hidden');
+        document.getElementById('storyContent').classList.remove('hidden');
+        document.getElementById('cardIcon').textContent = template.icon;
+        document.getElementById('cardName').textContent = template.name;
+
+        // ---------- โหลดข้อมูลเพลงและข้อความการตลาดจาก user_songs ----------
+        let currentSongDNA = null;
+        let inspireMessage = null;
+        let ctaText = null;
+        let ctaUrl = null;
+
+        if (songShortId) {
+            try {
+                const { data: songData } = await supabase.from('user_songs').select('payload').eq('short_id', songShortId).maybeSingle();
+                if (songData?.payload) {
+                    if (songData.payload.musicDNA?.defaultDNA) {
+                        currentSongDNA = {
+                            defaultDNA: songData.payload.musicDNA.defaultDNA,
+                            customDNA: songData.payload.musicDNA.customDNA || { sequence: [], tempo: 90, instruments: [] }
+                        };
+                        console.log("✅ โหลด DNA Music สำเร็จ");
+                    } else {
+                        console.warn("ไม่พบ musicDNA ใน payload");
+                    }
+                    inspireMessage = songData.payload.inspire_message || null;
+                    ctaText = songData.payload.cta_text || null;
+                    ctaUrl = songData.payload.cta_url || null;
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        function injectMarketingElements() {
+            const breathingUIParent = document.getElementById('breathingUI');
+            if (!breathingUIParent) return;
+            if (document.querySelector('.inspire-box')) return;
+            let inspireHtml = '';
+            if (inspireMessage && inspireMessage.trim() !== '') {
+                inspireHtml = `<div class="inspire-box">${escapeHtml(inspireMessage).replace(/\n/g, '<br>')}</div>`;
+            }
+            let ctaHtml = '';
+            if (ctaText && ctaText.trim() !== '' && ctaUrl && ctaUrl.trim() !== '') {
+                ctaHtml = `<div class="cta-footer"><a href="${escapeHtml(ctaUrl)}" target="_blank" class="btn-cta"><i class="fas fa-magic"></i> ${escapeHtml(ctaText)}</a></div>`;
+            }
+            if (inspireHtml || ctaHtml) {
+                const dnaOption = breathingUIParent.querySelector('.dna-option');
+                if (dnaOption && dnaOption.nextSibling) {
+                    dnaOption.insertAdjacentHTML('afterend', inspireHtml + ctaHtml);
+                } else {
+                    breathingUIParent.insertAdjacentHTML('beforeend', inspireHtml + ctaHtml);
+                }
+            }
+        }
+
+        function escapeHtml(s) {
+            if (!s) return '';
+            return String(s).replace(/[&<>]/g, m => m === '&' ? '&amp;' : (m === '<' ? '&lt;' : '&gt;'));
+        }
+
+        async function startDNAMusic() {
+            if (!currentSongDNA || !currentSongDNA.defaultDNA || !currentSongDNA.defaultDNA.sequence) return false;
+            if (!window.AudioController) return false;
+            try {
+                if (Tone.context.state !== 'running') await Tone.start();
+                if (window.AudioController.isPlaying) window.AudioController.stop();
+                window.AudioController.handleCombinedDNA(currentSongDNA.defaultDNA, currentSongDNA.customDNA);
+                window.AudioController.play();
+                return true;
+            } catch(e) { console.error("startDNAMusic error", e); return false; }
+        }
+        function stopDNAMusic() {
+            if (window.AudioController && window.AudioController.isPlaying) window.AudioController.stop();
+        }
+
+        if (template.category === 'breathing') {
+            document.getElementById('breathingUI').classList.remove('hidden');
+            injectMarketingElements();
+
+            const { data: techniques } = await supabase.from('breathing_techniques').select('*').order('sort_order');
+            if (!techniques?.length) { alert('ไม่มีเทคนิคการหายใจ'); return; }
+
+            const techSelect = document.getElementById('techniqueSelect');
+            techSelect.innerHTML = techniques.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+
+            let selectedMinutes = 1;
+            document.querySelectorAll('.time-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    selectedMinutes = parseInt(btn.dataset.min);
+                    resetState();
+                });
+            });
+
+            const infoBtn = document.getElementById('infoBtn');
+            const infoModal = document.getElementById('infoModal');
+            infoBtn.onclick = () => {
+                const tech = techniques.find(t => t.id === techSelect.value);
+                document.getElementById('modalTitle').textContent = tech.name;
+                document.getElementById('modalBody').textContent = tech.description;
+                infoModal.style.display = 'flex';
+            };
+            window.closeModal = () => infoModal.style.display = 'none';
+
+            const circle = document.getElementById('breathingCircle');
+            const timerDisplay = document.getElementById('timerDisplay');
+            const stepTitle = document.getElementById('stepTitle');
+            const stepInstruction = document.getElementById('stepInstruction');
+            const startBtn = document.getElementById('startBtn');
+            const pauseBtn = document.getElementById('pauseBtn');
+            const skipBtn = document.getElementById('skipBtn');
+            const completionMsg = document.getElementById('completionMessage');
+            const countdownDisplay = document.getElementById('countdownDisplay');
+            const stepDisplayDiv = document.getElementById('stepDisplay');
+            const enableDnaCheckbox = document.getElementById('enableDnaCheckbox');
+
+            let currentSteps = [];
+            let currentStepIndex = 0;
+            let totalRoundsLeft = 1;
+            let timerInterval = null;
+            let trainingActive = false;
+            let isPausedState = false;
+            let dnaPlaying = false;
+
+            async function loadSteps(techniqueId) {
+                const { data } = await supabase.from('storytelling_steps').select('*').eq('template_id', templateId).eq('technique_id', techniqueId).order('step_order');
+                return data || [];
+            }
+
+            function stopTimer() { if (timerInterval) clearInterval(timerInterval); }
+
+            function setBreathingAnimation(step) {
+                const durationSec = step.duration_seconds || 4;
+                circle.style.setProperty('--dur', durationSec + 's');
+                circle.classList.remove('inhale', 'hold', 'exhale', 'rest');
+                const title = (step.title || '').toLowerCase();
+                if (title.includes('หายใจเข้า') || title.includes('inhale')) circle.classList.add('inhale');
+                else if (title.includes('กลั้น') || title.includes('hold')) circle.classList.add('hold');
+                else if (title.includes('หายใจออก') || title.includes('exhale')) circle.classList.add('exhale');
+                else circle.classList.add('rest');
+                if (step.color_start && step.color_end)
+                    circle.style.background = `radial-gradient(circle at 30% 30%, ${step.color_start}, ${step.color_end})`;
+                else
+                    circle.style.background = `radial-gradient(circle at 30% 30%, #a5b4fc, #4f46e5)`;
+                void circle.offsetHeight; // force reflow
+            }
+
+            function displayStep(index) {
+                if (!trainingActive) return;
+                if (index >= currentSteps.length) {
+                    if (totalRoundsLeft > 1) { totalRoundsLeft--; currentStepIndex = 0; displayStep(0); }
+                    else {
+                        stepDisplayDiv.classList.add('hidden');
+                        document.querySelector('.controls').classList.add('hidden');
+                        completionMsg.classList.remove('hidden');
+                        stopTimer();
+                        trainingActive = false;
+                        if (dnaPlaying) { stopDNAMusic(); dnaPlaying = false; }
+                    }
+                    return;
+                }
+                const step = currentSteps[index];
+                stepTitle.textContent = step.title;
+                stepInstruction.textContent = step.instruction;
+                let secondsLeft = step.duration_seconds || 0;
+                timerDisplay.textContent = secondsLeft;
+                timerDisplay.classList.remove('hidden');
+                countdownDisplay.classList.add('hidden');
+                setBreathingAnimation(step);
+                stopTimer();
+                timerInterval = setInterval(() => {
+                    if (!isPausedState && trainingActive) {
+                        secondsLeft = Math.max(0, secondsLeft - 1);
+                        timerDisplay.textContent = secondsLeft;
+                        if (secondsLeft <= 0) {
+                            clearInterval(timerInterval);
+                            currentStepIndex++;
+                            displayStep(currentStepIndex);
+                        }
+                    }
+                }, 1000);
+            }
+
+            function calculateTotalRounds(totalSec) {
+                const roundSec = currentSteps.reduce((sum, s) => sum + (s.duration_seconds||0), 0);
+                return roundSec > 0 ? Math.ceil(totalSec / roundSec) : 1;
+            }
+
+            async function resetState() {
+                stopTimer();
+                trainingActive = false;
+                isPausedState = false;
+                if (dnaPlaying) { stopDNAMusic(); dnaPlaying = false; }
+                currentSteps = await loadSteps(techSelect.value);
+                if (!currentSteps.length) return;
+                stepDisplayDiv.classList.remove('hidden');
+                completionMsg.classList.add('hidden');
+                startBtn.classList.remove('hidden');
+                pauseBtn.classList.add('hidden');
+                skipBtn.classList.add('hidden');
+                timerDisplay.classList.add('hidden');
+                countdownDisplay.classList.add('hidden');
+                circle.classList.remove('inhale', 'hold', 'exhale', 'rest');
+                currentStepIndex = 0;
+                totalRoundsLeft = calculateTotalRounds(selectedMinutes * 60);
+                if (currentSteps[0]) {
+                    stepTitle.textContent = currentSteps[0].title;
+                    stepInstruction.textContent = currentSteps[0].instruction;
+                }
+                pauseBtn.textContent = '⏸️ หยุดชั่วคราว';
+            }
+
+            startBtn.onclick = async () => {
+                if (!currentSteps.length) return;
+                startBtn.classList.add('hidden');
+                countdownDisplay.classList.remove('hidden');
+                timerDisplay.classList.add('hidden');
+                for (let i = 3; i > 0; i--) { countdownDisplay.textContent = i; await new Promise(r => setTimeout(r, 1000)); }
+                countdownDisplay.textContent = 'เริ่ม!';
+                await new Promise(r => setTimeout(r, 500));
+                countdownDisplay.classList.add('hidden');
+                trainingActive = true;
+                isPausedState = false;
+                pauseBtn.textContent = '⏸️ หยุดชั่วคราว';
+                pauseBtn.classList.remove('hidden');
+                skipBtn.classList.remove('hidden');
+                currentStepIndex = 0;
+                totalRoundsLeft = calculateTotalRounds(selectedMinutes * 60);
+                displayStep(0);
+                if (enableDnaCheckbox.checked && currentSongDNA && !dnaPlaying) {
+                    const started = await startDNAMusic();
+                    dnaPlaying = started;
+                }
+            };
+
+            pauseBtn.onclick = async () => {
+                if (!trainingActive) return;
+                isPausedState = !isPausedState;
+                pauseBtn.textContent = isPausedState ? '▶️ เล่นต่อ' : '⏸️ หยุดชั่วคราว';
+                if (isPausedState) {
+                    circle.style.animationPlayState = 'paused';
+                    if (dnaPlaying) { stopDNAMusic(); dnaPlaying = false; }
+                } else {
+                    circle.style.animationPlayState = 'running';
+                    if (enableDnaCheckbox.checked && currentSongDNA && !dnaPlaying) {
+                        const started = await startDNAMusic();
+                        dnaPlaying = started;
+                    }
+                }
+            };
+
+            skipBtn.onclick = () => {
+                if (!trainingActive) return;
+                stopTimer();
+                if (dnaPlaying) { stopDNAMusic(); dnaPlaying = false; }
+                currentStepIndex++;
+                if (currentStepIndex >= currentSteps.length) {
+                    if (totalRoundsLeft > 1) { totalRoundsLeft--; currentStepIndex = 0; displayStep(0); }
+                    else {
+                        stepDisplayDiv.classList.add('hidden');
+                        document.querySelector('.controls').classList.add('hidden');
+                        completionMsg.classList.remove('hidden');
+                        trainingActive = false;
+                        isPausedState = false;
+                    }
+                } else {
+                    displayStep(currentStepIndex);
+                }
+            };
+
+            enableDnaCheckbox.addEventListener('change', async () => {
+                if (trainingActive && !isPausedState) {
+                    if (enableDnaCheckbox.checked && currentSongDNA && !dnaPlaying) {
+                        const started = await startDNAMusic();
+                        dnaPlaying = started;
+                    } else if (!enableDnaCheckbox.checked && dnaPlaying) {
+                        stopDNAMusic();
+                        dnaPlaying = false;
+                    }
+                }
+            });
+
+            techSelect.onchange = resetState;
+            await resetState();
+        } else {
+            const { data: steps } = await supabase.from('storytelling_steps').select('*').eq('template_id', templateId).order('step_order');
+            if (!steps?.length) {
+                document.getElementById('stepDisplay').innerHTML = '<p class="text-center text-red-500">ไม่มีเนื้อหาสำหรับการ์ดนี้</p>';
+            } else {
+                document.getElementById('stepDisplay').innerHTML = `<div class="text-center p-4 bg-amber-50 rounded-xl">✨ เนื้อหาสำหรับการ์ดนี้ยังไม่รองรับการเล่นเพลง DNA แบบต่อเนื่อง แต่คุณสามารถฟังเพลงจาก <a href="?song=${songShortId}" target="_blank">ลิงก์ซองเพลง</a> ได้</div>`;
+            }
+        }
+    })();
+</script>
+</body>
+</html>

@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>MLQ Music – ซองดนตรีฟรีสำหรับคุณ</title>
+
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="tailwind-built.css">
+
+    <!-- Core Dependencies -->
+    <script src="https://unpkg.com/tone@14.7.77/build/Tone.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config/supabase-config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1"></script>
+
+    <!-- MLQ Engine (specific) -->
+    <script src="js/debug-logger.js"></script>
+    <script src="js/data-contract.js"></script>
+    <script src="js/client_edge-function-integration.js"></script>
+    <script src="js/app-main.js"></script>
+    <script src="js/music-preset-cache.js"></script>
+    <script src="js/music-styles.js"></script>
+    <script src="js/nature-sounds.js"></script>
+    <script src="js/music-audio.js"></script>
+    <script src="js/music-prerender.js"></script>
+
+    <style>
+        :root {
+            --box-bg: #f7ede3;
+            --ribbon-color: #cb7b3c;
+            --box-shadow: rgba(0,0,0,0.2);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: linear-gradient(145deg, #f9f3e9, #fff0e0);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: background 1s ease;
+            overflow-x: hidden;
+        }
+
+        /* Hero */
+        .hero {
+            text-align: center;
+            padding: 2rem 1rem 1.5rem;
+            max-width: 600px;
+        }
+        .hero h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #4a3f35;
+            margin-bottom: 0.5rem;
+        }
+        .hero p {
+            color: #6b5e53;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        /* Form */
+        .form-card {
+            background: white;
+            border-radius: 24px;
+            padding: 2rem 1.5rem;
+            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 460px;
+            margin: 0 1rem 2rem;
+        }
+        .form-group {
+            margin-bottom: 1.2rem;
+        }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            color: #4a3f35;
+            margin-bottom: 0.3rem;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 14px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        .form-group input:focus {
+            border-color: #f59e0b;
+            outline: none;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+            border: none;
+            padding: 0.9rem;
+            border-radius: 60px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 6px 20px rgba(245,158,11,0.3);
+        }
+        .btn-primary:hover {
+            transform: scale(0.98);
+        }
+
+        /* ===== Gift Box & Card Styles ===== */
+        .gift-container {
+            max-width: 500px;
+            width: 100%;
+            margin: 0 auto;
+            perspective: 1200px;
+            text-align: center;
+            display: none;
+        }
+        .gift-box {
+            position: relative;
+            width: 240px;
+            height: 260px;
+            margin: 0 auto 40px;
+            cursor: pointer;
+            transform-style: preserve-3d;
+            transition: transform 0.3s;
+            pointer-events: auto;
+        }
+        .gift-box > *:not(.greeting-card):not(.greeting-card *) {
+            pointer-events: none;
+        }
+        .greeting-card, .greeting-card * {
+            pointer-events: auto;
+        }
+        .gift-box:hover { transform: scale(1.02); }
+        .gift-box.opening .box-lid {
+            animation: lidOpen 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        .gift-box.opening .box-body {
+            animation: bodyReveal 1.2s ease forwards;
+        }
+        .gift-box.opening .ribbon-left,
+        .gift-box.opening .ribbon-right {
+            animation: ribbonFall 0.8s ease forwards;
+        }
+        .gift-box.opening .tissue-paper {
+            animation: tissueFly 1s ease forwards;
+        }
+        .gift-box.opened .greeting-card {
+            animation: cardRise 1s ease 0.8s forwards;
+        }
+
+        .box-body {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 180px;
+            background: var(--box-bg);
+            border-radius: 16px 16px 24px 24px;
+            box-shadow: 0 15px 30px var(--box-shadow), inset 0 -10px 20px rgba(0,0,0,0.05);
+            z-index: 1;
+            overflow: hidden;
+        }
+        .box-body::after {
+            content: '';
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            height: 4px;
+            background: rgba(0,0,0,0.1);
+            border-radius: 2px;
+        }
+        .box-lid {
+            position: absolute;
+            top: 0;
+            left: -5%;
+            width: 110%;
+            height: 100px;
+            background: var(--box-bg);
+            border-radius: 20px 20px 8px 8px;
+            box-shadow: 0 8px 20px var(--box-shadow);
+            z-index: 10;
+            transform-origin: left bottom;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .lid-top {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70%;
+            height: 30px;
+            background: var(--box-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .ribbon-left, .ribbon-right {
+            position: absolute;
+            top: -20px;
+            width: 30px;
+            height: 120px;
+            background: var(--ribbon-color);
+            z-index: 11;
+            border-radius: 4px;
+        }
+        .ribbon-left { left: 35%; }
+        .ribbon-right { right: 35%; }
+        .ribbon-cross {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70%;
+            height: 20px;
+            background: var(--ribbon-color);
+            z-index: 11;
+            border-radius: 6px;
+        }
+        .bow {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 12;
+            font-size: 3rem;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
+            animation: bowBounce 2s ease-in-out infinite;
+        }
+        @keyframes bowBounce {
+            0%,100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(-8px); }
+        }
+        .tissue-paper {
+            position: absolute;
+            top: 30px;
+            left: 10%;
+            width: 80%;
+            height: 60px;
+            background: rgba(255,255,255,0.8);
+            border-radius: 50%;
+            z-index: 2;
+            filter: blur(2px);
+        }
+        .tag {
+            position: absolute;
+            top: 50px;
+            right: -30px;
+            background: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #5a4a3a;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            z-index: 13;
+            transform: rotate(8deg);
+        }
+
+        .greeting-card {
+            position: absolute;
+            bottom: -999px;
+            left: 5%;
+            width: 90%;
+            background: white;
+            border-radius: 20px;
+            padding: 24px 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            z-index: 0;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(100px);
+            transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .gift-box.opened .greeting-card {
+            bottom: -220px;
+            opacity: 1;
+            transform: translateY(0);
+            z-index: 20;
+        }
+        .greeting-icon { font-size: 3rem; margin-bottom: 0.5rem; }
+        .greeting-title { font-size: 1.6rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .greeting-message { font-size: 1rem; line-height: 1.6; margin-bottom: 1.2rem; white-space: pre-wrap; word-break: break-word; }
+
+        .btn {
+            border: none;
+            padding: 10px 22px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+        .btn-music { background: #d98c2b; color: white; }
+        .btn-music:hover { background: #b96f1a; transform: scale(0.97); }
+        .btn-stop { background: #6b7280; color: white; }
+        .btn-stop:hover { background: #4b5563; }
+
+        @keyframes lidOpen {
+            0% { transform: rotateX(0); }
+            100% { transform: rotateX(-120deg) translateY(-40px); opacity: 0.8; }
+        }
+        @keyframes bodyReveal {
+            0% { transform: scale(1); }
+            100% { transform: scale(0.95); }
+        }
+        @keyframes ribbonFall {
+            0% { transform: translateY(0) rotate(0); opacity: 1; }
+            100% { transform: translateY(100px) rotate(20deg); opacity: 0; }
+        }
+        @keyframes tissueFly {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-200px) scale(1.5); opacity: 0; }
+        }
+
+        .particles-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+        }
+        .particle {
+            position: absolute;
+            animation: particleFall linear forwards;
+        }
+        @keyframes particleFall {
+            0% { transform: translateY(-100px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+        }
+
+        .footer-cta {
+            text-align: center;
+            padding: 1rem 1rem 2rem;
+            max-width: 500px;
+            font-size: 0.95rem;
+            color: #4a3f35;
+            display: none;
+        }
+        .footer-cta a {
+            color: #4f46e5;
+            font-weight: 600;
+            text-decoration: underline;
+        }
+        .dev-badge {
+            position: fixed;
+            bottom: 10px;
+            left: 10px;
+            background: #333;
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            z-index: 9999;
+        }
+
+        @media (max-width: 540px) {
+            .gift-box { width: 200px; height: 230px; }
+            .box-body { height: 150px; }
+            .box-lid { height: 80px; }
+            .greeting-card { padding: 18px 14px; }
+            .gift-box.opened .greeting-card { bottom: -190px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <h1>🎵 ค้นพบเพลงแห่งชีวิตคุณ</h1>
+        <p>🧬 ทุกคนเกิดมาพร้อมกับ <strong>รหัสตัวเลขเฉพาะตัว</strong> – เราเปลี่ยนวันเกิดของคุณให้กลายเป็นเสียงดนตรีที่สอดคล้องกับพลังงานของคุณ ไม่ใช่ AI ทั่วไป</p>
+    </div>
+
+    <div class="form-card" id="formCard">
+        <div class="form-group">
+            <label>📛 ชื่อเล่น (ไม่จำเป็น)</label>
+            <input type="text" id="fullName" placeholder="เช่น คุณ">
+        </div>
+        <div class="form-group">
+            <label>📅 วันเกิด <span style="color:red">*</span></label>
+            <input type="text" id="birthDate" placeholder="DD/MM/YYYY" required>
+        </div>
+        <div class="form-group">
+            <label>⏰ เวลาเกิด (โดยประมาณ)</label>
+            <input type="time" id="birthTime" value="06:30">
+        </div>
+        <button id="generateBtn" class="btn-primary">✨ เปิดซองดนตรีของฉัน</button>
+    </div>
+
+    <div class="gift-container" id="giftContainer">
+        <div class="gift-box" id="giftBox">
+            <div class="box-lid"><div class="lid-top"></div></div>
+            <div class="ribbon-left"></div><div class="ribbon-right"></div><div class="ribbon-cross"></div>
+            <div class="bow" id="bowIcon">🎀</div>
+            <div class="box-body"><div class="tissue-paper"></div></div>
+            <div class="tag" id="tagText">แตะเพื่อเปิด</div>
+            <div class="greeting-card" id="greetingCard">
+                <div id="cardContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer-cta" id="footerCTA">
+        <p>🧬 นี่เป็นเพียงตัวอย่าง – <a href="demo.html" target="_blank">ลงทะเบียน MLQ-Music Basic ฟรี</a> เพื่อรับดนตรีบำบัดเฉพาะตัวเต็มรูปแบบ</p>
+    </div>
+
+    <div class="particles-container" id="particlesContainer"></div>
+
+    <script>
+        const SUPABASE_URL = window.SUPABASE_URL;
+        const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY;
+
+        const CARD_THEMES = {
+            classic: {
+                boxBg: '#f7ede3', ribbon: '#cb7b3c', bow: '🎀', tag: 'ซองดนตรีถึงคุณ!',
+                icon: '🎵', bg: 'linear-gradient(145deg, #f9f3e9, #fff0e0)',
+                message: 'นี่คือซองดนตรีที่ส่งตรงถึงคุณ 🎵\nเราหวังว่ามันจะทำให้คุณยิ้มได้\nดนตรีคือของขวัญที่ไม่มีวันหมดอายุ\nส่งต่อความสุขนี้ให้คนที่คุณรักได้นะ',
+                particles: { type: 'sparkle', colors: ['#ffd700','#c0c0c0'], count: 40, spread: 60 },
+                sound: 'gentle'
+            }
+        };
+
+        function getTheme() { return CARD_THEMES.classic; }
+
+        function escapeHtml(s) {
+            if (!s) return '';
+            return String(s).replace(/[&<>]/g, m => m === '&' ? '&amp;' : m === '<' ? '&lt;' : '&gt;');
+        }
+
+        // ========== Numerology helpers ==========
+        function reduceToSingleDigit(num) { 
+            while(num > 9) {
+                let s = 0;
+                while(num > 0) { s += num % 10; num = Math.floor(num / 10); }
+                num = s;
+            }
+            return num;
+        }
+
+        function getMusicPreviewUrl(lp) {
+            const trackId = (reduceToSingleDigit(lp) % 10) + 1;
+            return `https://www.soundhelix.com/examples/mp3/SoundHelix-Song-${trackId}.mp3`;
+        }
+
+        function playThemeSound(type) {
+            if (!window.Tone) return;
+            try {
+                const now = Tone.now();
+                if (type === 'gentle') {
+                    const synth = new Tone.Synth({ oscillator: { type: 'sine' } }).toDestination();
+                    synth.triggerAttackRelease('C5', '16n', now);
+                    synth.triggerAttackRelease('E5', '16n', now + 0.12);
+                    synth.triggerAttackRelease('G5', '16n', now + 0.24);
+                    setTimeout(() => synth.dispose(), 2000);
+                }
+            } catch(e) {}
+        }
+
+        function triggerParticles(config) {
+            if (typeof confetti === 'undefined') return;
+            confetti({ particleCount: config.count, spread: config.spread, colors: config.colors, origin: { y: 0.6 } });
+        }
+
+        function openBox() {
+            console.log('🎁 openBox triggered');
+            const box = document.getElementById('giftBox');
+            if (!box || box.classList.contains('opening') || box.classList.contains('opened')) return;
+            box.classList.add('opening');
+            setTimeout(() => { box.classList.add('opened'); box.classList.remove('opening'); }, 1200);
+            if (window._currentTheme) {
+                playThemeSound(window._currentTheme.sound || 'gentle');
+                triggerParticles(window._currentTheme.particles);
+            }
+            document.getElementById('tagText').textContent = 'เปิดแล้ว! 🎉';
+        }
+
+        // ========== Play/Stop helpers ==========
+        function promoStopAll() {
+            if (window.MusicPrerenderController) {
+                window.MusicPrerenderController.pause();
+            }
+            const audio = document.getElementById('previewAudio');
+            if (audio) {
+                audio.pause();
+                audio.currentTime = 0;
+            }
+            const playBtn = document.getElementById('playDnaBtn');
+            if (playBtn) playBtn.innerHTML = '<i class="fas fa-play"></i> ฟังเพลง DNA';
+        }
+
+        function promoStartPlayback() {
+            promoStopAll();
+            const lp = window._promoLifePath || 1;
+
+            if (window.MusicPrerenderController && window.MusicPrerenderController.hasBlob) {
+                window.MusicPrerenderController.play();
+                const playBtn = document.getElementById('playDnaBtn');
+                if (playBtn) playBtn.innerHTML = '<i class="fas fa-music"></i> กำลังเล่น DNA';
+                return;
+            }
+
+            const audio = document.getElementById('previewAudio');
+            if (audio) {
+                audio.src = getMusicPreviewUrl(lp);
+                audio.play().catch(e => console.warn('preview play failed', e));
+                const playBtn = document.getElementById('playDnaBtn');
+                if (playBtn) playBtn.innerHTML = '<i class="fas fa-play"></i> กำลังเล่นพรีวิว';
+            }
+        }
+
+        async function createCard() {
+            console.log ("Promo: Create card");
+            
+            const fullName = document.getElementById('fullName').value.trim() || 'คุณ';
+            const birthDate = document.getElementById('birthDate').value.trim();
+            const birthTime = document.getElementById('birthTime').value || '06:30';
+
+            if (!birthDate || !/^\d{2}\/\d{2}\/\d{4}$/.test(birthDate)) {
+                alert('กรุณากรอกวันเกิดในรูปแบบ DD/MM/YYYY');
+                return;
+            }
+
+            const btn = document.getElementById('generateBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ กำลังสร้าง...';
+
+            try {
+                const functionName = window.EDGE_FUNCTIONS?.generateMusicQR || 'generate-music-qr';
+                const url = `${SUPABASE_URL}/functions/v1/${functionName}`;
+
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
+                    body: JSON.stringify({
+                        fullName,
+                        birthDate,
+                        birthTime,
+                        card_template_id: 'classic',
+                        custom_message: null,
+                        is_promo: true
+                    })
+                });
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error);
+
+                document.getElementById('formCard').style.display = 'none';
+                const giftContainer = document.getElementById('giftContainer');
+                giftContainer.style.display = 'block';
+
+                const theme = getTheme();
+                window._currentTheme = theme;
+                document.body.style.background = theme.bg;
+                document.documentElement.style.setProperty('--box-bg', theme.boxBg);
+                document.documentElement.style.setProperty('--ribbon-color', theme.ribbon);
+                document.getElementById('bowIcon').textContent = theme.bow;
+                document.getElementById('tagText').textContent = theme.tag;
+
+                const cardContent = document.getElementById('cardContent');
+                const lifePath = data.lifePath || '?';
+                const destiny = data.destiny || '?';
+                const presetId = 'basic.earth.lofi';
+                const qrDataUrl = data.qr_data_url || '';
+
+                window._promoLifePath = lifePath; // เก็บไว้ให้ฟังก์ชันเล่นเพลงใช้
+
+                cardContent.innerHTML = `
+                    <div class="greeting-icon">${theme.icon}</div>
+                    <h2 class="greeting-title">✨ ${escapeHtml(fullName)}</h2>
+                    <p class="greeting-message">${escapeHtml(theme.message).replace(/\n/g, '<br>')}</p>
+                    <div>
+                        <button id="playDnaBtn" class="btn btn-music"><i class="fas fa-play"></i> ฟังเพลง DNA</button>
+                        <button id="stopDnaBtn" class="btn btn-stop"><i class="fas fa-stop"></i> หยุด</button>
+                    </div>
+                    <audio id="previewAudio" style="display:none"></audio>
+                    <div class="mt-4">
+                        <img src="${qrDataUrl}" alt="QR Code" style="width:120px; border-radius:16px;">
+                        <p class="text-xs mt-2">สแกนเพื่อแชร์ซองนี้</p>
+                    </div>
+                    <p class="text-sm mt-2">Life Path ${lifePath} / Destiny ${destiny}</p>
+                    <p class="text-xs text-stone-400">โทนเสียง ${presetId}</p>
+                `;
+
+                // โหลด preset และ dispatch event ให้ prerender
+                const parts = presetId.split('.');
+                const edition = parts[0]||'basic', element = parts[1]||'earth', stylePart = parts[2]||'lofi';
+                try {
+                    const presetObj = await window.MusicPresetCache.getPreset(edition, element, stylePart);
+                    window._presetObj = presetObj;
+                    window.dispatchEvent(new CustomEvent('musicPointerChanged', {
+                        detail: { activeDNA: presetObj, source: 'promo' },
+                        bubbles: true
+                    }));
+                    console.log('✅ Preset loaded and event dispatched');
+                } catch(e) {
+                    console.warn('Preset load failed, music may not play', e);
+                }
+
+                // ผูกปุ่ม play/stop (ครั้งเดียวหลังจาก HTML ถูก inject)
+                const playDnaBtn = document.getElementById('playDnaBtn');
+                const stopDnaBtn = document.getElementById('stopDnaBtn');
+                if (playDnaBtn) playDnaBtn.addEventListener('click', promoStartPlayback);
+                if (stopDnaBtn) stopDnaBtn.addEventListener('click', promoStopAll);
+
+                document.getElementById('footerCTA').style.display = 'block';
+
+            } catch (err) {
+                alert('เกิดข้อผิดพลาด: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '✨ เปิดซองดนตรีของฉัน';
+            }
+        }
+
+        // ========== EVENT LISTENERS ==========
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log ("Promo: event click create card");
+            document.getElementById('generateBtn').addEventListener('click', createCard);
+            
+            const giftBox = document.getElementById('giftBox');
+            if (giftBox) {
+                giftBox.addEventListener('click', openBox);
+                console.log('🎁 Gift box click listener attached');
+            }
+
+            const fn = window.EDGE_FUNCTIONS?.generateMusicQR || 'generate-music-qr';
+            const badge = document.createElement('div');
+            badge.className = 'dev-badge';
+            badge.textContent = '⚙️ ' + fn;
+            document.body.appendChild(badge);
+        });
+    </script>
+</body>
+</html>

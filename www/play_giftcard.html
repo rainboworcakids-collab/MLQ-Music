@@ -1,0 +1,804 @@
+<!-- play_giftcard.html V3.9.1 - ใช้ Tone.js สำหรับ Voice Pre, แก้ไขปัญหาเสียงขาดและคุณภาพ -->
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>MLQ Music - เปิดซองดนตรี DNA V3.9.1</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="tailwind-built.css">
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- QR Code Library -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+
+    <script src="https://unpkg.com/tone@14.7.77/build/Tone.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config/supabase-config.js"></script>
+
+    <!-- MLQ Music Engine Modules -->
+    <script src="js/debug-logger.js"></script>
+    <script src="js/data-contract.js?v=2.1"></script>
+    <script src="js/client_edge-function-integration.js?v=3.9"></script>   
+    <script src="js/app-main.js?v=7.9"></script>
+    <script src="js/form-psychomatrix.js?v=3.6.4"></script>
+    <script src="js/form-ui.js?v=2.9.7"></script>
+    <script src="js/music-preset-cache.js"></script>  
+    <script src="js/music-styles.js?v=5.8"></script>
+    <script src="js/nature-sounds.js?v=2.0"></script>
+    <script src="js/music-audio.js?v=6.9.6"></script> 
+    <script src="js/music-prerender.js?v=1.6"></script>
+    <script src="js/storytelling-engine.js?v=1.3"></script>
+
+    <!-- ไฟล์กลาง render การ์ด (ใช้ร่วมกับ send_giftcard, play_giftcard_video) -->
+    <script src="js/giftcard-render.js"></script>
+
+    <style>
+        /* ========== สไตล์ที่จำเป็นสำหรับ play_giftcard เท่านั้น (ไม่ทับ gift-card-premium.css) ========== */
+        /* คง style ของกล่องของขวัญ, ปุ่ม, timer, story ไว้ทั้งหมด (ไม่เกี่ยวกับการ์ด) */
+        :root { --box-bg: #f7ede3; --ribbon-color: #cb7b3c; --box-shadow: rgba(0,0,0,0.2); }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            background: linear-gradient(145deg, #f9f3e9, #fff0e0);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+        .gift-container {
+            max-width: 500px;
+            width: 100%;
+            margin: 0 auto;
+            text-align: center;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 80vh;
+        }
+        .gift-box { position: relative; width: 240px; height: 260px; margin: 20px auto; cursor: pointer; transform-style: preserve-3d; transition: transform 0.3s, opacity 0.5s, visibility 0.5s; z-index: 10; }
+        .gift-box:hover { transform: scale(1.02); }
+        .gift-box.opening .box-lid { animation: lidOpen 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+        .gift-box.opening .box-body { animation: bodyReveal 1.2s ease forwards; }
+        .gift-box.opening .ribbon-left, .gift-box.opening .ribbon-right { animation: ribbonFall 0.8s ease forwards; }
+        .gift-box.opening .tissue-paper { animation: tissueFly 1s ease forwards; }
+        .gift-box.opened { animation: fadeOutBox 0.5s forwards; pointer-events: none; }
+        @keyframes fadeOutBox { to { opacity: 0; visibility: hidden; display: none; } }
+        .box-body {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 180px;
+            background: var(--box-bg);
+            border-radius: 16px 16px 24px 24px;
+            box-shadow: 0 15px 30px var(--box-shadow), inset 0 -10px 20px rgba(0,0,0,0.05);
+            z-index: 1;
+            overflow: hidden;
+        }
+        .box-lid {
+            position: absolute;
+            top: 0;
+            left: -5%;
+            width: 110%;
+            height: 100px;
+            background: var(--box-bg);
+            border-radius: 20px 20px 8px 8px;
+            box-shadow: 0 8px 20px var(--box-shadow);
+            z-index: 10;
+            transform-origin: left bottom;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .lid-top {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70%;
+            height: 30px;
+            background: var(--box-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .ribbon-left, .ribbon-right {
+            position: absolute;
+            top: -20px;
+            width: 30px;
+            height: 120px;
+            background: var(--ribbon-color);
+            z-index: 11;
+            border-radius: 4px;
+        }
+        .ribbon-left { left: 35%; }
+        .ribbon-right { right: 35%; }
+        .ribbon-cross {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 70%;
+            height: 20px;
+            background: var(--ribbon-color);
+            z-index: 11;
+            border-radius: 6px;
+        }
+        .bow {
+            position: absolute;
+            top: -30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 12;
+            font-size: 3rem;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
+            animation: bowBounce 2s ease-in-out infinite;
+        }
+        @keyframes bowBounce { 0%,100% { transform: translateX(-50%) translateY(0); } 50% { transform: translateX(-50%) translateY(-8px); } }
+        .tissue-paper {
+            position: absolute;
+            top: 30px;
+            left: 10%;
+            width: 80%;
+            height: 60px;
+            background: rgba(255,255,255,0.8);
+            border-radius: 50%;
+            z-index: 2;
+            filter: blur(2px);
+        }
+        .tag {
+            position: absolute;
+            top: 50px;
+            right: -30px;
+            background: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #5a4a3a;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            z-index: 13;
+            transform: rotate(8deg);
+        }
+        @keyframes lidOpen {
+            0% { transform: rotateX(0); }
+            100% { transform: rotateX(-120deg) translateY(-40px); opacity: 0.8; }
+        }
+        @keyframes bodyReveal { 100% { transform: scale(0.95); } }
+        @keyframes ribbonFall {
+            0% { transform: translateY(0) rotate(0); opacity: 1; }
+            100% { transform: translateY(100px) rotate(20deg); opacity: 0; }
+        }
+        @keyframes tissueFly {
+            0% { transform: translateY(0) scale(1); opacity: 1; }
+            100% { transform: translateY(-200px) scale(1.5); opacity: 0; }
+        }
+        .greeting-card {
+            position: relative;
+            width: 100%;
+            max-width: 420px;
+            margin: 20px auto 0;
+            background: transparent;
+            border-radius: 28px;
+            padding: 0;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.4s ease, visibility 0.4s;
+            pointer-events: none;
+        }
+        .gift-box.opened ~ .greeting-card,
+        .gift-box.opened .greeting-card {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            margin-top: 10px;
+        }
+        
+        /* ========== ปุ่ม ฯลฯ (คงเดิม) ========== */
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0px;
+            min-width: auto;
+            max-width: 100%;
+            border: none;
+            border-radius: 60px;
+            font-size: 1rem;
+            font-weight: 600;
+            font-family: inherit;
+            color: white;
+            cursor: pointer;
+            background: linear-gradient(105deg, #6366f1 0%, #8b5cf6 100%);
+            background-size: 120% auto;
+            box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.3);
+            transition: all 0.3s ease;
+            width: auto;
+            margin: 0 auto;
+        }
+        .btn-primary:hover {
+            transform: translateY(-3px) scale(1.02);
+            background: linear-gradient(105deg, #4f46e5 0%, #7c3aed 100%);
+            box-shadow: 0 18px 25px -10px rgba(79, 70, 229, 0.4);
+        }
+        .btn-inner {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 60px;
+            padding: 1px 25px 1px 1px;
+            width: auto;
+        }
+        .logo-icon { width: 68px; height: 68px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+        .btn-text { display: flex; flex-direction: column; align-items: flex-start; text-align: left; }
+        .btn-small-text { font-size: 0.9rem; font-weight: 500; color: #e0ffe0; line-height: 1.2; padding-left: 8px; }
+        .btn-primary .modal-title { font-size: 1.2rem; font-weight: 700; margin: 0; color: white; line-height: 1.3; }
+        .timer-status { color: #fbbf24; font-size: 0.9rem; text-align: center; font-weight: 600; background: rgba(0,0,0,0.3); padding: 4px 12px; border-radius: 40px; white-space: nowrap; margin-left: 10px; }
+        .stop-clock-container { display: flex; justify-content: center; align-items: flex-start; gap: 15px; margin: 20px 0 12px; flex-wrap: wrap; }
+        .stop-clock-card { background: rgba(0,0,0,0.5); backdrop-filter: blur(8px); border: 1px solid rgba(99,102,241,0.4); border-radius: 16px; padding: 8px 12px; text-align: center; min-width: 70px; }
+        .stop-clock-number { font-size: 1.8rem; font-weight: 700; color: #fbbf24; cursor: pointer; }
+        .stop-clock-label { font-size: 0.65rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
+        .stop-min-sec-row { display: flex; flex-direction: row; align-items: center; gap: 15px; justify-content: center; }
+        .stop-ampm { font-size: 0.75rem; color: #f59e0b; font-weight: 600; margin-top: 2px; }
+        .adj-btn { background: rgba(99,102,241,0.3); border: 1px solid rgba(99,102,241,0.6); color: white; width: 26px; height: 26px; border-radius: 50%; font-size: 0.9rem; line-height: 1; cursor: pointer; margin: 4px 2px; transition: all 0.2s; }
+        .adj-btn:hover { background: #6366f1; border-color: #6366f1; }
+        .stop-right-column { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .btn-timer { padding: 8px 20px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s; border: 1px solid transparent; }
+        .btn-timer-off { background: #475569; color: #cbd5e1; box-shadow: 0 4px 6px rgba(0,0,0,0.3); border-color: #64748b; }
+        .btn-timer-on { background: #10b981; color: white; box-shadow: inset 0 2px 4px rgba(0,0,0,0.3); border-color: #059669; }
+        .action-row { display: flex; justify-content: center; gap: 16px; align-items: center; margin: 16px 0 8px; flex-wrap: wrap; }
+        .story-trigger-btn { background: linear-gradient(135deg, #f5d0a9, #f7bc7a); border: none; padding: 6px 14px; border-radius: 40px; font-size: 0.75rem; font-weight: 600; color: #4a2c14; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-register-small { background: linear-gradient(105deg, #6366f1 0%, #8b5cf6 100%); color: white; padding: 6px 14px; border-radius: 40px; font-size: 0.75rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 4px; transition: all 0.2s; }
+        .btn-register-small:hover { transform: scale(1.02); opacity: 0.9; }
+        .detail-section { margin-top: 1rem; display: none; text-align: left; max-height: 300px; overflow-y: auto; padding-right: 8px; }
+        .detail-section.open { display: block; }
+        .story-text { font-size: 0.85rem; color: #5a4a3a; background: #fef9e7; border-radius: 12px; padding: 12px; border-left: 4px solid #f59e0b; line-height: 1.6; }
+        .insight-card { background: #fff; border-radius: 20px; padding: 16px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); text-align: center; }
+        .dna-badge { background: linear-gradient(135deg, #f5d0a9, #f7bc7a); padding: 4px 12px; border-radius: 30px; font-size: 0.7rem; font-weight: 600; display: inline-block; }
+        .loading-spinner { border: 3px solid #f3f3f3; border-top: 3px solid #f59e0b; border-radius: 50%; width: 32px; height: 32px; animation: spin 1s linear infinite; margin: 0 auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        @media (max-width: 540px) {
+            .gift-box { width: 200px; height: 230px; }
+            .greeting-card { max-width: 340px; }
+            .stop-clock-number { font-size: 1.2rem; }
+            .logo-icon { width: 50px; height: 50px; }
+            .btn-small-text { font-size: 0.7rem; }
+            .btn-primary .modal-title { font-size: 0.9rem; }
+            .timer-status { font-size: 0.7rem; padding: 2px 8px; }
+            .btn-inner { padding: 1px 16px 1px 1px; gap: 6px; }
+        }
+        #inviteModal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(12px);
+            z-index: 20000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+<div class="gift-container">
+    <div class="gift-box" id="giftBox" onclick="openBox()">
+        <div class="box-lid"><div class="lid-top"></div></div>
+        <div class="ribbon-left"></div>
+        <div class="ribbon-right"></div>
+        <div class="ribbon-cross"></div>
+        <div class="bow" id="bowIcon">🎀</div>
+        <div class="box-body"><div class="tissue-paper"></div></div>
+        <div class="tag" id="tagText">แตะเพื่อเปิด</div>
+    </div>
+    <div class="greeting-card" id="greetingCard">
+        <div id="cardContent">
+            <div class="loading-spinner"></div>
+            <p class="text-center text-stone-500 text-sm mt-2">กำลังโหลดซองเพลง...</p>
+        </div>
+    </div>
+    <div id='playMainButton' class="hidden">
+        <div class="stop-clock-container hidden">
+            <div class="stop-clock-card"><div class="stop-clock-label">Stop Hr</div><button class="adj-btn" id="stopHrUp">+</button><span class="stop-clock-number" id="hours_stop">12</span><button class="adj-btn" id="stopHrDown">–</button><div class="stop-ampm" id="stopAMPM">AM</div></div>
+            <div class="stop-clock-card"><div class="stop-clock-label">Stop Min</div><button class="adj-btn" id="stopMinUp">+</button><span class="stop-clock-number" id="minutes_stop">00</span><button class="adj-btn" id="stopMinDown">–</button></div>
+            <div class="stop-clock-card"><div class="stop-clock-label">Stop Sec</div><button class="adj-btn" id="stopSecUp">+</button><span class="stop-clock-number" id="seconds_stop">00</span><button class="adj-btn" id="stopSecDown">–</button></div>
+            <div class="stop-right-column"><button id="toggleTimerBtn" class="btn-timer btn-timer-off">⏻ Timer Off</button></div>
+        </div>
+        <div style="text-align: center; margin: 20px 0 10px;">
+            <button id="playButton" class="btn-primary">
+                <div class="btn-inner">
+                    <img class="logo-icon" src="icons/icon-512x512.png" alt="MLQ-Music">
+                    <h3 class="text-xl font-bold mt-4"><i id="playIcon" class="fas fa-play"></i></h3>
+                    <div class="btn-text">
+                        <span class="btn-small-text">ฟังเพลง</span>
+                        <h2 class="modal-title">DNA ของขวัญ</h2>
+                    </div>
+                    <div id="timerStatus" class="timer-status stop-ampm bg-emerald-50 p-2 rounded-xl mb-1"></div>
+                </div>
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ป้องกัน event ซ้ำ
+    if (window.AudioController && window.AudioController.handleCombinedDNA) {
+        const originalHandle = window.AudioController.handleCombinedDNA;
+        window.AudioController.handleCombinedDNA = function(defaultDNA, customDNA) {
+            if (this.isPlaying) { console.warn('⛔ Blocked duplicate handleCombinedDNA'); return; }
+            return originalHandle.call(this, defaultDNA, customDNA);
+        };
+    }
+    if (window.MusicPrerenderController) {
+        if (window.MusicPrerenderController.stop) window.MusicPrerenderController.stop = function() {};
+        if (window.MusicPrerenderController.initialize) window.MusicPrerenderController.initialize = function() {};
+    }
+    
+    let boxOpened = false;
+    
+    // ========== Voice Note Functions ==========
+    let voicePostAudio = null;      // HTMLAudioElement สำหรับ post voice (ไม่ต้องใช้ Tone)
+    let voicePrePlayer = null;      // Tone.Player สำหรับ pre voice
+    
+    // ใช้ Tone.js เล่น voice pre (เพื่อใช้ AudioContext เดียวกับ DNA Music)
+    async function playVoicePreWithTone(url) {
+        if (!url) return;
+        // ตรวจสอบว่า Tone context กำลัง run (หรือเริ่ม)
+        if (Tone.context.state !== 'running') {
+            await Tone.start();
+            await Tone.context.resume();
+        }
+        return new Promise((resolve, reject) => {
+            // สร้าง Player และต่อเข้ากับ Destination โดยตรง
+            const player = new Tone.Player(url, () => {
+                // loaded แล้ว
+                player.onstop = () => {
+                    player.dispose();
+                    voicePrePlayer = null;
+                    resolve();
+                };
+                player.start();
+                voicePrePlayer = player;
+            }).toDestination();
+            player.onerror = (err) => {
+                console.error('Tone.Player error:', err);
+                player.dispose();
+                voicePrePlayer = null;
+                reject(err);
+            };
+        });
+    }
+    
+    // เล่น voice post ด้วย HTMLAudioElement (หลัง DNA จบ, ไม่ต้องใช้ Tone เพื่อไม่ให้รบกวน)
+    function playVoicePostHtml(url) {
+        if (!url) return;
+        if (voicePostAudio) {
+            voicePostAudio.pause();
+            voicePostAudio = null;
+        }
+        const audio = new Audio(url);
+        voicePostAudio = audio;
+        audio.onended = () => {
+            voicePostAudio = null;
+        };
+        audio.play().catch(e => console.warn('Voice post error', e));
+    }
+    
+    function stopVoicePost() {
+        if (voicePostAudio) {
+            voicePostAudio.pause();
+            voicePostAudio.currentTime = 0;
+            voicePostAudio = null;
+        }
+    }
+    
+    function setVoiceStatusMessage(msg) {
+        const timerEl = document.getElementById('timerStatus');
+        if (timerEl && msg) {
+            const originalText = timerEl.textContent;
+            timerEl.textContent = msg;
+            setTimeout(() => {
+                if (timerEl.textContent === msg) timerEl.textContent = originalText;
+            }, 2000);
+        }
+    }
+    
+    async function openBox() {
+        const box = document.getElementById('giftBox');
+        if (box.classList.contains('opening') || box.classList.contains('opened')) return;
+        // เริ่ม AudioContext (ถ้ายังไม่เริ่ม)
+        if (Tone.context.state !== 'running') {
+            await Tone.start();
+            await Tone.context.resume();
+        }
+        box.classList.add('opening');
+        setTimeout(() => { box.classList.add('opened'); box.classList.remove('opening'); }, 1200);
+        document.getElementById('tagText').textContent = 'เปิดแล้ว! 🎉';
+        if (!boxOpened && window.musicDNAReady && window.currentSongDNA) {
+            boxOpened = true;
+            
+            // เล่น voice pre ถ้ามี (ใช้ Tone.js)
+            if (window.currentSongDNA.voice_url && window.currentSongDNA.voice_position === 'pre') {
+                setVoiceStatusMessage('🎙️ กำลังเล่นข้อความเสียง...');
+                try {
+                    await playVoicePreWithTone(window.currentSongDNA.voice_url);
+                } catch(e) {
+                    console.warn('Voice pre with Tone failed', e);
+                }
+                setVoiceStatusMessage('');
+            }
+            
+            // เริ่ม DNA Music ทันที (AudioContext ทำงานอยู่แล้ว)
+            if (window.AudioController) {
+                if (window.AudioController.isPlaying) window.AudioController.stop();
+                window.AudioController.handleCombinedDNA(window.currentSongDNA.defaultDNA, window.currentSongDNA.customDNA);
+                window.AudioController.play();
+            }
+        }
+    }
+    
+    function escapeHtml(s) { if (!s) return ''; return String(s).replace(/[&<>]/g, m => m === '&' ? '&amp;' : (m === '<' ? '&lt;' : '&gt;')); }
+    
+    // ========== getQrDataUrl ที่เสถียร ==========
+    async function getQrDataUrl(text, size = 180) {
+        return new Promise((resolve) => {
+            const div = document.createElement('div');
+            try {
+                new QRCode(div, {
+                    text: text,
+                    width: size,
+                    height: size,
+                    colorDark: "#000000",
+                    colorLight: "#ffffff",
+                    correctLevel: QRCode.CorrectLevel.M
+                });
+                let attempts = 0;
+                const maxAttempts = 10;
+                const check = () => {
+                    const img = div.querySelector('img');
+                    const canvas = div.querySelector('canvas');
+                    if (img && img.src && img.src.startsWith('data:')) {
+                        resolve(img.src);
+                        return;
+                    }
+                    if (canvas) {
+                        try {
+                            const dataUrl = canvas.toDataURL();
+                            if (dataUrl && dataUrl.startsWith('data:image')) {
+                                resolve(dataUrl);
+                                return;
+                            }
+                        } catch(e) {}
+                    }
+                    attempts++;
+                    if (attempts < maxAttempts) {
+                        setTimeout(check, 100);
+                    } else {
+                        console.warn('QR generation timeout after', maxAttempts * 100, 'ms');
+                        resolve('');
+                    }
+                };
+                setTimeout(check, 100);
+            } catch(e) {
+                console.warn("QR generation error", e);
+                resolve('');
+            }
+        });
+    }
+    
+    // Main
+    document.addEventListener('DOMContentLoaded', async () => {
+        console.log('🎁 play_giftcard V3.9.1 - ใช้ Tone.js สำหรับ Voice Pre แก้ไขปัญหาขาดหาย');
+        
+        await new Promise(resolve => {
+            const check = setInterval(() => {
+                if (window.AppMainController && window.DataContract && window.FormPsychomatrixController && 
+                    window.MusicStylesController && window.MusicPresetCache) {
+                    clearInterval(check); resolve(true);
+                }
+            }, 100);
+        });
+        try {
+            if (window.AppMainController) window.AppMainController.initialize();
+            if (window.FormUIController) window.FormUIController.initialize();
+            if (window.MusicStylesController) window.MusicStylesController.initialize();
+            if (window.AudioController) window.AudioController.initialize();
+        } catch(e) { console.warn(e); }
+        
+        const supabase = window.supabaseClient || window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+        const shortId = new URLSearchParams(window.location.search).get('song');
+        if (!shortId) { document.getElementById('cardContent').innerHTML = '<p class="text-red-500">❌ ไม่พบซองเพลง</p>'; return; }
+        
+        let song = null;
+        const { data: direct } = await supabase.from('user_songs').select('*').eq('short_id', shortId).maybeSingle();
+        if (direct) song = direct;
+        if (!song) { document.getElementById('cardContent').innerHTML = '<p class="text-red-500">❌ ไม่พบซอง</p>'; return; }
+        supabase.from('user_songs').update({ views_count: (song.views_count||0)+1 }).eq('id', song.id).then();
+        
+        const payload = song.payload || {};
+        const userData = payload.user_data || {};
+        let receiverName = payload.receiverName || '';
+        let senderName = payload.senderName || '';
+        if (!receiverName && userData.fullName) receiverName = userData.fullName;
+        if (!receiverName && userData.nickname) receiverName = userData.nickname;
+        if (!senderName && payload.sender) senderName = payload.sender;
+        if (!senderName && userData.senderName) senderName = userData.senderName;
+        
+        const templateId = song.card_template_id || 'classic';
+        const customMsg = payload.custom_message || null;
+        const imageUrl = song.image_url || null;
+        let template = null;
+        try {
+            const { data: tmpl } = await supabase.from('card_templates').select('*').eq('id', templateId).single();
+            if (tmpl) template = tmpl;
+        } catch(e) {}
+        if (!template) template = { bg_gradient: 'linear-gradient(145deg, #f9f3e9, #fff0e0)', icon: '🎵', default_message: 'ซองดนตรีถึงคุณ' };
+        
+        let defaultDNA = null, customDNA = { sequence: [], tempo: 90, instruments: [] };
+        if (payload.musicDNA && payload.musicDNA.defaultDNA && payload.musicDNA.defaultDNA.sequence) {
+            defaultDNA = payload.musicDNA.defaultDNA;
+            customDNA = payload.musicDNA.customDNA || customDNA;
+        } else {
+            defaultDNA = { sequence: [{ note: "C4", duration: "4n", time: 0 }], instruments: ["piano"], config: { bpm: 80 } };
+        }
+        if (!defaultDNA || !defaultDNA.sequence) { document.getElementById('cardContent').innerHTML = '<p class="text-red-500">DNA error</p>'; return; }
+        if (!defaultDNA.instruments) defaultDNA.instruments = ["piano"];
+        
+        // ========== Voice Note data ==========
+        const voiceUrl = payload.voice_url || null;
+        const voicePosition = payload.voice_position || null;
+        
+        window.currentSongDNA = { 
+            defaultDNA, 
+            customDNA,
+            voice_url: voiceUrl,
+            voice_position: voicePosition
+        };
+        window.musicDNAReady = true;
+        
+        const playUrl = song.play_url || `${window.location.origin}${window.location.pathname}?song=${shortId}`;
+        const edition = payload.edition || 'premium';
+        const themeClass = payload.theme_class || 'theme-classic';
+        
+        // โหลด CSS ตาม edition
+        if (typeof window.loadEditionCSS === 'function') {
+            window.loadEditionCSS(edition);
+        } else {
+            const oldLink = document.querySelector('link[data-edition-css]');
+            if (oldLink) oldLink.remove();
+            const cssFile = `css/gift-card-${edition}.css?v=6.0`;
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = cssFile;
+            link.setAttribute('data-edition-css', '');
+            document.head.appendChild(link);
+            console.log(`🎨 โหลด CSS edition: ${edition} (${cssFile})`);
+        }
+        
+        // QR
+        let qrDataUrl = '';
+        try {
+            qrDataUrl = await getQrDataUrl(playUrl, 180);
+        } catch(e) { console.warn("QR generation failed", e); }
+        
+        const cardContainer = document.getElementById('cardContent');
+        if (typeof window.renderMLQGiftCard === 'function') {
+            window.renderMLQGiftCard(cardContainer, {
+                bgGradient: template.bg_gradient,
+                bgImageUrl: template.background_image_url || null,
+                icon: template.icon,
+                receiverName: receiverName,
+                message: customMsg || template.default_message,
+                imageUrl: imageUrl,
+                senderName: senderName,
+                themeClass: themeClass,
+                qrDataUrl: qrDataUrl,
+                showBadge: false
+            });
+        } else {
+            console.error('renderMLQGiftCard not found');
+        }
+        
+        // แสดงปุ่มควบคุม
+        const playMainButton = document.getElementById('playMainButton');
+        playMainButton.classList.remove('hidden');   
+        
+        // เรื่องราว และ ปุ่ม DNA Story + Register
+        const destinyBlueprint = payload.destinyBlueprint || null;
+        const storyHtml = destinyBlueprint ? `<div class="story-text">✨ ${escapeHtml(destinyBlueprint).replace(/\n/g,'<br>')}</div>` 
+            : `<div class="story-text">✨ เสียงเพลงจากพิมพ์เขียวชีวิตของคุณ</div>`;
+        const detailHtml = `
+            <div id="detailSection" class="detail-section">
+                ${storyHtml}
+                <div class="insight-card">
+                    <div class="dna-badge">🧬 MUSIC DNA</div>
+                    <p class="text-sm mt-2">Life Path ${payload.numerology?.lifePath || '?'} / Destiny ${payload.numerology?.destiny || '?'}</p>
+                </div>
+            </div>
+        `;
+        cardContainer.insertAdjacentHTML('beforeend', detailHtml);
+        
+        const actionRow = `
+            <div class="action-row">
+                <button id="toggleDetailBtn" class="story-trigger-btn"><i class="fas fa-book-open"></i> Music DNA Story</button>
+                <a href="https://mission-mlq.com" target="_blank" class="btn-register-small"><i class="fas fa-music"></i> Free! Music-MLQ</a>
+            </div>
+        `;
+        cardContainer.insertAdjacentHTML('beforeend', actionRow);
+        
+        document.getElementById('toggleDetailBtn')?.addEventListener('click', () => {
+            document.getElementById('detailSection')?.classList.toggle('open');
+        });
+        
+        // ========== Voice Post: เล่นเมื่อ DNA Music หยุด (ใช้ HTMLAudioElement) ==========
+        window.addEventListener('music-stopped-event', () => {
+            if (window.currentSongDNA?.voice_url && window.currentSongDNA?.voice_position === 'post') {
+                console.log('Playing post voice note');
+                playVoicePostHtml(window.currentSongDNA.voice_url);
+            }
+        });
+        
+        // ========== Timer System (คงเดิม) ==========
+        let stopHours12 = 12, stopMinutes = 0, stopSeconds = 0, stopIsPM = false, timerActive = false;
+        const LIMIT_SEC = 15;
+        const toggleBtn = document.getElementById('toggleTimerBtn');
+        const timerStatusEl = document.getElementById('timerStatus');
+        const inviteModal = document.getElementById('inviteModal');
+        if (inviteModal) inviteModal.style.display = 'none';
+        
+        function getStopHours24() {
+            if (stopHours12 === 12) return stopIsPM ? 12 : 0;
+            return stopIsPM ? stopHours12 + 12 : stopHours12;
+        }
+        function updateStopDisplay() {
+            const elH = document.getElementById('hours_stop');
+            const elM = document.getElementById('minutes_stop');
+            const elS = document.getElementById('seconds_stop');
+            const elA = document.getElementById('stopAMPM');
+            if (elH) elH.textContent = String(stopHours12).padStart(2, '0');
+            if (elM) elM.textContent = String(stopMinutes).padStart(2, '0');
+            if (elS) elS.textContent = String(stopSeconds).padStart(2, '0');
+            if (elA) elA.textContent = stopIsPM ? 'PM' : 'AM';
+        }
+        document.getElementById('stopHrUp')?.addEventListener('click', () => { if (timerActive) return;
+            if (stopHours12 === 11) { stopHours12 = 12; stopIsPM = !stopIsPM; }
+            else if (stopHours12 === 12) stopHours12 = 1;
+            else stopHours12++;
+            updateStopDisplay();
+        });
+        document.getElementById('stopHrDown')?.addEventListener('click', () => { if (timerActive) return;
+            if (stopHours12 === 12) { stopHours12 = 11; stopIsPM = !stopIsPM; }
+            else if (stopHours12 === 1) stopHours12 = 12;
+            else stopHours12--;
+            updateStopDisplay();
+        });
+        document.getElementById('stopMinUp')?.addEventListener('click', () => { if (timerActive) return; stopMinutes = (stopMinutes + 1) % 60; updateStopDisplay(); });
+        document.getElementById('stopMinDown')?.addEventListener('click', () => { if (timerActive) return; stopMinutes = (stopMinutes - 1 + 60) % 60; updateStopDisplay(); });
+        document.getElementById('stopSecUp')?.addEventListener('click', () => { if (timerActive) return; stopSeconds = (stopSeconds + 1) % 60; updateStopDisplay(); });
+        document.getElementById('stopSecDown')?.addEventListener('click', () => { if (timerActive) return; stopSeconds = (stopSeconds - 1 + 60) % 60; updateStopDisplay(); });
+        function updateTimerUI() {
+            if (!toggleBtn) return;
+            if (timerActive) {
+                toggleBtn.textContent = '⏻ Timer On';
+                toggleBtn.className = 'btn-timer btn-timer-on';
+            } else {
+                toggleBtn.textContent = '⏻ Timer Off';
+                toggleBtn.className = 'btn-timer btn-timer-off';
+                timerStatusEl.textContent = '⏳ ' + LIMIT_SEC;
+            }
+        }
+        window.forceStopAllMusic = function() {
+            console.log('[forceStopAllMusic] Stopping all audio...');
+            const ac = window.AudioController;
+            if (ac && ac.isPlaying) ac.stop();
+            if (window.MusicPrerenderController?.stop) window.MusicPrerenderController.stop();
+            if (window.Tone) {
+                Tone.Transport.cancel(0);
+                Tone.Transport.stop();
+                Tone.Transport.position = 0;
+            }
+            const playIcon = document.getElementById('playIcon');
+            if (playIcon) playIcon.className = 'fas fa-play';
+            timerActive = false;
+            updateTimerUI();
+        };
+        function formatCountdown(totalSeconds) {
+            if (totalSeconds < 0) totalSeconds = 0;
+            const mins = Math.floor(totalSeconds / 60);
+            const secs = totalSeconds % 60;
+            return `${mins}:${String(secs).padStart(2, '0')}`;
+        }
+        function updateStopTimeFromNow() {
+            const now = new Date();
+            let targetSeconds = now.getTime() / 1000 + LIMIT_SEC;
+            let targetDate = new Date(targetSeconds * 1000);
+            let hrs24 = targetDate.getHours(), mins = targetDate.getMinutes(), secs = targetDate.getSeconds();
+            stopIsPM = hrs24 >= 12;
+            let hour12 = hrs24 % 12;
+            stopHours12 = hour12 === 0 ? 12 : hour12;
+            stopMinutes = mins;
+            stopSeconds = secs;
+            updateStopDisplay();
+        }
+        function updateClock() {
+            const now = new Date();
+            const hrs24 = now.getHours(), min = now.getMinutes(), sec = now.getSeconds();
+            if (timerActive) {
+                const targetHrs24 = getStopHours24();
+                if (hrs24 === targetHrs24 && min === stopMinutes && sec === stopSeconds) {
+                    console.log('⏰ Timer matched! Force stopping music.');
+                    if (inviteModal) inviteModal.style.display = 'flex';
+                    forceStopAllMusic();
+                    return;
+                }
+                let target = new Date(now);
+                target.setHours(targetHrs24, stopMinutes, stopSeconds, 0);
+                if (target <= now) target.setDate(target.getDate() + 1);
+                const totalSec = Math.ceil((target - now) / 1000);
+                timerStatusEl.textContent = `⏳ ${formatCountdown(totalSec)}`;
+            } else {
+                timerStatusEl.textContent = '⏳ ' + LIMIT_SEC;
+            }
+        }
+        setInterval(updateClock, 1000);
+        updateClock();
+        updateStopTimeFromNow();
+        updateTimerUI();
+        window.addEventListener('playbackStateChanged', (e) => {
+            const isPlaying = e.detail?.isPlaying;
+            if (isPlaying === true) {
+                timerActive = true;
+                updateTimerUI();
+                updateStopTimeFromNow();
+                updateClock();
+                console.log('[Timer] Music started');
+            } else if (isPlaying === false) {
+                timerActive = false;
+                updateTimerUI();
+                console.log('[Timer] Music stopped');
+            }
+        });
+        window.addEventListener('music-stopped-event', () => {
+            timerActive = false;
+            updateTimerUI();
+        });
+        
+        const playBtn = document.getElementById('playButton');
+        if (playBtn) {
+            playBtn.addEventListener('click', () => {
+                window.location.reload();
+            });
+        }
+        
+        document.getElementById('toggleDetailBtn')?.addEventListener('click', () => {
+            document.getElementById('detailSection')?.classList.toggle('open');
+        });
+        setTimeout(() => openBox(), 600);
+    });
+</script>
+
+<div id="inviteModal">
+    <div style="background:linear-gradient(145deg, #fff8f0, #ffe6cc); max-width:340px; width:90%; border-radius:32px; padding:24px; text-align:center;">
+        <div style="font-size:3rem;">🎧✨</div>
+        <h2 style="font-size:1.6rem;">หมดเวลาทดลองฟัง</h2>
+        <p style="color:#5a3a2a;">คลิกปุ่มด้านล่างเพื่อรับประสบการณ์เต็มรูปแบบ</p>
+        <a href="https://mlq-music.com" target="_blank" style="display:inline-block; background:#f59e0b; color:white; padding:12px 24px; border-radius:40px;">✨ ลงทะเบียน รับเพลงเต็ม</a>
+        <button id="closeInviteBtn" style="background:none; border:none; margin-top:20px; cursor:pointer;">ปิด</button>
+    </div>
+</div>
+<script>
+    document.getElementById('closeInviteBtn')?.addEventListener('click', () => {
+        document.getElementById('inviteModal').style.display = 'none';
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Send Giftcard Music V2.2.4</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#4f46e5">
+    <meta name="description" content="สร้างเพลงส่วนตัวจากตัวเลขวันเกิดและชื่อของคุณ ฟรี Create your DNA Music Free!">
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Icons -->
+    <link rel="icon" href="icons/icon-72x72.png" type="image/png">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+    
+    <!-- ฟอนต์ + ไอคอน -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="tailwind-built.css">
+
+    <!-- Music Creator Tool -->
+    <script src="https://unpkg.com/tone@14.7.77/build/Tone.js"></script>
+    
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- โหลดไฟล์การตั้งค่าและจัดการสถานะที่มีอยู่ -->
+    <script src="config/supabase-config.js"></script>
+    <link rel="stylesheet" href="styles.css">
+
+    <style>
+    html, body {
+        margin: 0 !important;
+        padding: 0 !important;
+        width: 100%;
+        height: 100%;
+        overflow-x: hidden;
+        background: inherit;
+        font-family: 'Sarabun', sans-serif; 
+    }
+    .container {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+        margin: 0 auto !important;
+        box-sizing: border-box;
+    }
+    .glass-card, .flex, .app-title, .stop-clock-container {
+        box-sizing: border-box;
+    }
+    h1, h2, h3, h4, h5, h6 { font-family: 'Kanit', sans-serif; }
+    .birthdate-error {
+        border-color: #ef4444 !important;
+        background-color: #fef2f2 !important;
+    }
+    .date-error-msg {
+        color: #ef4444;
+        font-size: 0.7rem;
+        margin-top: 0.25rem;
+    }
+    
+    .modal-overlay-demo {
+        position: fixed;
+        width: 100%;
+        height: 100%;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s;
+    }
+    .modal-overlay-demo:not(.hidden) {
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    
+    .modal-content-demo {
+        background: white;
+        color: #1f2937;
+        width: 100%;
+        height: 100%;
+    }
+    .modal-header-demo {
+        display: flex;
+        height: 50px;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1.5rem;
+        border-bottom: 1px solid #e2e8f0;
+    }
+    .form-input,
+    input[type="text"],
+    input[type="time"],
+    select.form-select {
+        border: 1px solid #e2e8f0;
+        border-radius: 0.75rem;
+        padding: 0.75rem 1rem;
+        background-color: #f9fafb;
+        transition: all 0.2s ease;
+        width: 100%;
+    }
+    .form-input:focus,
+    input[type="text"]:focus,
+    input[type="time"]:focus,
+    select.form-select:focus {
+        border-color: #818cf8;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.2);
+        background-color: white;
+    }
+    .btn-primary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 0px;
+        min-width: auto;
+        max-width: 100%;
+        border: none;
+        border-radius: 60px;
+        font-size: 1rem;
+        font-weight: 600;
+        font-family: inherit;
+        color: white;
+        cursor: pointer;
+        background: linear-gradient(105deg, #6366f1 0%, #8b5cf6 100%);
+        background-size: 120% auto;
+        box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.3);
+        transition: all 0.3s ease;
+    }
+    .btn-inner {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        background: rgba(255,255,255,0.05);
+        border-radius: 60px;
+        padding: 1px 25px 1px 1px;
+    }
+    .btn-text {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        text-align: left;
+    }
+    .btn-small-text {
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: #e0ffe0;
+        line-height: 1.2;
+        text-align: center;
+        padding-left: 8px;
+    }
+    .btn-primary .modal-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin: 0;
+        color: white;
+        line-height: 1.3;
+    }
+    .btn-primary .logo-icon {
+        width: 68px;
+        height: 68px;
+        border-radius: 50%;
+        object-fit: cover;
+        flex-shrink: 0;
+    }
+    .btn-primary .modal-title {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin: 0;
+        color: white;
+    }
+    .btn-primary .modal-title i {
+        color: #c4b5fd;
+    }
+    .btn-primary:hover {
+        transform: translateY(-3px) scale(1.02);
+        background: linear-gradient(105deg, #4f46e5 0%, #7c3aed 100%);
+        box-shadow: 0 18px 25px -10px rgba(79, 70, 229, 0.4);
+    }
+    .form-label {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        color: #374151;
+    }
+    .option-group {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr 1fr;
+        gap: 1.25rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .date-time-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr;
+        gap: 1.25rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .form-group-row{
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.25rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .stop-clock-container {
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        gap: 15px;
+        margin-top: 15px;
+        flex-wrap: wrap;
+    }
+    .stop-clock-card {
+        background: rgba(0,0,0,0.5);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(99,102,241,0.4);
+        border-radius: 16px;
+        padding: 8px 12px;
+        text-align: center;
+        min-width: 70px;
+    }
+    .stop-clock-number {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: #fbbf24;
+        cursor: pointer;
+    }
+    .stop-clock-label {
+        font-size: 0.65rem;
+        color: #94a3b8;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .stop-min-sec-row {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 15px;
+        justify-content: center;
+    }
+    .stop-ampm {
+        font-size: 0.75rem;
+        color: #f59e0b;
+        font-weight: 600;
+        margin-top: 2px;
+    }
+    .adj-btn {
+        background: rgba(99,102,241,0.3);
+        border: 1px solid rgba(99,102,241,0.6);
+        color: white;
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        font-size: 0.9rem;
+        line-height: 1;
+        cursor: pointer;
+        margin: 4px 2px;
+        transition: all 0.2s;
+    }
+    .adj-btn:hover {
+        background: #6366f1;
+        border-color: #6366f1;
+    }
+    .stop-right-column {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+    }
+    .timer-toggle-row {
+        display: flex;
+        justify-content: center;
+        margin-top: 12px;
+    }
+    .timer-status {
+        color: #fbbf24;
+        font-size: 0.85rem;
+        text-align: center;
+        min-height: 1.5em;
+        font-weight: 500;
+        margin-top: 4px;
+    }
+    .btn-timer {
+        padding: 8px 20px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: 1px solid transparent;
+    }
+    .btn-timer-off {
+        background: #475569;
+        color: #cbd5e1;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        transform: translateY(0);
+        border-color: #64748b;
+    }
+    .btn-timer-off:hover {
+        background: #334155;
+    }
+    .btn-timer-on {
+        background: #10b981;
+        color: white;
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);
+        transform: translateY(2px);
+        border-color: #059669;
+    }
+    .btn-timer-on:hover {
+        background: #059669;
+    }
+    .hidden { display: none !important; }
+    #prerenderBar {
+        transition: width 0.4s ease, background 0.3s ease;
+    }
+    #prerenderStatusBox {
+        transition: opacity 0.3s ease;
+    }
+    @keyframes prerenderPulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.6; }
+    }
+    #prerenderStatusBox.rendering {
+        animation: prerenderPulse 1.5s infinite;
+    }
+
+    /* แสดง musicDNADetailedInfo เสมอ */
+    #musicDNADetailedInfo {
+        display: block !important;
+        padding: 0.25rem 0.5rem !important;
+        margin: 0 !important;
+    }
+
+    #inviteModal {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.8);
+        backdrop-filter: blur(12px);
+        z-index: 20000;
+        display: none;
+        justify-content: center;
+        align-items: center;
+        font-family: 'Inter', sans-serif;
+    }
+    </style>
+
+</head>
+<body>
+
+    <!-- จัดการ Storage -->
+    <script>
+      (function() {
+        const STORAGE_PREFIX = 'gift_';
+        const SYSTEM_KEYS = [
+            'psychomatrixUserData', 'psychomatrixUserDataCustom',
+            'psychomatrixNumerologyData', 'psychomatrixPsychomatrixData',
+            'psychomatrixLuckyNumberData', 'psychomatrixMusicCurrent',
+            'psychomatrixMusicDefault', 'psychomatrixMusicCustomStyle',
+            'psychomatrixEdgeFunctions', 'current_destiny_blueprint',
+            'premium_status', 'psychomatrixSchemaVersion'
+        ];
+    
+        function shouldPrefix(key) {
+            return SYSTEM_KEYS.includes(key) 
+                || key.startsWith('psychomatrix')
+                || key.startsWith('sb-')          // ← auth tokens จาก Supabase
+                || key.includes('auth-token');
+        }
+    
+        const originalGetItem = localStorage.getItem;
+        const originalSetItem = localStorage.setItem;
+        const originalRemoveItem = localStorage.removeItem;
+        const originalClear = localStorage.clear;
+    
+        localStorage.getItem = function(key) {
+            if (shouldPrefix(key)) return originalGetItem.call(this, STORAGE_PREFIX + key);
+            return originalGetItem.call(this, key);
+        };
+        localStorage.setItem = function(key, value) {
+            if (shouldPrefix(key)) return originalSetItem.call(this, STORAGE_PREFIX + key, value);
+            return originalSetItem.call(this, key, value);
+        };
+        localStorage.removeItem = function(key) {
+            if (shouldPrefix(key)) return originalRemoveItem.call(this, STORAGE_PREFIX + key);
+            return originalRemoveItem.call(this, key);
+        };
+        localStorage.clear = function() {
+            console.warn('localStorage.clear blocked to prevent data loss');
+        };
+        console.log('✅ demo localStorage isolated with prefix:', STORAGE_PREFIX);
+     })();
+    </script>
+
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="loading-spinner"></div>
+        <h2 class="text-xl text-white mb-2">MLQ-Music</h2>
+        <p class="text-slate-400">Loading application...</p>
+        <div id="loadingProgress" class="mt-4 text-sm text-slate-500"></div>
+    </div>
+
+    <!-- FORM 1: Personal Data Modal -->
+    <div id="formModal" class="modal-overlay-demo w-full">
+        <div class="modal-content-demo w-full">
+            <div class="modal-body">
+                <form id="musicForm" class="form">
+                    <div id="optionSelectionContainer" >
+                      <h3 class="text-lg font-medium text-gray-700 mb-3">เลือกวิธีการคำนวณ:</h3>
+                      <div class="option-group space-y-2">
+                        <label class="option-label">
+                            <input type="radio" name="calculationOption" value="BD" class="option-radio"  checked>
+                            <div class="option-card active"><div class="font-medium">วันเกิดเท่านั้น</div><div class="option-desc">ใช้เฉพาะวันเกิดในการคำนวณ</div></div>
+                        </label>
+                        <label class="option-label">
+                            <input type="radio" name="calculationOption" value="IDC" class="option-radio">
+                            <div class="option-card"><div class="font-medium">บัตรประชาชนเท่านั้น</div><div class="option-desc">ใช้เฉพาะเลขบัตรประชาชน</div></div>
+                        </label>
+                        <label class="option-label">
+                            <input type="radio" name="calculationOption" value="FullName" class="option-radio">
+                            <div class="option-card"><div class="font-medium">ชื่อ-สกุลเท่านั้น</div><div class="option-desc">ใช้เฉพาะชื่อ-สกุล</div></div>
+                        </label>
+                        <label class="option-label">
+                            <input type="radio" name="calculationOption" value="BD-IDC-FullName" class="option-radio">
+                            <div class="option-card"><div class="font-medium">ทั้งหมดรวมกัน</div><div class="option-desc">ใช้ทั้งวันเกิด บัตรฯ และชื่อ-สกุล</div></div>
+                        </label>
+                      </div>
+                    </div>
+                     <div class="date-time-row space-y-2">
+                        <div id="fullNameContainer" data-options="FullName,BD-IDC-FullName">
+                            <label for="fullName" class="form-label"><i class="fas fa-user mr-1"></i> ชื่อเล่น <span class="text-red-500">*</span></label>
+                            <input type="text" id="fullName" class="form-input" placeholder="เช่น โอ,ชัย" maxlength="50">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1"><i class="fa-regular fa-calendar mr-1 text-indigo-400"></i> วันเกิด <span class="text-red-500">*</span></label>
+                            <input type="text" id="birthDate" required placeholder="DD/MM/YYYY" class="form-input w-full">
+                            <p class="text-xs text-gray-400 mt-1">รูปแบบ วัน/เดือน/ปี ค.ศ. เช่น 28/01/2015</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1"><i class="fa-regular fa-clock mr-1 text-indigo-400"></i> เวลาเกิด (โดยประมาณ)</label>
+                            <input type="time" id="birthTime" value="6:30" class="form-input w-full">
+                            <p class="text-xs text-gray-400 mt-1">ถ้าไม่แน่ใจ ให้ใช้ 6:30 น.(เช้าวันใหม่)</p>
+                        </div>
+                    </div>
+                    
+                    <div id="idCardContainer" data-options="IDC,BD-IDC-FullName">
+                            <label for="id_card" class="form-label"><i class="fas fa-id-card mr-1"></i> บัตรประชาชน</label>
+                            <input type="text" id="id_card" class="form-input" placeholder="เช่น 1234567890123" maxlength="13" pattern="[0-9]{13}">
+                    </div>
+
+                    <div class="form-group-row space-y-2">
+                        <div class="form-group">
+                        <label for="musicStyleBase1" class="form-label">🎵 แนวเพลง Melody1</label>
+                        <div class="flex gap-2">
+                            <select id="musicStyleBase1" name="musicStyleBase1" class="form-select flex-1">
+                                <option value="lofi" selected>🎵 Lo-fi Beats</option>
+                                <option value="chill">🌊 Chill / Ambient</option>
+                                <option value="study">📚 Study / Focus</option>
+                                <option value="relax">🧘 Relax / Meditation</option>
+                            </select>
+                            <select id="effectMix1" name="effectMix1" class="form-select flex-1">
+                                <option value="full" selected>🔊 Full Effect</option>
+                                <option value="no_animal">🐾 No Animal</option>
+                                <option value="no_nature">🌿 No Nature</option>
+                                <option value="clean">🔇 No Effect</option>
+                            </select>
+                        </div>
+                    </div>
+                        <div class="form-group">
+                        <label for="musicStyleBase2" class="form-label">🎨 แนวเพลง Melody2</label>
+                        <span id="melody2LockedReason" class="text-xs text-red-400 mt-1"></span>
+                        <div class="flex gap-2">
+                            <select id="musicStyleBase2" name="musicStyleBase2" class="form-select flex-1">
+                                <option value="lofi">🎵 Lo-fi Beats</option>
+                                <option value="chill">🌊 Chill / Ambient</option>
+                                <option value="study">📚 Study / Focus</option>
+                                <option value="relax" selected>🧘 Relax / Meditation</option>
+                            </select>
+                            <select id="effectMix2" name="effectMix2" class="form-select flex-1">
+                                <option value="full" selected>🔊 Full Effect</option>
+                                <option value="no_animal">🐾 No Animal</option>
+                                <option value="no_nature">🌿 No Nature</option>
+                                <option value="clean">🔇 No Effect</option>
+                            </select>
+                        </div>
+                    </div>
+                    </div>
+                    
+                    <!-- ปุ่มสร้างเพลงของ form จะถูกแทนที่โดย ปุ่มเล่นเพลงของ Contain -->
+                    <div class="text-center w-full -bt">
+                        <button type="submit" id="submitFormBtn" class="btn-primary">
+                            <div class="btn-inner">
+                                <img class="logo-icon" src="icons/icon-512x512.png" alt="MLQ-Music">
+                                <div class="btn-text">
+                                    <span class="btn-small-text"> สร้างเพลง</span>
+                                    <h2 class="modal-title">ตัวเลขชีวิต</h2>
+                                </div>
+                            </div>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div id="loadingOverlay" class="loading-overlay hidden">
+        <div class="text-center">
+            <div class="loading-spinner mb-4"></div>
+            <h3 class="text-white text-xl font-semibold mb-2" id="loadingTitle">กำลังประมวลผล...</h3>
+            <p id="loadingMessage" class="text-gray-300">กรุณารอสักครู่</p>
+        </div>
+    </div>
+    
+    <div id="toast" class="toast hidden">
+        <div class="flex items-center">
+            <i id="toastIcon" class="fas fa-check-circle mr-2"></i>
+            <span id="toastMessage">ดำเนินการสำเร็จ!</span>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- ปุ่มเล่นเพลง แสดงแทน ปุ่มสร้างเพลงของ form -->
+        <div class="flex flex-wrap justify-between items-center gap-4 w-full">
+                <div class="text-center w-full">
+                    <button id="playButton" class="btn-primary">
+                        <div class="btn-inner">
+                            <img class="logo-icon" src="icons/icon-512x512.png" alt="MLQ-Music">
+                            <h3 class="text-xl font-bold mt-4"><i id="playIcon" class="fas fa-play"></i></h3>
+                            <div class="btn-text">
+                                <span class="btn-small-text"> สร้างเพลง</span>
+                                <h2 class="modal-title">ตัวเลขชีวิต</h2>
+                            </div>
+                            <div id="timerStatus" class="timer-status stop-ampm bg-emerald-50 p-2 rounded-xl mb-1"></div>
+                        </div>
+                    </button>
+                    <button id="backToFrm" class="-mt-6 p-2">
+                        <div class="btn-inner">
+                            <h3 class="text-xl font-bold mt-2"><i  class="fas fa-edit"></i></h3>
+                            <div class="btn-text">
+                                <h2 class="modal-title">แก้ข้อมูล</h2>
+                            </div>
+                        </div>
+                    </button>
+                </div>
+        </div>
+
+        <div id="musicDNADetailedInfo">ต้องกดสร้างเพลงก่อนทำการ์ด</div>
+   
+        <!-- นาฬิกาควบคุมและหยุด -->
+        <div id="DisplayInterface" class="hidden">
+                <div class="clock-container">
+                    <div class="clock-card"><span class="clock-number" id="hours">00</span><span class="clock-label">Hours</span></div>
+                    <div class="clock-card"><span class="clock-number" id="minutes">00</span><span class="clock-label">minutes</span></div>
+                    <div class="clock-card"><span class="clock-number text-yellow-400" id="seconds">00</span><span class="clock-label">seconds</span></div>
+                    <div class="am-pm-badge" id="AMPM">AM</div>
+                </div>
+
+                <!-- Stop Clock Group -->
+                <div class="stop-clock-container">
+                    <div class="stop-clock-card">
+                        <div class="stop-clock-label">Stop Hr</div>
+                        <div style="display:flex; align-items:center; justify-content:center; gap:4px;">
+                            <button class="adj-btn" id="stopHrUp">+</button>
+                            <span class="stop-clock-number" id="hours_stop">--</span>
+                            <button class="adj-btn" id="stopHrDown">–</button>
+                        </div>
+                        <div class="stop-ampm" id="stopAMPM">AM</div>
+                    </div>
+                    <div class="stop-right-column">
+                        <div class="stop-min-sec-row">
+                            <div class="stop-clock-card">
+                                <div class="stop-clock-label">Stop Min</div>
+                                <div style="display:flex; align-items:center; justify-content:center; gap:4px;">
+                                    <button class="adj-btn" id="stopMinUp">+</button>
+                                    <span class="stop-clock-number" id="minutes_stop">--</span>
+                                    <button class="adj-btn" id="stopMinDown">–</button>
+                                </div>
+                            </div>
+                            <div class="stop-clock-card">
+                                <div class="stop-clock-label">Stop Sec</div>
+                                <div style="display:flex; align-items:center; justify-content:center; gap:4px;">
+                                    <button class="adj-btn" id="stopSecUp">+</button>
+                                    <span class="stop-clock-number text-yellow-400" id="seconds_stop">--</span>
+                                    <button class="adj-btn" id="stopSecDown">–</button>
+                                </div>
+                            </div>
+                            <div class="stop-clock-card">
+                                <button id="toggleTimerBtn" class="btn-timer btn-timer-off stop-clock-label">⏻ Timer Off</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </div>
+
+    <input type="file" id="musicFileInput" accept=".json" class="hidden">
+    
+    <!-- Card แสดง หลังหมดเวลา-->
+    <div id="inviteModal">
+        <div style="background:linear-gradient(145deg, #fff8f0, #ffe6cc); max-width:340px; width:90%; border-radius:32px; padding:24px; text-align:center; box-shadow:0 20px 40px rgba(0,0,0,0.3);">
+            <div style="font-size:3rem;">🎧✨</div>
+            <h2 style="font-size:1.6rem; margin:12px 0 8px; color:#4a2c1a;">หมดเวลาทดลองฟัง</h2>
+            <p style="color:#5a3a2a; margin-bottom:20px;">กรุณาคลิกปุ่มด้านล่างเพื่อรับประสบการณ์เต็มรูปแบบ<br>🎵 เพลง DNA ส่วนตัวของคุณ</p>
+            <a href="https://mlq-music.com" target="_blank" style="display:inline-block; background:#f59e0b; color:white; padding:12px 24px; border-radius:40px; text-decoration:none; font-weight:bold;">✨ ลงทะเบียน รับเพลงเต็ม</a>
+            <button id="closeInviteBtn" style="background:none; border:none; color:#999; margin-top:20px; cursor:pointer;">ปิด</button>
+        </div>
+    </div>
+
+    <!-- JavaScript Files -->
+    <script src="js/debug-logger.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config/supabase-config.js?v=7.01"></script>
+    <script src="config/config.js?v=1.00"></script>
+    <script src="js/data-contract.js?v=2.1"></script>
+    <script src="js/client_edge-function-integration.js?v=3.9"></script>   
+    <script src="js/app-main.js?v=7.9"></script>
+    <script src="js/form-psychomatrix.js?v=3.6.4"></script>
+    <script src="js/form-ui.js?v=2.9.701"></script>
+    <script src="js/music-preset-cache.js"></script>  
+    <script src="js/music-styles.js?v=5.8"></script>
+    <script src="js/storytelling-engine.js?v=1.3"></script>
+    <script src="js/nature-sounds.js?v=2.0"></script>
+    <script src="js/music-audio.js?v=6.9.6"></script> 
+    <script src="js/music-prerender.js?v=1.6"></script>
+    <script src="js/ui-displayDemo.js?v=3.6.9"></script>
+
+    <!-- Timer & Sync with AudioController -->
+    <script>
+        // --- Timer Variables ---
+        let stopHours12 = 12;
+        let stopMinutes = 0;
+        let stopSeconds = 0;
+        let stopIsPM = false;
+        let timerActive = false;
+        const LIMIT_SEC = 60;
+
+        const toggleBtn = document.getElementById('toggleTimerBtn');
+        const timerStatusEl = document.getElementById('timerStatus');
+        const inviteModal = document.getElementById('inviteModal');
+        if (inviteModal) inviteModal.style.display = 'none';
+
+        function getStopHours24() {
+            if (stopHours12 === 12) return stopIsPM ? 12 : 0;
+            return stopIsPM ? stopHours12 + 12 : stopHours12;
+        }
+
+        function updateStopDisplay() {
+            const elH = document.getElementById('hours_stop');
+            const elM = document.getElementById('minutes_stop');
+            const elS = document.getElementById('seconds_stop');
+            const elA = document.getElementById('stopAMPM');
+            if (elH) elH.textContent = String(stopHours12).padStart(2, '0');
+            if (elM) elM.textContent = String(stopMinutes).padStart(2, '0');
+            if (elS) elS.textContent = String(stopSeconds).padStart(2, '0');
+            if (elA) elA.textContent = stopIsPM ? 'PM' : 'AM';
+        }
+
+        // Adjust buttons (disabled when timerActive)
+        document.getElementById('stopHrUp')?.addEventListener('click', () => { if (timerActive) return;
+            if (stopHours12 === 11) { stopHours12 = 12; stopIsPM = !stopIsPM; }
+            else if (stopHours12 === 12) stopHours12 = 1;
+            else stopHours12++;
+            updateStopDisplay();
+        });
+        document.getElementById('stopHrDown')?.addEventListener('click', () => { if (timerActive) return;
+            if (stopHours12 === 12) { stopHours12 = 11; stopIsPM = !stopIsPM; }
+            else if (stopHours12 === 1) stopHours12 = 12;
+            else stopHours12--;
+            updateStopDisplay();
+        });
+        document.getElementById('stopMinUp')?.addEventListener('click', () => { if (timerActive) return; stopMinutes = (stopMinutes + 1) % 60; updateStopDisplay(); });
+        document.getElementById('stopMinDown')?.addEventListener('click', () => { if (timerActive) return; stopMinutes = (stopMinutes - 1 + 60) % 60; updateStopDisplay(); });
+        document.getElementById('stopSecUp')?.addEventListener('click', () => { if (timerActive) return; stopSeconds = (stopSeconds + 1) % 60; updateStopDisplay(); });
+        document.getElementById('stopSecDown')?.addEventListener('click', () => { if (timerActive) return; stopSeconds = (stopSeconds - 1 + 60) % 60; updateStopDisplay(); });
+
+        function updateTimerUI() {
+            if (timerActive) {
+                toggleBtn.textContent = '⏻ Timer On';
+                toggleBtn.className = 'btn-timer btn-timer-on';
+            } else {
+                toggleBtn.textContent = '⏻ Timer Off';
+                toggleBtn.className = 'btn-timer btn-timer-off';
+                timerStatusEl.textContent = '⏳ ' + LIMIT_SEC;
+            }
+        }
+
+        toggleBtn.addEventListener('click', () => {
+            // Timer is controlled by playback state only, so no action needed
+            return;
+        });
+
+        window.forceStopAllMusic = function() {
+            console.log('[forceStopAllMusic] Stopping all audio...');
+            const ac = window.AudioController;
+            if (ac && ac.isPlaying) {
+                ac.stop();
+            }
+            if (window.MusicPrerenderController?.stop) window.MusicPrerenderController.stop();
+            const audio = document.getElementById('prerenderAudio');
+            if (audio) { audio.pause(); audio.currentTime = 0; }
+            if (window.Tone) {
+                Tone.Transport.cancel(0);
+                Tone.Transport.stop();
+                Tone.Transport.position = 0;
+            }
+            const playIcon = document.getElementById('playIcon');
+            if (playIcon) playIcon.className = 'fas fa-play';
+            timerActive = false;
+            updateTimerUI();
+        };
+
+        function formatCountdown(totalSeconds) {
+            if (totalSeconds < 0) totalSeconds = 0;
+            const mins = Math.floor(totalSeconds / 60);
+            const secs = totalSeconds % 60;
+            return `${mins}:${String(secs).padStart(2, '0')}`;
+        }
+
+        function updateStopTimeFromNow() {
+            const now = new Date();
+            let targetSeconds = now.getTime() / 1000 + LIMIT_SEC;
+            let targetDate = new Date(targetSeconds * 1000);
+            let hrs24 = targetDate.getHours();
+            let mins = targetDate.getMinutes();
+            let secs = targetDate.getSeconds();
+            stopIsPM = hrs24 >= 12;
+            let hour12 = hrs24 % 12;
+            stopHours12 = hour12 === 0 ? 12 : hour12;
+            stopMinutes = mins;
+            stopSeconds = secs;
+            updateStopDisplay();
+        }
+
+        function updateClock() {
+            const now = new Date();
+            const hrs24 = now.getHours();
+            const min = now.getMinutes();
+            const sec = now.getSeconds();
+            const ampm = hrs24 >= 12 ? 'PM' : 'AM';
+            let displayHrs = hrs24 % 12 || 12;
+            document.getElementById('hours').textContent = String(displayHrs).padStart(2, '0');
+            document.getElementById('minutes').textContent = String(min).padStart(2, '0');
+            document.getElementById('seconds').textContent = String(sec).padStart(2, '0');
+            document.getElementById('AMPM').textContent = ampm;
+
+            if (timerActive) {
+                const targetHrs24 = getStopHours24();
+                if (hrs24 === targetHrs24 && min === stopMinutes && sec === stopSeconds) {
+                    console.log('⏰ Timer matched! Force stopping music.');
+                    if (inviteModal) inviteModal.style.display = 'flex';
+                    forceStopAllMusic();
+                    return;
+                }
+                let target = new Date(now);
+                target.setHours(targetHrs24, stopMinutes, stopSeconds, 0);
+                if (target <= now) target.setDate(target.getDate() + 1);
+                const totalSec = Math.ceil((target - now) / 1000);
+                timerStatusEl.textContent = `⏳ ${formatCountdown(totalSec)}`;
+            }
+        }
+
+        setInterval(updateClock, 1000);
+        updateClock();
+        updateStopTimeFromNow();
+        updateTimerUI();
+
+        // ========== Sync Timer with AudioController events ==========
+        window.addEventListener('playbackStateChanged', (e) => {
+            const isPlaying = e.detail?.isPlaying;
+            if (isPlaying === true) {
+                timerActive = true;
+                updateTimerUI();
+                updateStopTimeFromNow();
+                console.log('[Timer] Music started, timerActive = true');
+            } else if (isPlaying === false) {
+                timerActive = false;
+                updateTimerUI();
+                console.log('[Timer] Music stopped, timerActive = false');
+            }
+        });
+
+        window.addEventListener('music-stopped-event', () => {
+            timerActive = false;
+            updateTimerUI();
+        });
+    </script>
+
+    <!-- Date handling script (unchanged, but kept) -->
+    <script>
+    (function() {
+        const birthInput = document.getElementById('birthDate');
+        if (!birthInput) return;
+        
+        function isValidDateDDMMYYYY(dateStr) {
+            if (!dateStr || typeof dateStr !== 'string') return false;
+            if (!/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) return false;
+            const [day, month, year] = dateStr.split('/').map(Number);
+            if (month < 1 || month > 12) return false;
+            const daysInMonth = new Date(year, month, 0).getDate();
+            return day >= 1 && day <= daysInMonth && year >= 1900 && year <= 2100;
+        }
+        
+        const errorSpan = document.getElementById('birthDateInlineError');
+        function showError(show) {
+            if (!errorSpan) return;
+            if (show) {
+                errorSpan.classList.remove('hidden');
+                birthInput.classList.add('border-red-500', 'bg-red-50');
+            } else {
+                errorSpan.classList.add('hidden');
+                birthInput.classList.remove('border-red-500', 'bg-red-50');
+            }
+        }
+        
+        function autoSlashFormat(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 2) value = value.slice(0,2) + '/' + value.slice(2);
+            if (value.length >= 5) value = value.slice(0,5) + '/' + value.slice(5,9);
+            e.target.value = value.slice(0,10);
+            showError(false);
+        }
+        
+        function validateAndFixOnBlur() {
+            let val = birthInput.value.trim();
+            if (!val) { showError(false); return; }
+            if (isValidDateDDMMYYYY(val)) { showError(false); return; }
+            let digits = val.replace(/\D/g, '');
+            if (digits.length === 8) {
+                let d = digits.slice(0,2), m = digits.slice(2,4), y = digits.slice(4,8);
+                let newVal = `${d}/${m}/${y}`;
+                if (isValidDateDDMMYYYY(newVal)) { birthInput.value = newVal; showError(false); return; }
+            }
+            if (val.includes('-')) {
+                let parts = val.split('-');
+                if (parts.length === 3) {
+                    let [year, month, day] = parts;
+                    let newVal = `${day}/${month}/${year}`;
+                    if (isValidDateDDMMYYYY(newVal)) { birthInput.value = newVal; showError(false); return; }
+                }
+            }
+            showError(true);
+        }
+        
+        birthInput.addEventListener('input', function(e) { autoSlashFormat(e); showError(false); });
+        birthInput.addEventListener('blur', validateAndFixOnBlur);
+        
+        const form = document.getElementById('musicForm');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                const val = birthInput.value;
+                if (!val || !isValidDateDDMMYYYY(val)) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showError(true);
+                    alert('⚠️ กรุณากรอกวันเกิดให้ถูกต้องตามรูปแบบ DD/MM/YYYY (เช่น 28/01/2015)');
+                    return false;
+                }
+                return true;
+            }, false);
+        }
+        
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mut) {
+                if (mut.type === 'attributes' && mut.attributeName === 'value') {
+                    let newVal = birthInput.value;
+                    if (newVal && !isValidDateDDMMYYYY(newVal)) {
+                        if (newVal.includes('-')) {
+                            let parts = newVal.split('-');
+                            if (parts.length === 3) {
+                                let [year, month, day] = parts;
+                                let converted = `${day}/${month}/${year}`;
+                                if (isValidDateDDMMYYYY(converted)) { birthInput.value = converted; showError(false); }
+                                else showError(true);
+                            }
+                        } else if (/^\d{8}$/.test(newVal)) {
+                            let d = newVal.slice(0,2), m = newVal.slice(2,4), y = newVal.slice(4,8);
+                            let converted = `${d}/${m}/${y}`;
+                            if (isValidDateDDMMYYYY(converted)) { birthInput.value = converted; showError(false); }
+                            else showError(true);
+                        } else { showError(!isValidDateDDMMYYYY(newVal)); }
+                    } else { showError(false); }
+                }
+            });
+        });
+        observer.observe(birthInput, { attributes: true });
+        
+        function convertStoredDatesToDDMMYYYY() {
+            try {
+                const keys = ['psychomatrixUserData', 'psychomatrixMusicCurrent', 'psychomatrixMusicDefault'];
+                keys.forEach(key => {
+                    const raw = localStorage.getItem(key);
+                    if (raw) {
+                        let data = JSON.parse(raw);
+                        if (data && data.birthDate && typeof data.birthDate === 'string') {
+                            let bd = data.birthDate;
+                            let converted = null;
+                            if (bd.includes('-')) {
+                                let parts = bd.split('-');
+                                if (parts.length === 3) converted = `${parts[2]}/${parts[1]}/${parts[0]}`;
+                            } else if (/^\d{8}$/.test(bd)) {
+                                converted = `${bd.slice(0,2)}/${bd.slice(2,4)}/${bd.slice(4,8)}`;
+                            }
+                            if (converted && isValidDateDDMMYYYY(converted) && converted !== bd) {
+                                data.birthDate = converted;
+                                localStorage.setItem(key, JSON.stringify(data));
+                            }
+                        }
+                    }
+                });
+            } catch(e) { console.warn("convertStoredDates error:", e); }
+        }
+        convertStoredDatesToDDMMYYYY();
+        if (birthInput.value) validateAndFixOnBlur();
+    })();
+    </script>
+
+    <!-- Submit form: force stop music -->
+    <script>
+        (function() {
+        const formEl = document.getElementById('musicForm');
+        if (!formEl) return;
+        formEl.addEventListener('submit', function() {
+            timerActive = false;
+            updateTimerUI();
+            forceStopAllMusic();
+            if (window.AudioController) {
+                window.AudioController._needsReschedule = true;
+            }
+        });
+    })();
+    </script>
+
+    <!-- Initialization -->
+    <script>
+        (function() {
+            const volumeSlider = document.getElementById('volumeSlider');
+            const volumeValue = document.getElementById('volumeValue');
+            if (volumeSlider && volumeValue) {
+                volumeSlider.addEventListener('input', function() { volumeValue.textContent = this.value + '%'; });
+            }
+    
+            ['formModal', 'donationModal', 'premiumModal'].forEach(modalId => {
+                const modal = document.getElementById(modalId);
+                if (modal) {
+                    modal.addEventListener('click', function(e) { if (e.target === modal) modal.classList.add('hidden'); });
+                }
+            });
+            
+            
+            document.getElementById('donationBtn')?.addEventListener('click', () => document.getElementById('donationModal')?.classList.remove('hidden'));
+            ['closeDonationBtn', 'closeDonationBtn2'].forEach(id => {
+                document.getElementById(id)?.addEventListener('click', () => document.getElementById('donationModal')?.classList.add('hidden'));
+            });
+            
+            document.getElementById('premiumInfoBtn')?.addEventListener('click', () => document.getElementById('premiumModal')?.classList.remove('hidden'));
+            ['closePremiumBtn', 'closePremiumBtn2'].forEach(id => {
+                document.getElementById(id)?.addEventListener('click', () => document.getElementById('premiumModal')?.classList.add('hidden'));
+            });
+
+            document.getElementById('clearStorageBtn')?.addEventListener('click', () => {
+                if (window.FormUIController?.clearAllData) window.FormUIController.clearAllData();
+                else {
+                    const keys = ['psychomatrixUserData','psychomatrixNumerologyData','psychomatrixPsychomatrixData','psychomatrixLuckyNumberData','psychomatrixMusicCurrent','psychomatrixMusicDefault','psychomatrixEdgeFunctions'];
+                    keys.forEach(k => localStorage.removeItem(k));
+                }
+            });
+
+            const checkModules = setInterval(() => {
+                if (window.AppMainController && window.DataContract && window.FormPsychomatrixController) {
+                    clearInterval(checkModules);
+                    try {
+                        window.AppMainController.initialize();
+                        if (window.FormUIController) window.FormUIController.initialize();
+                        if (window.MusicStylesController) window.MusicStylesController.initialize();
+                        if (window.AudioController) window.AudioController.initialize();
+                        if (window.UI && window.UI.initialize) window.UI.initialize();
+                        document.getElementById('loadingScreen')?.classList.add('hidden');
+                    } catch (error) {
+                        console.error("Initialization error:", error);
+                        const el = document.getElementById('loadingProgress');
+                        if (el) el.textContent = 'Error: ' + error.message;
+                    }
+                }
+            }, 100);
+            setTimeout(() => document.getElementById('loadingScreen')?.classList.add('hidden'), 5000);
+        })();
+    </script>
+
+    <!-- Prerender Progress Events -->
+    <script>
+    (function(){
+        window.addEventListener('prerenderProgress',function(e){
+            var pct=e.detail&&e.detail.percent, msg=e.detail&&e.detail.message||'';
+            var st=document.getElementById('prerenderStatus'),
+                bar=document.getElementById('prerenderBar'),
+                ic=document.getElementById('prerenderStatusIcon');
+            if(!st) return;
+            if(pct<0){ st.textContent=msg; st.style.color='#ef4444'; if(bar) bar.style.width='0%'; if(ic) ic.textContent='❌'; }
+            else if(pct>=100){ st.textContent=msg; st.style.color='#10b981'; if(bar){ bar.style.width='100%'; bar.style.background='#10b981'; } if(ic) ic.textContent='✅'; }
+            else{ st.textContent=msg; st.style.color='#fbbf24'; if(bar) bar.style.width=pct+'%'; if(ic) ic.textContent='⏳'; }
+        });
+        window.addEventListener('prerenderReset',function(){
+            var st=document.getElementById('prerenderStatus'),bar=document.getElementById('prerenderBar'),ic=document.getElementById('prerenderStatusIcon');
+            if(st){ st.textContent='กำลังรอ DNA ใหม่...'; st.style.color='#94a3b8'; }
+            if(bar){ bar.style.width='0%'; bar.style.background='linear-gradient(90deg,#10b981,#3b82f6)'; }
+            if(ic) ic.textContent='🎛️';
+        });
+        window.addEventListener('prerenderNeedsGesture',function(){
+            var st=document.getElementById('prerenderStatus');
+            if(st){ st.textContent='กดปุ่ม ▶ เพื่อเล่น'; st.style.color='#f59e0b'; }
+        });
+        
+        const closeBtn = document.getElementById('closeInviteBtn');
+        if (closeBtn) {
+            closeBtn.onclick = () => { 
+                inviteModal.style.display = 'none';
+                formModal.classList.remove('hidden');                
+                formModal.style.display = 'flex';
+            };
+        }
+        
+        // ========== เพิ่ม Event Listener สำหรับปุ่มแก้ข้อมูล (backToFrm) ==========
+        const backBtn = document.getElementById('backToFrm');
+        if (backBtn) {
+            backBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                // หยุดเสียงทั้งหมด
+                if (window.forceStopAllMusic) {
+                    window.forceStopAllMusic();
+                }
+                // ซ่อน inviteModal ถ้าเปิดอยู่
+                const invModal = document.getElementById('inviteModal');
+                if (invModal) invModal.style.display = 'none';
+                // แสดง formModal
+                const modal = document.getElementById('formModal');
+                if (modal) {
+                    modal.classList.remove('hidden');
+                    modal.style.display = 'flex';
+                }
+                console.log('[backToFrm] เปิดฟอร์มแก้ไขข้อมูล');
+            });
+        }
+
+        
+    })();
+    </script>
+    
+</body>
+</html>

@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>MLQ Music - ลงทะเบียน v3.11</title>
+    
+    <!-- Supabase JS Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- ไฟล์ตั้งค่า Supabase (ต้องมี window.supabaseClient, window.SUPABASE_URL, window.SUPABASE_ANON_KEY) -->
+    <script src="config/supabase-config.js"></script>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <script src="js/debug-logger.js"></script>
+
+    <style>
+        /* (คงเดิม) */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Prompt', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%);
+            min-height: 100vh;
+            padding: 2rem 1rem;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255,255,255,0.08);
+            backdrop-filter: blur(4px);
+            border-radius: 2rem;
+            padding: 2rem;
+            box-shadow: 0 25px 40px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .form-panel {
+            background: white;
+            border-radius: 1.5rem;
+            padding: 2rem;
+            transition: all 0.3s ease;
+        }
+        h2 { text-align: center; color: #1e1b4b; margin-bottom: 1.5rem; font-size: 1.8rem; font-weight: 700; }
+        .subhead { text-align: center; color: #4b5563; margin-bottom: 2rem; font-size: 0.9rem; }
+        .data-card {
+            background: #f8fafc;
+            border-radius: 1.2rem;
+            padding: 1.2rem;
+            margin-bottom: 1.5rem;
+            border-left: 6px solid;
+        }
+        .card-sky { border-left-color: #0ea5e9; }
+        .card-emerald { border-left-color: #10b981; }
+        .card-amber { border-left-color: #f59e0b; }
+        .card-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; }
+        .card-desc { color: #475569; font-size: 0.85rem; margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px dashed #cbd5e1; }
+        .form-group { margin-bottom: 1rem; }
+        label { display: block; font-weight: 600; color: #1e293b; margin-bottom: 0.3rem; font-size: 0.9rem; }
+        input, select {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border: 1.5px solid #e2e8f0;
+            border-radius: 1rem;
+            font-size: 1rem;
+            transition: all 0.2s;
+            background: white;
+        }
+        input:focus, select:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.2); }
+        .note { font-size: 0.7rem; color: #6b7280; margin-top: 0.25rem; display: flex; align-items: center; gap: 0.3rem; }
+        .error-field { border-color: #ef4444 !important; background-color: #fef2f2; }
+        .date-error-msg { color: #ef4444; font-size: 0.7rem; margin-top: 0.25rem; }
+        .package-group { margin: 1.5rem 0; }
+        .package-options { display: flex; gap: 1rem; flex-wrap: wrap; }
+        .package-card {
+            flex: 1;
+            background: #f1f5f9;
+            border-radius: 1rem;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: 0.2s;
+        }
+        .package-card.selected { border-color: #6366f1; background: #eef2ff; box-shadow: 0 4px 12px rgba(99,102,241,0.2); }
+        .package-name { font-weight: bold; font-size: 1.1rem; color: #1e293b; }
+        .package-price { font-size: 0.8rem; color: #4b5563; margin-top: 0.3rem; }
+        button {
+            width: 100%;
+            padding: 0.9rem;
+            background: #6366f1;
+            color: white;
+            border: none;
+            border-radius: 2rem;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-top: 0.5rem;
+        }
+        button:hover { background: #4f46e5; transform: translateY(-1px); }
+        button:disabled { background: #94a3b8; cursor: not-allowed; transform: none; }
+        .message {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            border-radius: 1rem;
+            text-align: center;
+            font-weight: 500;
+            display: none;
+        }
+        .message.success { background: #d1fae5; color: #065f46; display: block; }
+        .message.error { background: #fee2e2; color: #991b1b; display: block; }
+        .toggle-link { text-align: center; margin-top: 1.5rem; font-size: 0.85rem; }
+        .toggle-link a { color: #6366f1; font-weight: 600; cursor: pointer; text-decoration: none; }
+        .hidden { display: none; }
+        hr { margin: 1rem 0; border-color: #e2e8f0; }
+        @media (max-width: 640px) { .container { padding: 1rem; } .form-panel { padding: 1.2rem; } .package-options { flex-direction: column; } }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- LOGIN PANEL -->
+    <div id="loginPanel" class="form-panel">
+        <h2><i class="fas fa-music"></i> เข้าสู่ระบบ MLQ Music</h2>
+        <div class="subhead">ฟังเพลงจาก DNA ตัวเลขของคุณ</div>
+        <div class="form-group">
+            <label>อีเมล</label>
+            <input type="email" id="loginEmail" placeholder="example@email.com">
+        </div>
+        <div class="form-group">
+            <label>รหัสผ่าน</label>
+            <input type="password" id="loginPassword" placeholder="รหัสผ่าน">
+        </div>
+        <button id="loginBtn">เข้าสู่ระบบ <i class="fas fa-arrow-right"></i></button>
+        <div id="loginMessage" class="message"></div>
+        <div class="toggle-link">
+            ยังไม่มีบัญชี? <a id="showRegisterLink">สร้างบัญชีใหม่ (ฟรี)</a>
+        </div>
+    </div>
+
+    <!-- REGISTER PANEL -->
+    <div id="registerPanel" class="form-panel hidden">
+        <h2><i class="fas fa-star-of-life"></i> สร้างบัญชี MLQ Music</h2>
+        <div class="subhead">ลงทะเบียนเพื่อสร้างเพลงจากเลขติดตัว</div>
+        
+        <!-- บัตรประชาชน -->
+        <div class="data-card card-sky">
+            <div class="card-title"><i class="fas fa-id-card"></i> <span>เลขติดตัวจากสังคมมนุษย์กำหนด</span></div>
+            <div class="card-desc">🧬 ใช้เลขบัตรประชาชน 13 หลัก เพื่อสร้างเพลงแห่งโชคชะตาทางสังคม</div>
+            <div class="form-group">
+                <label>เลขบัตรประชาชน</label>
+                <input type="text" id="idCard" maxlength="13" placeholder="1234567890123" autocomplete="off">
+                <div class="note"><i class="fas fa-lightbulb"></i> เว้นว่างได้ ถ้าไม่มี</div>
+            </div>
+        </div>
+        
+        <!-- ชื่อ-สกุล -->
+        <div class="data-card card-emerald">
+            <div class="card-title"><i class="fas fa-user-friends"></i> <span>เลขติดตัวจากพ่อแม่กำหนด</span></div>
+            <div class="card-desc">🌳 ชื่อ-สกุลของคุณ บรรจุพลังแห่งครอบครัวและรากเหง้า</div>
+            <div class="form-group">
+                <label>ชื่อ-สกุล (Full Name) *</label>
+                <input type="text" id="fullName" placeholder="สมชาย ใจดี">
+                <div class="note"><i class="fas fa-feather-alt"></i> ใช้ตัวจริงตามบัตรประชาชน</div>
+            </div>
+        </div>
+        
+        <!-- วันเกิด + เวลา -->
+        <div class="data-card card-amber">
+            <div class="card-title"><i class="fas fa-sun"></i> <span>เลขติดตัวจากฟ้ากำหนด</span></div>
+            <div class="card-desc">⛅ วันเดือนปีเกิด และเวลา คือรหัสจักรวาล</div>
+            <div class="form-row" style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <div class="form-group" style="flex:2">
+                    <label>วันเกิด * (รูปแบบ DD/MM/YYYY)</label>
+                    <input type="text" id="birthDate" placeholder="DD/MM/YYYY" autocomplete="off">
+                    <div id="birthDateError" class="date-error-msg hidden">❌ รูปแบบไม่ถูกต้อง (เช่น 28/02/1990)</div>
+                    <div class="note"><i class="fas fa-calendar-alt"></i> ตัวอย่าง: 28/02/1990</div>
+                </div>
+                <div class="form-group" style="flex:1">
+                    <label>เวลาเกิด (โดยประมาณ)</label>
+                    <input type="time" id="birthTime" value="00:00">
+                    <div class="note">ไม่ทราบให้ใช้ 00:00</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- อีเมล + รหัสผ่าน -->
+        <hr>
+        <div class="form-group">
+            <label><i class="fas fa-envelope"></i> อีเมล (ใช้เข้าสู่ระบบ)</label>
+            <input type="email" id="regEmail" placeholder="you@example.com">
+        </div>
+        <div class="form-group">
+            <label><i class="fas fa-lock"></i> รหัสผ่าน (อย่างน้อย 6 ตัว)</label>
+            <input type="password" id="regPassword" placeholder="รหัสผ่าน">
+        </div>
+        
+        <!-- แพ็กเกจ -->
+        <div class="package-group">
+            <label><i class="fas fa-gem"></i> เลือกแพ็กเกจการสร้างเพลง</label>
+            <div class="package-options" id="packageOptions">
+                <div class="package-card" data-plan="basic">
+                    <div class="package-name">📀 Basic</div>
+                    <div class="package-price">ฟรี ตลอดชีพ</div>
+                    <div class="note">เพลงจาก DNA หลัก, โฆษณา MLQ</div>
+                </div>
+                <div class="package-card" data-plan="premium">
+                    <div class="package-name">👑 Premium</div>
+                    <div class="package-price">299.-/เดือน</div>
+                    <div class="note">Melody2, ดาวน์โหลด, ตั้งเวลา</div>
+                </div>
+                <div class="package-card" data-plan="neuro">
+                    <div class="package-name">🧠 Neuro Balance</div>
+                    <div class="package-price">399.-/เดือน</div>
+                    <div class="note">AI โค้ช, Music DNA เต็มรูปแบบ</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ระยะเวลา (Premium/Neuro) -->
+        <div class="package-group">
+            <label><i class="fas fa-hourglass-half"></i> ระยะเวลาใช้งาน (สำหรับ Premium / Neuro)</label>
+            <select id="durationSelect" style="padding:0.75rem 1rem; border-radius:1rem;">
+                <option value="1d">1 วัน (+30 ชม.)</option>
+                <option value="3d">3 วัน (+30 ชม.)</option>
+                <option value="7d">7 วัน (+30 ชม.)</option>
+                <option value="1m">1 เดือน (+30 ชม.)</option>
+                <option value="3m">3 เดือน (+30 ชม.)</option>
+                <option value="6m">6 เดือน (+30 ชม.)</option>
+                <option value="12m">12 เดือน (+30 ชม.)</option>
+            </select>
+        </div>
+        
+        <button id="registerBtn">สร้างบัญชีและเริ่มสร้างเพลง <i class="fas fa-magic"></i></button>
+        <div id="registerMessage" class="message"></div>
+        <div class="toggle-link">
+            มีบัญชีแล้ว? <a id="showLoginLink">กลับสู่หน้าล็อกอิน</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Helper functions
+    function showMessage(element, text, isError = true) {
+        element.textContent = text;
+        element.className = `message ${isError ? 'error' : 'success'}`;
+        element.style.display = 'block';
+        setTimeout(() => element.style.display = 'none', 5000);
+    }
+    function clearMessage(element) { element.style.display = 'none'; element.textContent = ''; }
+    
+    // วันที่
+    function isValidDateDDMMYYYY(dateStr) {
+        if (!dateStr || typeof dateStr !== 'string') return false;
+        if (!/^\d{2}\/\d{2}\/\d{4}$/.test(dateStr)) return false;
+        const [day, month, year] = dateStr.split('/').map(Number);
+        if (month < 1 || month > 12) return false;
+        const daysInMonth = new Date(year, month, 0).getDate();
+        return day >= 1 && day <= daysInMonth && year >= 1900 && year <= 2100;
+    }
+    function toYYYYMMDD(dateStr) {
+        if (!isValidDateDDMMYYYY(dateStr)) return '';
+        const [day, month, year] = dateStr.split('/');
+        return `${year}-${month}-${day}`;
+    }
+    
+    // DOM elements
+    const loginPanel = document.getElementById('loginPanel');
+    const registerPanel = document.getElementById('registerPanel');
+    const showRegisterLink = document.getElementById('showRegisterLink');
+    const showLoginLink = document.getElementById('showLoginLink');
+    const loginBtn = document.getElementById('loginBtn');
+    const loginEmail = document.getElementById('loginEmail');
+    const loginPassword = document.getElementById('loginPassword');
+    const loginMessageDiv = document.getElementById('loginMessage');
+    const registerBtn = document.getElementById('registerBtn');
+    const regEmail = document.getElementById('regEmail');
+    const regPassword = document.getElementById('regPassword');
+    const fullName = document.getElementById('fullName');
+    const idCard = document.getElementById('idCard');
+    const birthDateInput = document.getElementById('birthDate');
+    const birthTime = document.getElementById('birthTime');
+    const packageCards = document.querySelectorAll('.package-card');
+    const registerMessageDiv = document.getElementById('registerMessage');
+    const durationSelect = document.getElementById('durationSelect');
+    
+    let selectedPlan = 'basic';
+    document.querySelector('.package-card[data-plan="basic"]').classList.add('selected');
+    packageCards.forEach(card => {
+        card.addEventListener('click', () => {
+            packageCards.forEach(c => c.classList.remove('selected'));
+            card.classList.add('selected');
+            selectedPlan = card.dataset.plan;
+        });
+    });
+    
+    // Auto-slash วันเกิด
+    function setupBirthDateInput() {
+        const birthInput = birthDateInput;
+        const errorSpan = document.getElementById('birthDateError');
+        function showError(show) {
+            if (show) {
+                errorSpan.classList.remove('hidden');
+                birthInput.classList.add('error-field');
+            } else {
+                errorSpan.classList.add('hidden');
+                birthInput.classList.remove('error-field');
+            }
+        }
+        function autoSlashFormat(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 2) value = value.slice(0,2) + '/' + value.slice(2);
+            if (value.length >= 5) value = value.slice(0,5) + '/' + value.slice(5,9);
+            e.target.value = value.slice(0,10);
+            showError(false);
+        }
+        function validateAndFixOnBlur() {
+            let val = birthInput.value.trim();
+            if (!val) { showError(false); return; }
+            if (isValidDateDDMMYYYY(val)) { showError(false); return; }
+            let digits = val.replace(/\D/g, '');
+            if (digits.length === 8) {
+                let d = digits.slice(0,2), m = digits.slice(2,4), y = digits.slice(4,8);
+                let newVal = `${d}/${m}/${y}`;
+                if (isValidDateDDMMYYYY(newVal)) { birthInput.value = newVal; showError(false); return; }
+            }
+            if (val.includes('-')) {
+                let parts = val.split('-');
+                if (parts.length === 3) {
+                    let [year, month, day] = parts;
+                    let newVal = `${day}/${month}/${year}`;
+                    if (isValidDateDDMMYYYY(newVal)) { birthInput.value = newVal; showError(false); return; }
+                }
+            }
+            showError(true);
+        }
+        birthInput.addEventListener('input', autoSlashFormat);
+        birthInput.addEventListener('blur', validateAndFixOnBlur);
+        if (birthInput.value) validateAndFixOnBlur();
+    }
+    setupBirthDateInput();
+    
+    showRegisterLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        loginPanel.classList.add('hidden');
+        registerPanel.classList.remove('hidden');
+        clearMessage(loginMessageDiv);
+        clearMessage(registerMessageDiv);
+    });
+    showLoginLink.addEventListener('click', (e) => {
+        e.preventDefault();
+        registerPanel.classList.add('hidden');
+        loginPanel.classList.remove('hidden');
+        clearMessage(loginMessageDiv);
+        clearMessage(registerMessageDiv);
+    });
+    
+    // LOGIN (ไม่เปลี่ยนแปลง)
+    loginBtn.addEventListener('click', async () => {
+        const email = loginEmail.value.trim();
+        const pwd = loginPassword.value;
+        if (!email || !pwd) {
+            showMessage(loginMessageDiv, 'กรุณากรอกอีเมลและรหัสผ่าน', true);
+            return;
+        }
+        loginBtn.disabled = true;
+        loginBtn.textContent = 'กำลังเข้าสู่ระบบ...';
+        clearMessage(loginMessageDiv);
+        try {
+            const supabase = window.supabaseClient;
+            if (!supabase) throw new Error('Supabase not ready');
+            const { data, error } = await supabase.auth.signInWithPassword({ email, password: pwd });
+            if (error) throw error;
+            const userId = data.user.id;
+            // เรียก Edge Function create session (ทางเลือก แต่เราจะใช้ verify ในหน้าหลัก)
+            const sessionManagerUrl = `${window.SUPABASE_URL}/functions/v1/session-manager`;
+
+            const response = await fetch(`${sessionManagerUrl}/register`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'apikey': window.SUPABASE_ANON_KEY,
+                },
+                body: JSON.stringify({ user_id: userId })
+            });
+
+            if (!response.ok) {
+              const errorText = await response.text();
+              throw new Error(`HTTP ${response.status}: ${errorText.substring(0, 200)}`);
+            }
+
+            const result = await response.json();
+            if (!result.success) throw new Error(result.error || 'Create session failed');
+            localStorage.setItem('mlq_session_token', result.session_token);
+            localStorage.setItem('mlq_user_id', result.user_id);
+            
+            await supabase.from('user_login_logs').insert({
+                user_id: userId,
+                ip_address: null,
+                user_agent: navigator.userAgent,
+                success: true
+            }).catch(e => console.warn('Login log error:', e));
+            
+            showMessage(loginMessageDiv, 'เข้าสู่ระบบสำเร็จ! กำลังไปหน้าเพลง...', false);
+            setTimeout(() => window.location.href = 'index.html', 1500);
+        } catch (err) {
+            showMessage(loginMessageDiv, err.message, true);
+        } finally {
+            loginBtn.disabled = false;
+            loginBtn.textContent = 'เข้าสู่ระบบ';
+        }
+    });
+    
+    // REGISTER (ใช้ Edge Function + ส่ง user_agent)
+    function validateRegister() {
+        const email = regEmail.value.trim();
+        const pwd = regPassword.value;
+        const name = fullName.value.trim();
+        const birth = birthDateInput.value.trim();
+        if (!email) { showMessage(registerMessageDiv, 'กรุณากรอกอีเมล', true); return false; }
+        if (!pwd || pwd.length < 6) { showMessage(registerMessageDiv, 'รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร', true); return false; }
+        if (!name) { showMessage(registerMessageDiv, 'กรุณากรอกชื่อ-สกุล', true); return false; }
+        if (!birth) { showMessage(registerMessageDiv, 'กรุณากรอกวันเกิด', true); return false; }
+        if (!isValidDateDDMMYYYY(birth)) {
+            showMessage(registerMessageDiv, 'วันเกิดไม่ถูกต้อง (รูปแบบ DD/MM/YYYY)', true);
+            return false;
+        }
+        const idCardVal = idCard.value.trim();
+        if (idCardVal && !/^\d{13}$/.test(idCardVal)) {
+            showMessage(registerMessageDiv, 'เลขบัตรประชาชนต้องเป็นตัวเลข 13 หลักเท่านั้น', true);
+            return false;
+        }
+        return true;
+    }
+    
+    registerBtn.addEventListener('click', async () => {
+        if (!validateRegister()) return;
+        
+        const email = regEmail.value.trim();
+        const password = regPassword.value;
+        const name = fullName.value.trim();
+        const idCardVal = idCard.value.trim() || null;
+        const birthDateDDMM = birthDateInput.value.trim();
+        const birthDateISO = toYYYYMMDD(birthDateDDMM);
+        let birthTimeVal = birthTime.value || '00:00';
+        if (birthTimeVal.length === 5) birthTimeVal += ':00';
+        const durationValue = durationSelect.value;
+        
+        registerBtn.disabled = true;
+        registerBtn.textContent = 'กำลังสร้างบัญชี...';
+        clearMessage(registerMessageDiv);
+        
+        try {
+            const supabase = window.supabaseClient;
+            if (!supabase) throw new Error('Supabase client not initialized');
+            
+            const sessionManagerUrl = `${window.SUPABASE_URL}/functions/v1/session-manager`;
+            const response = await fetch(`${sessionManagerUrl}/register`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'apikey': window.SUPABASE_ANON_KEY,
+                },
+                body: JSON.stringify({
+                    email,
+                    password,
+                    full_name: name,
+                    birth_date: birthDateISO,
+                    birth_time: birthTimeVal,
+                    id_card: idCardVal,
+                    plan: selectedPlan,
+                    duration_value: durationValue,
+                    user_agent: navigator.userAgent   // เพิ่ม user_agent ที่นี่
+                }),
+            });
+            
+            const result = await response.json();
+            if (!response.ok || !result.success) {
+                throw new Error(result.error || 'Registration failed on server');
+            }
+            
+            localStorage.setItem('mlq_session_token', result.session_token);
+            localStorage.setItem('mlq_user_id', result.user_id);
+            localStorage.setItem('psychomatrixUserData', JSON.stringify({
+                name, birthDate: birthDateISO, birthTime: birthTimeVal, email
+            }));
+            
+            showMessage(registerMessageDiv, '🎉 ลงทะเบียนสำเร็จ! กำลังนำทาง...', false);
+            setTimeout(() => window.location.href = 'index.html', 1500);
+            
+        } catch (err) {
+            console.error('Registration error detail:', err);
+            let errorMsg = err.message;
+            if (errorMsg.includes('Email already registered')) {
+                errorMsg = 'อีเมลนี้มีบัญชีอยู่แล้ว กรุณาเข้าสู่ระบบ';
+            }
+            showMessage(registerMessageDiv, errorMsg, true);
+        } finally {
+            registerBtn.disabled = false;
+            registerBtn.textContent = 'สร้างบัญชีและเริ่มสร้างเพลง';
+        }
+    });
+</script>
+</body>
+</html>
