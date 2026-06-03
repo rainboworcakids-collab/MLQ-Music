@@ -2051,26 +2051,25 @@ ul, ol {
 }
 
 
-
 /* ===================================================== */
-/* แก้ไข Timer (Stop Clock) สำหรับมือถือแนวตั้ง portrait */
+/* มือถือแนวตั้ง: ให้ Timer เรียงแนวนอน (row) */
 /* ===================================================== */
 @media (max-width: 768px) and (orientation: portrait) {
-    /* ปรับโครงสร้างหลักของ stop clock */
+    /* ปรับโครงสร้างหลัก */
     .stop-clock-container {
         flex-direction: column !important;
         align-items: center !important;
         gap: 0.75rem !important;
     }
 
-    /* ให้ Hr card กว้างพอดีและอยู่ตรงกลาง */
+    /* การ์ด Hr อยู่ข้างบน กว้างพอดี */
     .stop-clock-container > .stop-clock-card:first-child {
         width: auto !important;
         max-width: 160px !important;
         margin: 0 auto !important;
     }
 
-    /* คอลัมน์ขวา (Min, Sec, Status) ให้เป็นแนวตั้งทั้งหมด */
+    /* คอลัมน์ขวา (Min, Sec, Status) */
     .stop-right-column {
         width: 100% !important;
         display: flex !important;
@@ -2079,62 +2078,70 @@ ul, ol {
         gap: 0.75rem !important;
     }
 
-    /* บังคับให้ Min + Sec + Status เรียงแนวตั้ง (column) แทนแนวนอน */
+    /* สำคัญ: ให้ Min, Sec, Status อยู่ในแถวเดียวกันแนวนอน */
     .stop-min-sec-row {
         display: flex !important;
-        flex-direction: column !important;  /* เปลี่ยนจาก row เป็น column */
+        flex-direction: row !important;   /* ← เปลี่ยนเป็น row */
+        flex-wrap: wrap !important;       /* ← ถ้าแคบเกินไปให้ขึ้นบรรทัดใหม่ */
+        justify-content: center !important;
         align-items: center !important;
-        gap: 0.75rem !important;
+        gap: 0.5rem !important;
         width: 100% !important;
     }
 
-    /* ปรับการ์ดแต่ละใบให้กว้างพอดี ไม่เกินหน้าจอ */
+    /* ปรับขนาดการ์ดแต่ละใบให้เล็กลง พอดีกับแนวนอน */
     .stop-min-sec-row .stop-clock-card {
         width: auto !important;
-        min-width: 130px !important;
-        max-width: 180px !important;
-        margin: 0 auto !important;
+        min-width: 100px !important;
+        max-width: 130px !important;
+        margin: 0 !important;
+        padding: 4px 8px !important;
     }
 
-    /* ขนาดตัวเลขและปุ่ม +/– ให้เล็กลงเล็กน้อย */
-    .stop-clock-number {
-        font-size: 1.4rem !important;
-    }
-    .adj-btn {
-        width: 30px !important;
-        height: 30px !important;
-        font-size: 1rem !important;
-    }
-    .stop-clock-label {
-        font-size: 0.6rem !important;
-    }
-    .stop-ampm {
-        font-size: 0.65rem !important;
-    }
-
-    /* ปุ่ม Timer Toggle และ Status */
-    .btn-timer {
-        padding: 0.4rem 1rem !important;
-        font-size: 0.75rem !important;
-    }
-    .timer-status {
-        font-size: 0.7rem !important;
-        margin-top: 0.2rem !important;
-    }
-}
-
-/* สำหรับหน้าจอที่แคบมาก (380px หรือน้อยกว่า) ให้ลดขนาดการ์ดลงอีก */
-@media (max-width: 380px) and (orientation: portrait) {
-    .stop-min-sec-row .stop-clock-card {
-        min-width: 110px !important;
-        max-width: 150px !important;
-    }
+    /* ขนาดตัวเลขและปุ่ม */
     .stop-clock-number {
         font-size: 1.2rem !important;
     }
     .adj-btn {
-        width: 26px !important;
-        height: 26px !important;
-        font-size: 0.85rem !important;
+        width: 24px !important;
+        height: 24px !important;
+        font-size: 0.8rem !important;
+        margin: 2px !important;
+    }
+    .stop-clock-label {
+        font-size: 0.55rem !important;
+    }
+    .stop-ampm {
+        font-size: 0.6rem !important;
+    }
+
+    /* ปุ่ม Timer Toggle และ Status */
+    .btn-timer {
+        padding: 0.3rem 0.8rem !important;
+        font-size: 0.65rem !important;
+    }
+    .timer-status {
+        font-size: 0.6rem !important;
+        margin-top: 0.1rem !important;
+    }
+}
+
+/* สำหรับหน้าจอแคบมาก (< 400px) อาจต้องลดขนาดลงอีก */
+@media (max-width: 400px) and (orientation: portrait) {
+    .stop-min-sec-row .stop-clock-card {
+        min-width: 85px !important;
+        max-width: 110px !important;
+    }
+    .stop-clock-number {
+        font-size: 1rem !important;
+    }
+    .adj-btn {
+        width: 22px !important;
+        height: 22px !important;
+        font-size: 0.7rem !important;
+    }
+    .btn-timer {
+        font-size: 0.6rem !important;
+        padding: 0.2rem 0.6rem !important;
     }
 }
