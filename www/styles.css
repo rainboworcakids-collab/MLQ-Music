@@ -2054,57 +2054,42 @@ ul, ol {
 
 
 /* ===================================================== */
-/* มือถือแนวตั้ง – Timer 4 ช่องแนวนอน (Hr, Min, Sec, Timer Control) */
+/* มือถือแนวตั้ง – จัด Timer 4 ช่องแนวนอน (ใช้ Flexbox)   */
 /* ===================================================== */
 @media (max-width: 768px) and (orientation: portrait) {
-    /* เปลี่ยน .stop-clock-container เป็น grid 4 คอลัมน์ */
+    /* ทำให้ container หลักเป็น flex แนวนอน */
     .stop-clock-container {
-        display: grid !important;
-        grid-template-columns: repeat(4, minmax(0, 1fr));
-        gap: 0.4rem;
-        align-items: start;
-        margin-top: 0.75rem;
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        justify-content: space-between !important;
+        align-items: stretch !important;
+        gap: 0.3rem !important;
+        margin-top: 0.75rem !important;
     }
 
-    /* การ์ด Stop Hr – คอลัมน์ที่ 1 */
-    .stop-clock-container > .stop-clock-card:first-child {
-        grid-column: 1 / 2;
-        grid-row: 1;
-        margin: 0;
-    }
-
-    /* ให้ wrapper ระดับกลาง (.stop-right-column, .stop-min-sec-row) 
-       หายไปจาก layout แต่ลูกของการ์ดยังอยู่ */
+    /* ซ่อน wrapper กลาง – ให้ลูกของการ์ดทั้งหมดอยู่ในกระแส layout */
     .stop-right-column,
     .stop-min-sec-row {
         display: contents !important;
     }
 
-    /* การ์ด Stop Min – คอลัมน์ที่ 2 */
-    .stop-min-sec-row .stop-clock-card:nth-child(1) {
-        grid-column: 2 / 3;
-        grid-row: 1;
+    /* เลือกการ์ดทั้ง 4 ใบโดยตรง (ใช้ > + sibling combinator) */
+    .stop-clock-container > .stop-clock-card,
+    .stop-min-sec-row .stop-clock-card {
+        flex: 1 1 0 !important;          /* ให้แต่ละช่องกว้างเท่ากัน */
+        min-width: 0 !important;         /* ป้องกัน overflow */
+        margin: 0 !important;
+        padding: 0.2rem 0.1rem !important;
     }
 
-    /* การ์ด Stop Sec – คอลัมน์ที่ 3 */
-    .stop-min-sec-row .stop-clock-card:nth-child(2) {
-        grid-column: 3 / 4;
-        grid-row: 1;
-    }
-
-    /* การ์ด Timer Control (ปุ่ม + Status) – คอลัมน์ที่ 4 */
+    /* การ์ดตัวที่ 3 (Timer Control) – อาจต้องปรับ padding ต่างหาก */
     .stop-min-sec-row .stop-clock-card:nth-child(3) {
-        grid-column: 4 / 5;
-        grid-row: 1;
-        width: auto;
-        min-width: 0;
-        padding: 0.3rem 0.2rem !important;
+        flex: 1 1 0 !important;
+        padding: 0.2rem 0 !important;
     }
 
-    /* ปรับขนาดการ์ดทั้งหมดให้เล็กลงพอดี */
-    .stop-clock-card {
-        padding: 0.3rem 0.1rem !important;
-    }
+    /* ปรับขนาดตัวเลขและปุ่มภายในแต่ละการ์ดให้เล็กลง */
     .stop-clock-number {
         font-size: 1rem !important;
     }
@@ -2112,7 +2097,7 @@ ul, ol {
         width: 22px !important;
         height: 22px !important;
         font-size: 0.7rem !important;
-        margin: 2px !important;
+        margin: 2px 1px !important;
     }
     .stop-clock-label {
         font-size: 0.5rem !important;
@@ -2122,9 +2107,9 @@ ul, ol {
         margin-top: 0px !important;
     }
 
-    /* ปรับแต่งปุ่มและข้อความในช่องที่ 4 */
+    /* ปุ่ม Timer และข้อความภายในช่องที่ 4 */
     .btn-timer {
-        padding: 0.2rem 0.4rem !important;
+        padding: 0.2rem 0.3rem !important;
         font-size: 0.55rem !important;
         white-space: nowrap;
     }
@@ -2134,34 +2119,31 @@ ul, ol {
         white-space: normal;
         word-break: keep-all;
     }
-    /* ซ่อน div เปล่าที่อยู่ใน card ที่ 3 (ถ้ามี) */
+
+    /* ซ่อน div เปล่าที่อาจมี */
     .stop-min-sec-row .stop-clock-card:nth-child(3) div:empty {
         display: none;
     }
 }
 
-/* ===================================================== */
-/* จอแคบมาก (< 400px) – ลด gap และ padding เพิ่ม        */
-/* ===================================================== */
+/* จอแคบมาก (< 400px) – ลดขนาดอักษรและปุ่มลงอีก */
 @media (max-width: 400px) and (orientation: portrait) {
-    .stop-clock-container {
-        gap: 0.25rem !important;
-    }
     .stop-clock-number {
-        font-size: 0.9rem !important;
+        font-size: 0.85rem !important;
     }
     .adj-btn {
-        width: 20px !important;
-        height: 20px !important;
+        width: 18px !important;
+        height: 18px !important;
         font-size: 0.6rem !important;
     }
     .btn-timer {
         font-size: 0.5rem !important;
-        padding: 0.15rem 0.3rem !important;
+        padding: 0.15rem 0.2rem !important;
     }
     .timer-status {
         font-size: 0.45rem !important;
     }
+    .stop-clock-label {
+        font-size: 0.45rem !important;
+    }
 }
-
-
