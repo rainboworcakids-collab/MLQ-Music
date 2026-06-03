@@ -2052,104 +2052,116 @@ ul, ol {
 
 
 
+
 /* ===================================================== */
-/* มือถือแนวตั้ง (portrait) – จัด Timer แนวนอน 3 ช่อง     */
+/* มือถือแนวตั้ง – Timer 4 ช่องแนวนอน (Hr, Min, Sec, Timer Control) */
 /* ===================================================== */
 @media (max-width: 768px) and (orientation: portrait) {
-    /* เปลี่ยน stop-clock-container เป็น Grid 3 คอลัมน์ */
+    /* เปลี่ยน .stop-clock-container เป็น grid 4 คอลัมน์ */
     .stop-clock-container {
         display: grid !important;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 0.5rem;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0.4rem;
         align-items: start;
         margin-top: 0.75rem;
     }
 
-    /* การ์ดชั่วโมง (Stop Hr) – คอลัมน์ที่ 1 */
+    /* การ์ด Stop Hr – คอลัมน์ที่ 1 */
     .stop-clock-container > .stop-clock-card:first-child {
         grid-column: 1 / 2;
         grid-row: 1;
-        width: auto;
-        max-width: none;
         margin: 0;
     }
 
-    /* ให้ .stop-right-column และ .stop-min-sec-row "หายไป" 
-       เพื่อให้การ์ดข้างในขึ้นมาเป็น Grid items โดยตรง */
+    /* ให้ wrapper ระดับกลาง (.stop-right-column, .stop-min-sec-row) 
+       หายไปจาก layout แต่ลูกของการ์ดยังอยู่ */
     .stop-right-column,
     .stop-min-sec-row {
         display: contents !important;
     }
 
-    /* การ์ดนาที (Stop Min) – คอลัมน์ที่ 2 */
+    /* การ์ด Stop Min – คอลัมน์ที่ 2 */
     .stop-min-sec-row .stop-clock-card:nth-child(1) {
         grid-column: 2 / 3;
         grid-row: 1;
     }
 
-    /* การ์ดวินาที (Stop Sec) – คอลัมน์ที่ 3 */
+    /* การ์ด Stop Sec – คอลัมน์ที่ 3 */
     .stop-min-sec-row .stop-clock-card:nth-child(2) {
         grid-column: 3 / 4;
         grid-row: 1;
     }
 
-    /* การ์ดปุ่ม Timer + Status – แถวที่ 2 กว้างเต็ม 3 คอลัมน์ */
+    /* การ์ด Timer Control (ปุ่ม + Status) – คอลัมน์ที่ 4 */
     .stop-min-sec-row .stop-clock-card:nth-child(3) {
-        grid-column: 1 / 4;
-        grid-row: 2;
-        justify-self: center;
+        grid-column: 4 / 5;
+        grid-row: 1;
         width: auto;
-        min-width: 160px;
-        max-width: 220px;
+        min-width: 0;
+        padding: 0.3rem 0.2rem !important;
     }
 
-    /* ขนาดการ์ดโดยรวมให้เล็กลง พอดีมือถือ */
+    /* ปรับขนาดการ์ดทั้งหมดให้เล็กลงพอดี */
     .stop-clock-card {
-        padding: 0.4rem 0.2rem !important;
+        padding: 0.3rem 0.1rem !important;
     }
     .stop-clock-number {
-        font-size: 1.3rem !important;
-    }
-    .adj-btn {
-        width: 26px !important;
-        height: 26px !important;
-        font-size: 0.85rem !important;
-    }
-    .stop-clock-label {
-        font-size: 0.55rem !important;
-    }
-    .stop-ampm {
-        font-size: 0.6rem !important;
-    }
-
-    /* ปุ่ม Timer และข้อความสถานะ */
-    .btn-timer {
-        padding: 0.3rem 0.8rem !important;
-        font-size: 0.7rem !important;
-    }
-    .timer-status {
-        font-size: 0.65rem !important;
-        margin-top: 0.2rem !important;
-    }
-}
-
-/* ===================================================== */
-/* จอแคบพิเศษ (< 400px) – ลดขนาดการ์ดลงอีกนิด         */
-/* ===================================================== */
-@media (max-width: 400px) and (orientation: portrait) {
-    .stop-clock-number {
-        font-size: 1.1rem !important;
+        font-size: 1rem !important;
     }
     .adj-btn {
         width: 22px !important;
         height: 22px !important;
         font-size: 0.7rem !important;
+        margin: 2px !important;
     }
+    .stop-clock-label {
+        font-size: 0.5rem !important;
+    }
+    .stop-ampm {
+        font-size: 0.55rem !important;
+        margin-top: 0px !important;
+    }
+
+    /* ปรับแต่งปุ่มและข้อความในช่องที่ 4 */
     .btn-timer {
-        font-size: 0.65rem !important;
-        padding: 0.2rem 0.6rem !important;
+        padding: 0.2rem 0.4rem !important;
+        font-size: 0.55rem !important;
+        white-space: nowrap;
     }
-    .stop-min-sec-row .stop-clock-card:nth-child(3) {
-        min-width: 140px;
+    .timer-status {
+        font-size: 0.5rem !important;
+        margin-top: 0.1rem !important;
+        white-space: normal;
+        word-break: keep-all;
+    }
+    /* ซ่อน div เปล่าที่อยู่ใน card ที่ 3 (ถ้ามี) */
+    .stop-min-sec-row .stop-clock-card:nth-child(3) div:empty {
+        display: none;
     }
 }
+
+/* ===================================================== */
+/* จอแคบมาก (< 400px) – ลด gap และ padding เพิ่ม        */
+/* ===================================================== */
+@media (max-width: 400px) and (orientation: portrait) {
+    .stop-clock-container {
+        gap: 0.25rem !important;
+    }
+    .stop-clock-number {
+        font-size: 0.9rem !important;
+    }
+    .adj-btn {
+        width: 20px !important;
+        height: 20px !important;
+        font-size: 0.6rem !important;
+    }
+    .btn-timer {
+        font-size: 0.5rem !important;
+        padding: 0.15rem 0.3rem !important;
+    }
+    .timer-status {
+        font-size: 0.45rem !important;
+    }
+}
+
+
