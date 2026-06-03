@@ -2049,3 +2049,92 @@ ul, ol {
         max-width: 140px !important;
     }
 }
+
+
+
+/* ===================================================== */
+/* แก้ไข Timer (Stop Clock) สำหรับมือถือแนวตั้ง portrait */
+/* ===================================================== */
+@media (max-width: 768px) and (orientation: portrait) {
+    /* ปรับโครงสร้างหลักของ stop clock */
+    .stop-clock-container {
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 0.75rem !important;
+    }
+
+    /* ให้ Hr card กว้างพอดีและอยู่ตรงกลาง */
+    .stop-clock-container > .stop-clock-card:first-child {
+        width: auto !important;
+        max-width: 160px !important;
+        margin: 0 auto !important;
+    }
+
+    /* คอลัมน์ขวา (Min, Sec, Status) ให้เป็นแนวตั้งทั้งหมด */
+    .stop-right-column {
+        width: 100% !important;
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 0.75rem !important;
+    }
+
+    /* บังคับให้ Min + Sec + Status เรียงแนวตั้ง (column) แทนแนวนอน */
+    .stop-min-sec-row {
+        display: flex !important;
+        flex-direction: column !important;  /* เปลี่ยนจาก row เป็น column */
+        align-items: center !important;
+        gap: 0.75rem !important;
+        width: 100% !important;
+    }
+
+    /* ปรับการ์ดแต่ละใบให้กว้างพอดี ไม่เกินหน้าจอ */
+    .stop-min-sec-row .stop-clock-card {
+        width: auto !important;
+        min-width: 130px !important;
+        max-width: 180px !important;
+        margin: 0 auto !important;
+    }
+
+    /* ขนาดตัวเลขและปุ่ม +/– ให้เล็กลงเล็กน้อย */
+    .stop-clock-number {
+        font-size: 1.4rem !important;
+    }
+    .adj-btn {
+        width: 30px !important;
+        height: 30px !important;
+        font-size: 1rem !important;
+    }
+    .stop-clock-label {
+        font-size: 0.6rem !important;
+    }
+    .stop-ampm {
+        font-size: 0.65rem !important;
+    }
+
+    /* ปุ่ม Timer Toggle และ Status */
+    .btn-timer {
+        padding: 0.4rem 1rem !important;
+        font-size: 0.75rem !important;
+    }
+    .timer-status {
+        font-size: 0.7rem !important;
+        margin-top: 0.2rem !important;
+    }
+}
+
+/* สำหรับหน้าจอที่แคบมาก (380px หรือน้อยกว่า) ให้ลดขนาดการ์ดลงอีก */
+@media (max-width: 380px) and (orientation: portrait) {
+    .stop-min-sec-row .stop-clock-card {
+        min-width: 110px !important;
+        max-width: 150px !important;
+    }
+    .stop-clock-number {
+        font-size: 1.2rem !important;
+    }
+    .adj-btn {
+        width: 26px !important;
+        height: 26px !important;
+        font-size: 0.85rem !important;
+    }
+}
