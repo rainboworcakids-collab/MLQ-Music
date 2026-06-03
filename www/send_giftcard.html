@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MLQ Music - สร้างซองเพลง V8.0 (แยก Pre/Post Voice + Effect)</title>
+    <title>MLQ Music - สร้างซองเพลง V8.1 (iPad Fix: รูปใหญ่, เสียง m4a, postMessage)</title>
     <meta name="theme-color" content="#4f46e5">
-    <meta name="description" content="สร้างเพลงส่วนตัวจากตัวเลขวันเกิดและชื่อของคุณ ฟรี">
+    <meta name="description" content="สร้างเพลงส่วนตัวจากตัวเลขวันเกิดและชื่อของคุณ ฟรี รองรับ iPad">
     <link rel="icon" href="icons/icon-72x72.png" type="image/png">
     <link rel="apple-touch-icon" href="icons/icon-192x192.png">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="css/gift-card-base.css">
 
     <style>
+        /* (คงสไตล์เดิมทั้งหมด ไม่เปลี่ยนแปลง) */
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             background: linear-gradient(145deg, #f9f3e9, #fff0e0);
@@ -114,20 +115,6 @@
         }
         .voice-preview audio { width: 100%; border-radius: 8px; }
         .image-preview-container img { max-width: 100%; max-height: 120px; border-radius: 8px; margin: 0 auto; display: block; }
-        /*
-        .ai-prompt-link {
-            background: #f0e6d2;
-            border-radius: 40px;
-            padding: 10px 20px;
-            margin: 16px 0 8px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-        .ai-prompt-link p { margin: 26px 30px 8px 0px;  font-size: 0.85rem; color: #2a1a9a; }
-        */
         .ai-prompt-link a { background: #f5b042; color: #2c241a;  margin-left: 30px; padding: 16px 28px; border-radius: 40px; text-decoration: none; font-weight: 600; font-size: .9rem; transition: 0.2s; white-space: nowrap; }
         .ai-prompt-link a:hover { background: #e09d2a; transform: scale(0.98); }
         .two-column-layout {
@@ -178,8 +165,8 @@
         <p class="text-xl text-blue-700">🎵 กรุณาสร้าง DNA ในส่วนด้านบนก่อน</p>
         <div class="dna-iframe-container mt-12">
             <iframe 
-                src="https://rainboworcakids-collab.github.io/MLQ-Music/www/send_giftcard_music.html"
-                title="MLQ-Music DNA Creator Send Giftcard" 
+                src="https://127.0.0.1:9454/product/MLQ/MLQ-Music/send_giftcard_music.html?v=1.202"
+                title="MLQ-Music DNA Creator" 
                 sandbox="allow-forms allow-modals allow-popups allow-presentation allow-same-origin allow-scripts allow-top-navigation-by-user-activation" 
                 allow="autoplay; encrypted-media; clipboard-write" 
                 loading="lazy">
@@ -322,7 +309,6 @@
                         <select id="preEffectSelect" class="form-input">
                             <option value="">ไม่มี</option>
                         </select>
-                        <!-- span>ระดับ 0.5</span -->
                     </div>
                 </div>
                 <div>
@@ -331,7 +317,6 @@
                         <select id="postEffectSelect" class="form-input">
                             <option value="">ไม่มี</option>
                         </select>
-                        <!-- span>ระดับ 0.5</span -->
                     </div>
                 </div>
             </div>
@@ -370,10 +355,15 @@
 
 <script>
     (function() {
+        // ========== V8.1 iPad Fixes ==========
+        // 1. รูปเกิน 2MB -> บีบอัดอัตโนมัติด้วย compressImage()
+        // 2. บันทึกเสียง -> ใช้ MediaRecorder พร้อม mimeType audio/mp4 (iPad) และนามสกุล .m4a
+        // 3. localStorage ข้าม frame ไม่ได้ (ITP) -> ใช้ postMessage แทน
+        // =====================================
         let currentUserPlan = 'premium';
-        console.log(`🚀 send_giftcard.html V8.0 - แยก Pre/Post Voice + Pre/Post Effect`);
+        console.log(`🚀 send_giftcard.html V8.1 (iPad Patch) - รองรับรูปใหญ่, บันทึกเสียง m4a, postMessage แทน localStorage`);
 
-        // DOM elements - ส่วนเดิม
+        // DOM elements (เหมือนเดิม)
         const cardSelect = document.getElementById('cardSelect');
         const customMessageEl = document.getElementById('customMessage');
         const previewEl = document.getElementById('cardPreview');
@@ -387,7 +377,6 @@
         const senderNameInput = document.getElementById('senderName');
         const durationSelect = document.getElementById('durationSelect');
 
-        // Pre / Post Image (เปลี่ยนชื่อเพื่อความชัดเจน)
         const preImageInput = document.getElementById('preImageInput');
         const preImagePreviewContainer = document.getElementById('preImagePreviewContainer');
         const preImagePreviewElement = document.getElementById('preImagePreviewElement');
@@ -395,7 +384,6 @@
         const postImagePreviewContainer = document.getElementById('postImagePreviewContainer');
         const postImagePreviewElement = document.getElementById('postImagePreviewElement');
 
-        // Pre Voice elements
         const preRecordVoiceBtn = document.getElementById('preRecordVoiceBtn');
         const preVoiceFileInput = document.getElementById('preVoiceFileInput');
         const preUploadVoiceBtn = document.getElementById('preUploadVoiceBtn');
@@ -404,7 +392,6 @@
         const preVoiceFilenameSpan = document.getElementById('preVoiceFilename');
         const preClearVoiceBtn = document.getElementById('preClearVoiceBtn');
 
-        // Post Voice elements
         const postRecordVoiceBtn = document.getElementById('postRecordVoiceBtn');
         const postVoiceFileInput = document.getElementById('postVoiceFileInput');
         const postUploadVoiceBtn = document.getElementById('postUploadVoiceBtn');
@@ -413,7 +400,6 @@
         const postVoiceFilenameSpan = document.getElementById('postVoiceFilename');
         const postClearVoiceBtn = document.getElementById('postClearVoiceBtn');
 
-        // Pre/Post Effect
         const preEffectSelect = document.getElementById('preEffectSelect');
         const postEffectSelect = document.getElementById('postEffectSelect');
 
@@ -424,13 +410,11 @@
         let currentReceiverName = '';
         let currentSenderName = '';
 
-        // Voice Blobs
         let currentPreVoiceBlob = null;
         let currentPreVoiceUrl = null;
         let currentPostVoiceBlob = null;
         let currentPostVoiceUrl = null;
 
-        // Image blobs (Pre/Post)
         let currentPreImageBlob = null;
         let currentPostImageBlob = null;
 
@@ -443,11 +427,6 @@
             return supabaseClient;
         }
 
-        function escapeHtml(s) {
-            if (!s) return '';
-            return String(s).replace(/[&<>]/g, m => m === '&' ? '&amp;' : (m === '<' ? '&lt;' : '&gt;'));
-        }
-
         function downloadImage(dataUrl, filename) {
             const link = document.createElement('a');
             link.href = dataUrl;
@@ -457,7 +436,38 @@
             document.body.removeChild(link);
         }
 
-        // ========== Voice Upload Helpers (generic) ==========
+        // -------- 1. Image Compression (iPad fix) --------
+        async function compressImage(file, maxWidth = 1200, quality = 0.8) {
+            return new Promise((resolve, reject) => {
+                if (!file.type.startsWith('image/')) {
+                    resolve(file);
+                    return;
+                }
+                const img = new Image();
+                img.onload = () => {
+                    let width = img.width;
+                    let height = img.height;
+                    if (width > maxWidth) {
+                        height = (height * maxWidth) / width;
+                        width = maxWidth;
+                    }
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    canvas.toBlob(blob => {
+                        if (!blob) reject(new Error('Canvas toBlob failed'));
+                        else resolve(blob);
+                    }, 'image/jpeg', quality);
+                    URL.revokeObjectURL(img.src);
+                };
+                img.onerror = () => reject(new Error('Image load failed'));
+                img.src = URL.createObjectURL(file);
+            });
+        }
+
+        // -------- Voice Upload Helpers (ไม่เปลี่ยนแปลง) --------
         async function uploadVoiceToSupabase(blob, fileName) {
             const supabase = getSupabaseClient();
             const fileExt = fileName.split('.').pop() || 'webm';
@@ -522,11 +532,9 @@
             showVoicePreview(file, file.name, isPre);
         }
 
-        // MediaRecorder สำหรับ Pre/Post Voice
+        // -------- 2. MediaRecorder ที่รองรับ iPad (audio/mp4) --------
         let preMediaRecorder = null;
         let postMediaRecorder = null;
-        let preRecordedChunks = [];
-        let postRecordedChunks = [];
 
         async function startRecording(isPre) {
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -535,12 +543,28 @@
             }
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                const recorder = new MediaRecorder(stream);
+                
+                // ตรวจสอบ mimeType ที่รองรับ (iPad ต้องการ audio/mp4)
+                let mimeType = '';
+                if (MediaRecorder.isTypeSupported('audio/mp4')) {
+                    mimeType = 'audio/mp4';
+                } else if (MediaRecorder.isTypeSupported('audio/webm')) {
+                    mimeType = 'audio/webm';
+                } else if (MediaRecorder.isTypeSupported('audio/mpeg')) {
+                    mimeType = 'audio/mpeg';
+                }
+                
+                const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : {});
                 const chunks = [];
                 recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
                 recorder.onstop = () => {
-                    const blob = new Blob(chunks, { type: 'audio/webm' });
-                    const filename = `record_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.webm`;
+                    const finalType = mimeType || (recorder.mimeType || 'audio/mp4');
+                    const blob = new Blob(chunks, { type: finalType });
+                    let ext = 'webm';
+                    if (finalType.includes('mp4')) ext = 'm4a';
+                    else if (finalType.includes('webm')) ext = 'webm';
+                    else if (finalType.includes('mpeg')) ext = 'mp3';
+                    const filename = `record_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.${ext}`;
                     showVoicePreview(blob, filename, isPre);
                     stream.getTracks().forEach(track => track.stop());
                 };
@@ -565,7 +589,6 @@
             }
         }
 
-        // ========== Image Preview ==========
         function previewImage(file, container, imgElement) {
             if (!file) {
                 container.classList.add('hidden');
@@ -577,7 +600,6 @@
             container.classList.remove('hidden');
         }
 
-        // ========== Upload Image to gift-images bucket ==========
         async function uploadImageToBucket(file, prefix) {
             const supabase = getSupabaseClient();
             const ext = file.name.split('.').pop();
@@ -588,7 +610,6 @@
             return publicUrl;
         }
 
-        // ========== Refresh Preview (การ์ด) ==========
         function refreshPreview() {
             if (!currentTemplate) return;
             const themeToUse = currentTemplate.theme_class || 'theme-classic';
@@ -607,7 +628,7 @@
             });
         }
 
-        // ========== Load Templates ==========
+        // -------- Load Templates (ไม่เปลี่ยนแปลง) --------
         async function loadTemplates() {
             templateStatusDiv.innerHTML = '⏳ กำลังโหลดธีมการ์ด...';
             templateStatusDiv.className = 'status-message status-loading';
@@ -671,6 +692,56 @@
             refreshPreview();
         }
 
+        // -------- 3. postMessage สำหรับรับ DNA จาก iframe --------
+        let dnaDataFromIframe = null;
+
+        window.addEventListener('message', (event) => {
+            if (event.data && event.data.type === 'DNA_READY') {
+                dnaDataFromIframe = event.data.payload;
+                console.log('✅ received DNA from iframe via postMessage');
+                if (templateStatusDiv) {
+                    templateStatusDiv.innerHTML = '✅ DNA พร้อมแล้ว สร้างซองเพลงได้';
+                    templateStatusDiv.className = 'status-message status-success';
+                    setTimeout(() => { templateStatusDiv.style.display = 'none'; }, 3000);
+                }
+            }
+        });
+
+        // -------- Image Event Handlers (พร้อมบีบอัด) --------
+        async function handleImageInput(file, setDataUrlCallback, setBlobCallback, previewContainer, previewImg) {
+            if (!file) {
+                setDataUrlCallback(null);
+                if (previewContainer) previewContainer.classList.add('hidden');
+                if (previewImg) previewImg.src = '';
+                refreshPreview();
+                return;
+            }
+            let processedFile = file;
+            if (file.size > 2 * 1024 * 1024) {
+                try {
+                    processedFile = await compressImage(file);
+                    if (processedFile.size > 2 * 1024 * 1024) {
+                        alert('รูปภาพยังมีขนาดใหญ่เกิน 2MB หลังจากบีบอัดแล้ว กรุณาเลือกรูปอื่น');
+                        return;
+                    }
+                } catch(err) {
+                    alert('ไม่สามารถบีบอัดรูปภาพได้');
+                    return;
+                }
+            }
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                setDataUrlCallback(ev.target.result);
+                if (previewImg) previewImg.src = ev.target.result;
+                if (previewContainer) previewContainer.classList.remove('hidden');
+                refreshPreview();
+            };
+            reader.readAsDataURL(processedFile);
+            if (setBlobCallback) setBlobCallback(processedFile);
+            return processedFile;
+        }
+
+        // Bind events ใหม่ทั้งหมด
         function bindEvents() {
             brandSelect.addEventListener('change', () => updateCardSelectByBrand());
             cardSelect.addEventListener('change', onCardSelectChange);
@@ -686,7 +757,9 @@
                 currentSenderName = senderNameInput.value;
                 refreshPreview();
             });
-            imageInput.addEventListener('change', (e) => {
+
+            // รูปหลัก
+            imageInput.addEventListener('change', async (e) => {
                 const file = e.target.files[0];
                 if (!file) {
                     currentImageDataUrl = null;
@@ -695,12 +768,19 @@
                     refreshPreview();
                     return;
                 }
+                let processedFile = file;
                 if (file.size > 2 * 1024 * 1024) {
-                    alert('รูปภาพมีขนาดใหญ่เกิน 2MB');
-                    imageInput.value = '';
-                    currentImageDataUrl = null;
-                    refreshPreview();
-                    return;
+                    try {
+                        processedFile = await compressImage(file);
+                        if (processedFile.size > 2 * 1024 * 1024) {
+                            alert('รูปภาพยังมีขนาดใหญ่เกิน 2MB หลังจากบีบอัดแล้ว');
+                            imageInput.value = '';
+                            return;
+                        }
+                    } catch(err) {
+                        alert('ไม่สามารถบีบอัดรูปภาพได้');
+                        return;
+                    }
                 }
                 const reader = new FileReader();
                 reader.onload = (ev) => {
@@ -709,11 +789,12 @@
                     imagePreviewContainer.classList.remove('hidden');
                     refreshPreview();
                 };
-                reader.readAsDataURL(file);
+                reader.readAsDataURL(processedFile);
+                imageInput._compressedFile = processedFile;
             });
 
-            // Pre/Post Image
-            preImageInput.addEventListener('change', (e) => {
+            // Pre Image
+            preImageInput.addEventListener('change', async (e) => {
                 const file = e.target.files[0];
                 if (!file) {
                     preImagePreviewContainer.classList.add('hidden');
@@ -721,17 +802,26 @@
                     currentPreImageBlob = null;
                     return;
                 }
+                let processedFile = file;
                 if (file.size > 2 * 1024 * 1024) {
-                    alert('Pre Image ขนาดใหญ่เกิน 2MB');
-                    preImageInput.value = '';
-                    currentPreImageBlob = null;
-                    preImagePreviewContainer.classList.add('hidden');
-                    return;
+                    try {
+                        processedFile = await compressImage(file);
+                        if (processedFile.size > 2 * 1024 * 1024) {
+                            alert('Pre Image ขนาดใหญ่เกิน 2MB หลังจากบีบอัด');
+                            preImageInput.value = '';
+                            return;
+                        }
+                    } catch(err) {
+                        alert('ไม่สามารถบีบอัด Pre Image');
+                        return;
+                    }
                 }
-                currentPreImageBlob = file;
-                previewImage(file, preImagePreviewContainer, preImagePreviewElement);
+                currentPreImageBlob = processedFile;
+                previewImage(processedFile, preImagePreviewContainer, preImagePreviewElement);
             });
-            postImageInput.addEventListener('change', (e) => {
+
+            // Post Image
+            postImageInput.addEventListener('change', async (e) => {
                 const file = e.target.files[0];
                 if (!file) {
                     postImagePreviewContainer.classList.add('hidden');
@@ -739,15 +829,22 @@
                     currentPostImageBlob = null;
                     return;
                 }
+                let processedFile = file;
                 if (file.size > 2 * 1024 * 1024) {
-                    alert('Post Image ขนาดใหญ่เกิน 2MB');
-                    postImageInput.value = '';
-                    currentPostImageBlob = null;
-                    postImagePreviewContainer.classList.add('hidden');
-                    return;
+                    try {
+                        processedFile = await compressImage(file);
+                        if (processedFile.size > 2 * 1024 * 1024) {
+                            alert('Post Image ขนาดใหญ่เกิน 2MB หลังจากบีบอัด');
+                            postImageInput.value = '';
+                            return;
+                        }
+                    } catch(err) {
+                        alert('ไม่สามารถบีบอัด Post Image');
+                        return;
+                    }
                 }
-                currentPostImageBlob = file;
-                previewImage(file, postImagePreviewContainer, postImagePreviewElement);
+                currentPostImageBlob = processedFile;
+                previewImage(processedFile, postImagePreviewContainer, postImagePreviewElement);
             });
         }
 
@@ -771,13 +868,7 @@
             }
         }
 
-        function getLocalStorageWithPrefix(key) {
-            return localStorage.getItem('gift_' + key);
-        }
-
-        // ========== Populate Effect Dropdowns from NatureSounds ==========
         async function populateEffectDropdowns() {
-            // รอให้ NatureSounds โหลด
             while (!window.NatureSounds || !window.NatureSounds.creators) {
                 await new Promise(r => setTimeout(r, 100));
             }
@@ -787,38 +878,21 @@
             postEffectSelect.innerHTML = `<option value="">ไม่มี</option>${optionsHtml}`;
         }
 
-        // ========== GENERATE BUTTON ==========
+        // -------- GENERATE BUTTON (ใช้ dnaDataFromIframe แทน localStorage) --------
         generateBtn.onclick = async () => {
-            const defaultDNAStr = getLocalStorageWithPrefix('psychomatrixMusicDefault');
-            const customDNAStr = getLocalStorageWithPrefix('psychomatrixMusicCustomStyle');
-            const numerologyStr = getLocalStorageWithPrefix('psychomatrixNumerologyData');
-
-            if (!defaultDNAStr || !customDNAStr || !numerologyStr) {
-                alert("⚠️ กรุณาสร้าง DNA และตัวเลขศาสตร์ก่อน โดยกรอกข้อมูลใน iframe ด้านบน");
+            if (!dnaDataFromIframe) {
+                alert("⚠️ กรุณาสร้าง DNA และตัวเลขศาสตร์ก่อน โดยกรอกข้อมูลใน iframe ด้านบน (กด 'สร้างเพลงตัวเลขชีวิต')");
                 return;
             }
-
-            let defaultDNA, customDNA, numerology;
-            try {
-                defaultDNA = JSON.parse(defaultDNAStr);
-                customDNA = JSON.parse(customDNAStr);
-                numerology = JSON.parse(numerologyStr);
-            } catch(e) {
-                alert("ข้อมูล DNA ใน localStorage เสียหาย");
-                return;
-            }
-
+            const { defaultDNA, customDNA, numerology } = dnaDataFromIframe;
             if (!defaultDNA || !defaultDNA.sequence || !defaultDNA.instruments) {
                 alert("defaultDNA ไม่สมบูรณ์");
                 return;
             }
-            if (!customDNA || !customDNA.sequence) {
-                customDNA = { sequence: [], tempo: 90, instruments: [] };
+            let finalCustomDNA = customDNA;
+            if (!finalCustomDNA || !finalCustomDNA.sequence) {
+                finalCustomDNA = { sequence: [], tempo: 90, instruments: [] };
             }
-
-            // ไม่ต้องใช้ naturePositionSelect อีกแล้ว (ลบไป)
-            // Effect เดิมใน natureEffects จะไม่ถูกส่งไป เพราะเราจะไม่ใช้ระบบเก่า
-            // แต่เผื่อมีข้อมูลเก่าใน DNA เราจะไม่ overwrite (ปล่อยไว้)
 
             // อัปโหลด Pre Voice
             let preVoiceUrl = null;
@@ -836,7 +910,6 @@
                 }
             }
 
-            // อัปโหลด Post Voice
             let postVoiceUrl = null;
             if (currentPostVoiceBlob) {
                 generateBtn.innerText = "⏳ อัปโหลด Post Voice...";
@@ -851,7 +924,6 @@
                 }
             }
 
-            // อัปโหลด Pre / Post Image
             let preImageUrl = null, postImageUrl = null;
             if (currentPreImageBlob) {
                 try {
@@ -864,7 +936,6 @@
                 } catch(e) { alert("อัปโหลด Post Image ไม่สำเร็จ: " + e.message); return; }
             }
 
-            // Effect objects (intensity คงที่ 0.5)
             const preEffect = preEffectSelect.value ? { type: preEffectSelect.value, intensity: 0.5 } : null;
             const postEffect = postEffectSelect.value ? { type: postEffectSelect.value, intensity: 0.5 } : null;
 
@@ -890,7 +961,7 @@
 
             try {
                 let imageUrl = null;
-                const imageFile = imageInput.files[0];
+                const imageFile = imageInput._compressedFile || imageInput.files[0];
                 if (imageFile) {
                     try {
                         imageUrl = await uploadImage(imageFile);
@@ -899,10 +970,7 @@
                     }
                 }
 
-                let destinyBlueprint = getLocalStorageWithPrefix('current_destiny_blueprint');
-                if (!destinyBlueprint) {
-                    destinyBlueprint = `✨ เส้นทางชีวิตหมายเลข ${lifePath} ผสานกับพรหมลิขิต ${destiny} สร้างเป็นแรงสั่นสะเทือนทางดนตรีที่สะท้อนตัวตนของคุณ`;
-                }
+                let destinyBlueprint = `✨ เส้นทางชีวิตหมายเลข ${lifePath} ผสานกับพรหมลิขิต ${destiny} สร้างเป็นแรงสั่นสะเทือนทางดนตรีที่สะท้อนตัวตนของคุณ`;
 
                 const supabaseUrl = window.SUPABASE_URL;
                 const supabaseKey = window.SUPABASE_ANON_KEY;
@@ -915,7 +983,7 @@
                     card_template_id: cardId,
                     custom_message: customMessage,
                     numerologyData: { lifePath, destiny },
-                    musicDNA: { defaultDNA, customDNA },
+                    musicDNA: { defaultDNA, customDNA: finalCustomDNA },
                     brand, mode,
                     image_url: imageUrl,
                     card_mode: "greeting",
@@ -924,14 +992,13 @@
                     senderName: senderName,
                     theme_class: themeClass,
                     edition: editionForCard,
-                    // ฟิลด์ใหม่ (แทนที่ voice_url เดิม)
                     pre_voice_url: preVoiceUrl,
                     post_voice_url: postVoiceUrl,
                     pre_effect: preEffect,
                     post_effect: postEffect,
                     duration_sec: durationSec,
-                    intro_image_url: preImageUrl,   // ชื่อเดิม intro_image_url แต่ใช้เป็น Pre Image
-                    outro_image_url: postImageUrl   // ชื่อเดิม outro_image_url แต่ใช้เป็น Post Image
+                    intro_image_url: preImageUrl,
+                    outro_image_url: postImageUrl
                 };
 
                 const edgeRes = await fetch(`${supabaseUrl}/functions/v1/generate-music-qr`, {
@@ -1029,7 +1096,7 @@
             }
         };
 
-        // ========== Voice UI Events ==========
+        // Voice UI Events
         preUploadVoiceBtn.addEventListener('click', () => preVoiceFileInput.click());
         preVoiceFileInput.addEventListener('change', (e) => {
             if (e.target.files && e.target.files[0]) handleVoiceFile(e.target.files[0], true);
@@ -1045,6 +1112,7 @@
         postClearVoiceBtn.addEventListener('click', () => clearPostVoice());
 
         (async function init() {
+            console.log('send_giftcard.html V8.1 - initializing...');
             await populateEffectDropdowns();
             const success = await loadTemplates();
             if (success) bindEvents();

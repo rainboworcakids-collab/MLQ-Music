@@ -1004,6 +1004,46 @@
                 }
             }, 100);
             setTimeout(() => document.getElementById('loadingScreen')?.classList.add('hidden'), 5000);
+            
+            
+            // ========== ส่ง DNA ไปยัง parent window ==========
+function sendDNADataToParent() {
+    try {
+        const defaultDNAStr = localStorage.getItem('psychomatrixMusicDefault');
+        const customDNAStr = localStorage.getItem('psychomatrixMusicCustomStyle');
+        const numerologyStr = localStorage.getItem('psychomatrixNumerologyData');
+        if (defaultDNAStr && customDNAStr && numerologyStr) {
+            const payload = {
+                defaultDNA: JSON.parse(defaultDNAStr),
+                customDNA: JSON.parse(customDNAStr),
+                numerology: JSON.parse(numerologyStr)
+            };
+            window.parent.postMessage({ type: 'DNA_READY', payload: payload }, '*');
+            console.log('📤 Sent DNA data to parent');
+        } else {
+            console.warn('DNA data not ready yet');
+        }
+    } catch (e) {
+        console.error('sendDNADataToParent error:', e);
+    }
+}
+
+// เรียกเมื่อโหลดเสร็จและทุกครั้งที่มีการสร้าง DNA ใหม่
+// วิธีที่ 1: เรียกหลังจาก initialization
+setTimeout(() => {
+    sendDNADataToParent();
+}, 2000);
+
+// วิธีที่ 2: ฟัง event การเปลี่ยนแปลง localStorage (เผื่อมีการอัปเดตภายหลัง)
+const originalSetItem = localStorage.setItem;
+localStorage.setItem = function(key, value) {
+    originalSetItem.apply(this, arguments);
+    if (key === 'psychomatrixMusicDefault' || key === 'psychomatrixMusicCustomStyle' || key === 'psychomatrixNumerologyData') {
+        sendDNADataToParent();
+    }
+};
+            
+            
         })();
     </script>
 
