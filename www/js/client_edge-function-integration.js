@@ -10,7 +10,7 @@
 //       - ลบ hardcoded URL getters ทั้งหมด
 //       - เพิ่ม _buildURL() helper
 
-window.EdgeIntegration_VERSION = 5.0;
+window.EdgeIntegration_VERSION = 5.1;
 
 console.log("[EdgeIntegration] 🔧 client_edge-function-integration v" + window.EdgeIntegration_VERSION + " - INITIALIZING...");
 
@@ -141,22 +141,28 @@ class EdgeFunctionIntegration {
   // ---- SUPABASE_URL WAITER ----
   _waitForSupabaseURL(maxWaitMs = 5000, intervalMs = 100) {
     if (window.SUPABASE_URL) return Promise.resolve(window.SUPABASE_URL);
-    return new Promise((resolve, reject) => {
-      const start = Date.now();
-      const timer = setInterval(() => {
-        if (window.SUPABASE_URL) {
-          clearInterval(timer);
-          console.log('[EdgeIntegration] ✅ SUPABASE_URL ready after ' + (Date.now() - start) + 'ms');
-          resolve(window.SUPABASE_URL);
-        } else if (Date.now() - start >= maxWaitMs) {
-          clearInterval(timer);
-          reject(new Error(
-            '[EdgeIntegration] SUPABASE_URL ไม่พร้อมภายใน ' + maxWaitMs + 'ms'
-          ));
-        }
-      }, intervalMs);
-    });
-  }
+     return new Promise((resolve) => {   // เปลี่ยนจาก reject เป็น resolve
+        const start = Date.now();
+        const timer = setInterval(() => {
+          if (window.SUPABASE_URL) {
+            clearInterval(timer);
+            resolve(window.SUPABASE_URL);
+          } else if (Date.now() - start >= maxWaitMs) {
+            clearInterval(timer);
+            // ✅ Fallback hardcode สำหรับกรณี supabase-config.js โหลดไม่ทัน
+            const fallback = 'https://oibubvhuiuurkxhnefsw.supabase.co';
+            window.SUPABASE_URL = fallback;
+            if (!window.SUPABASE_ANON_KEY) {
+              window.SUPABASE_ANON_KEY = 'sb_publishable_tDw0VvUdJsLrETh25IKCRA_VG-telwP';
+            }
+            console.warn('[EdgeIntegration] ⚠️ SUPABASE_URL timeout – using fallback');
+            resolve(fallback);
+          }
+        }, intervalMs);
+      });
+    }
+  
+  
 
   // ---- BASE URL ----
   getBaseURL() {
