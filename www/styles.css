@@ -1799,3 +1799,168 @@ ul, ol {
 .destiblue-footer i {
     font-size: 1.2rem;
 }
+
+
+/* ===== FIX: Mobile Portrait (มือถือแนวตั้ง) ===== */
+@media (max-width: 768px) and (orientation: portrait) {
+    .glass-card {
+        padding: 1rem !important;
+    }
+
+    /* Clock Cards */
+    .clock-card {
+        width: 70px !important;
+        height: 90px !important;
+    }
+    .clock-number {
+        font-size: 2.2rem !important;
+    }
+    .clock-label {
+        font-size: 0.6rem !important;
+    }
+    .am-pm-badge {
+        font-size: 0.8rem !important;
+        padding: 0.3rem 0.7rem !important;
+        margin-left: 0 !important;
+    }
+    .clock-container {
+        gap: 0.25rem !important;
+        margin-left: 0 !important;
+        justify-content: center !important;
+    }
+
+    /* Stop Clock - เรียงแนวตั้ง */
+    .stop-clock-container {
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 10px !important;
+    }
+    .stop-clock-card {
+        min-width: auto !important;
+        width: 100% !important;
+        max-width: 160px !important;
+        margin: 0 auto !important;
+    }
+    .stop-right-column {
+        width: 100% !important;
+    }
+    .stop-min-sec-row {
+        flex-direction: column !important;
+        gap: 8px !important;
+        align-items: stretch !important;
+    }
+    .stop-min-sec-row .stop-clock-card {
+        width: auto !important;
+        margin: 0 !important;
+    }
+    .stop-clock-number {
+        font-size: 1.4rem !important;
+    }
+    .adj-btn {
+        width: 32px !important;
+        height: 32px !important;
+        font-size: 1.1rem !important;
+    }
+
+    /* ปุ่ม Play ใหญ่ */
+    .play-button-large {
+        width: 48px !important;
+        height: 48px !important;
+        font-size: 1.5rem !important;
+    }
+
+    /* Info Panel */
+    .info-panel {
+        padding: 0.8rem !important;
+        margin-top: 1rem !important;
+    }
+    .song-title {
+        font-size: 1.2rem !important;
+    }
+    .melody-notes {
+        gap: 0.3rem !important;
+    }
+
+    /* Support Section */
+    .support-content {
+        flex-direction: column !important;
+        text-align: center !important;
+    }
+    .support-buttons {
+        justify-content: center !important;
+    }
+    .btn-support {
+        font-size: 0.75rem !important;
+        padding: 0.4rem 0.8rem !important;
+    }
+
+    /* Header */
+    .flex-wrap.justify-between {
+        flex-direction: column !important;
+        align-items: center !important;
+        gap: 0.5rem !important;
+        text-align: center !important;
+    }
+    .logo-icon {
+        width: 50px !important;
+        height: 50px !important;
+    }
+    .app-title {
+        font-size: 1.3rem !important;
+    }
+    .user-info {
+        font-size: 0.7rem !important;
+    }
+
+    /* Forms */
+    .form-group .flex.gap-2 {
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+    }
+    .date-time-row {
+        flex-direction: column !important;
+        gap: 0.75rem !important;
+    }
+    .modal-content {
+        max-width: 95% !important;
+        width: 95% !important;
+    }
+
+    /* Hide/Adjust storage status (absolute right may overlap) */
+    .storage-status {
+        position: relative !important;
+        margin-top: 0.5rem !important;
+        justify-content: center !important;
+        padding-right: 0 !important;
+        font-size: 0.7rem !important;
+    }
+
+    /* DestiBlue footer */
+    .destiblue-footer a {
+        font-size: 0.85rem !important;
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+    }
+}
+
+/* สำหรับมือถือขนาดเล็กมาก (< 400px) */
+@media (max-width: 400px) and (orientation: portrait) {
+    .clock-card {
+        width: 60px !important;
+        height: 80px !important;
+    }
+    .clock-number {
+        font-size: 1.8rem !important;
+    }
+    .stop-clock-number {
+        font-size: 1.2rem !important;
+    }
+    .adj-btn {
+        width: 28px !important;
+        height: 28px !important;
+    }
+    .btn-timer {
+        padding: 5px 12px !important;
+        font-size: 0.7rem !important;
+    }
+}
