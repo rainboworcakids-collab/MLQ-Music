@@ -1,10 +1,10 @@
-<!-- Send Giftcard - V8.2 (Fix upload image compression) -->
+<!-- Send Giftcard - V8.3 (Fix upload image compression) -->
 <!DOCTYPE html>
 <html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MLQ Music - สร้างซองเพลง V8.2</title>
+    <title>MLQ Music - สร้างซองเพลง V8.3</title>
     <meta name="theme-color" content="#4f46e5">
     <meta name="description" content="สร้างเพลงส่วนตัวจากตัวเลขวันเกิดและชื่อของคุณ ฟรี รองรับ iPad">
     <link rel="icon" href="icons/icon-72x72.png" type="image/png">
@@ -590,7 +590,6 @@
         // -------- แก้ไข: บีบอัดรูปก่อนอัปโหลดเสมอ --------
         async function uploadImageToBucket(file, prefix) {
             if (!file) return null;
-            // บีบอัดให้เล็กกว่า 1MB แน่นอน
             let compressed = file;
             try {
                 const originalSize = (file.size / 1024).toFixed(1);
@@ -604,15 +603,16 @@
                 console.warn('Compress failed, using original', e);
             }
             const supabase = getSupabaseClient();
-            const ext = compressed.name.split('.').pop();
+            // ✅ ใช้ชื่อไฟล์จากต้นฉบับ (file.name) ไม่ใช่ compressed.name
+            const ext = file.name.split('.').pop() || 'jpg';
             const fileName = `${prefix}_${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${ext}`;
             const { error } = await supabase.storage.from('gift-images').upload(fileName, compressed, { cacheControl: '3600', upsert: false });
             if (error) throw new Error(`Image upload failed: ${error.message}`);
             const { data: { publicUrl } } = supabase.storage.from('gift-images').getPublicUrl(fileName);
             return publicUrl;
         }
-
-        // -------- แก้ไขฟังก์ชัน uploadImage สำหรับรูปหลัก (บีบอัดก่อน) --------
+        
+        // -------- uploadImage สำหรับรูปหลัก (บีบอัดก่อน) --------
         async function uploadImage(file) {
             if (!file) return null;
             let compressed = file;
@@ -625,14 +625,15 @@
                 console.warn('Compress failed, using original', e);
             }
             const supabase = getSupabaseClient();
-            const ext = compressed.name.split('.').pop();
+            // ✅ ใช้ชื่อไฟล์จากต้นฉบับ (file.name) ไม่ใช่ compressed.name
+            const ext = file.name.split('.').pop() || 'jpg';
             const fileName = `gift_${Date.now()}.${ext}`;
             const { error } = await supabase.storage.from('gift-images').upload(fileName, compressed, { cacheControl: '3600', upsert: false });
             if (error) throw error;
             const { data: { publicUrl } } = supabase.storage.from('gift-images').getPublicUrl(fileName);
             return publicUrl;
         }
-
+        
         function refreshPreview() {
             if (!currentTemplate) return;
             const themeToUse = currentTemplate.theme_class || 'theme-classic';
