@@ -885,7 +885,14 @@
             var st=document.getElementById('prerenderStatus');
             if(st){ st.textContent='กดปุ่ม ▶ เพื่อเล่น'; st.style.color='#f59e0b'; }
         });
+
+        window.addEventListener('load', () => {
+           window.PWAHandler?.updateInstallButtonVisibility();
+        });
+        
     })();
     </script>
+    
+
 </body>
 </html>
