@@ -1,10 +1,10 @@
-<!-- Send Giftcard - V8.3 (Fix upload image compression) -->
+<!-- Send Giftcard - V8.4 (Fix missing voice by integrating working recorder from V8.0) -->
 <!DOCTYPE html>
 <html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MLQ Music - สร้างซองเพลง V8.3</title>
+    <title>MLQ Music - สร้างซองเพลง V8.4 (Voice ทำงาน, รูปบีบอัด, postMessage)</title>
     <meta name="theme-color" content="#4f46e5">
     <meta name="description" content="สร้างเพลงส่วนตัวจากตัวเลขวันเกิดและชื่อของคุณ ฟรี รองรับ iPad">
     <link rel="icon" href="icons/icon-72x72.png" type="image/png">
@@ -174,7 +174,7 @@
             </iframe>
         </div>
 
-        <!-- ส่วนเลือกการ์ดและอัปโหลด (คงเดิม) -->
+        <!-- ส่วนเลือกการ์ดและอัปโหลด -->
         <p class="text-xl text-blue-700">🖼️ เลือกแบรนด์, ธีมการ์ด, อัปโหลดรูป และเขียนคำอวยพร</p>
         <div class="part-card2 space-y-5">
             <div class="ml-2" >
@@ -343,13 +343,9 @@
 
 <script>
     (function() {
-        // ========== V8.2 iPad Fixes ==========
-        // 1. บีบอัดรูปในขั้นตอนอัปโหลดอีกครั้ง (เผื่อ preview ยังใหญ่เกิน)
-        // 2. ใช้ _originalFile แทน _compressedFile ใน generate
-        // 3. เพิ่ม log ขนาดไฟล์ก่อน-หลังบีบอัด
-        // =====================================
+        // ========== V8.4: เสียงทำงาน (นำ startRecording จาก V8.0 ที่เสถียร) + บีบอัดรูป + postMessage ==========
         let currentUserPlan = 'premium';
-        console.log(`🚀 send_giftcard.html V8.2 - บีบอัดรูปก่อนอัปโหลดทุกครั้ง`);
+        console.log(`🚀 send_giftcard.html V8.4 - เสียง, รูปบีบอัด, postMessage ครบ`);
 
         // DOM elements (เหมือนเดิม)
         const cardSelect = document.getElementById('cardSelect');
@@ -497,6 +493,7 @@
                 if (currentPreVoiceUrl) URL.revokeObjectURL(currentPreVoiceUrl);
                 currentPreVoiceUrl = url;
                 currentPreVoiceBlob = blob;
+                console.log(`✅ Pre voice preview ready: ${filename}, size=${(blob.size/1024).toFixed(1)}KB`);
             } else {
                 postVoiceAudio.src = url;
                 postVoiceFilenameSpan.textContent = filename;
@@ -504,6 +501,7 @@
                 if (currentPostVoiceUrl) URL.revokeObjectURL(currentPostVoiceUrl);
                 currentPostVoiceUrl = url;
                 currentPostVoiceBlob = blob;
+                console.log(`✅ Post voice preview ready: ${filename}, size=${(blob.size/1024).toFixed(1)}KB`);
             }
         }
 
@@ -520,7 +518,7 @@
             showVoicePreview(file, file.name, isPre);
         }
 
-        // -------- 2. MediaRecorder ที่รองรับ iPad (audio/mp4) --------
+        // -------- 2. MediaRecorder ที่เสถียร (จาก V8.0) พร้อมรองรับ mimeType --------
         let preMediaRecorder = null;
         let postMediaRecorder = null;
 
@@ -531,29 +529,28 @@
             }
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                
+                // เลือก mimeType ที่เหมาะสม (iPad ต้องการ audio/mp4)
                 let mimeType = '';
                 if (MediaRecorder.isTypeSupported('audio/mp4')) {
                     mimeType = 'audio/mp4';
                 } else if (MediaRecorder.isTypeSupported('audio/webm')) {
                     mimeType = 'audio/webm';
-                } else if (MediaRecorder.isTypeSupported('audio/mpeg')) {
-                    mimeType = 'audio/mpeg';
+                } else {
+                    mimeType = '';
                 }
-                
                 const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : {});
                 const chunks = [];
                 recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
                 recorder.onstop = () => {
-                    const finalType = mimeType || (recorder.mimeType || 'audio/mp4');
+                    const finalType = mimeType || 'audio/webm';
                     const blob = new Blob(chunks, { type: finalType });
                     let ext = 'webm';
                     if (finalType.includes('mp4')) ext = 'm4a';
                     else if (finalType.includes('webm')) ext = 'webm';
-                    else if (finalType.includes('mpeg')) ext = 'mp3';
                     const filename = `record_${new Date().toISOString().slice(0,19).replace(/:/g, '-')}.${ext}`;
                     showVoicePreview(blob, filename, isPre);
                     stream.getTracks().forEach(track => track.stop());
+                    console.log(`Recording stopped, ${filename}, mime=${finalType}`);
                 };
                 recorder.start();
                 const btn = isPre ? preRecordVoiceBtn : postRecordVoiceBtn;
@@ -570,6 +567,7 @@
                 btn.addEventListener('click', stopHandler, { once: true });
                 if (isPre) preMediaRecorder = recorder;
                 else postMediaRecorder = recorder;
+                console.log(`Recording started for ${isPre ? 'Pre' : 'Post'} voice`);
             } catch (err) {
                 console.error(err);
                 alert('ไม่สามารถเข้าถึงไมโครโฟนได้');
@@ -587,7 +585,6 @@
             container.classList.remove('hidden');
         }
 
-        // -------- แก้ไข: บีบอัดรูปก่อนอัปโหลดเสมอ --------
         async function uploadImageToBucket(file, prefix) {
             if (!file) return null;
             let compressed = file;
@@ -596,14 +593,10 @@
                 compressed = await compressImage(file, 1024, 0.7);
                 const newSize = (compressed.size / 1024).toFixed(1);
                 console.log(`📦 Upload ${prefix}: ${originalSize}KB → ${newSize}KB`);
-                if (compressed.size > 1.5 * 1024 * 1024) {
-                    console.warn(`⚠️ ขนาดหลังบีบอัดยัง ${newSize}KB อาจใกล้เคียง limit`);
-                }
             } catch(e) {
                 console.warn('Compress failed, using original', e);
             }
             const supabase = getSupabaseClient();
-            // ✅ ใช้ชื่อไฟล์จากต้นฉบับ (file.name) ไม่ใช่ compressed.name
             const ext = file.name.split('.').pop() || 'jpg';
             const fileName = `${prefix}_${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${ext}`;
             const { error } = await supabase.storage.from('gift-images').upload(fileName, compressed, { cacheControl: '3600', upsert: false });
@@ -611,8 +604,7 @@
             const { data: { publicUrl } } = supabase.storage.from('gift-images').getPublicUrl(fileName);
             return publicUrl;
         }
-        
-        // -------- uploadImage สำหรับรูปหลัก (บีบอัดก่อน) --------
+
         async function uploadImage(file) {
             if (!file) return null;
             let compressed = file;
@@ -625,7 +617,6 @@
                 console.warn('Compress failed, using original', e);
             }
             const supabase = getSupabaseClient();
-            // ✅ ใช้ชื่อไฟล์จากต้นฉบับ (file.name) ไม่ใช่ compressed.name
             const ext = file.name.split('.').pop() || 'jpg';
             const fileName = `gift_${Date.now()}.${ext}`;
             const { error } = await supabase.storage.from('gift-images').upload(fileName, compressed, { cacheControl: '3600', upsert: false });
@@ -633,7 +624,7 @@
             const { data: { publicUrl } } = supabase.storage.from('gift-images').getPublicUrl(fileName);
             return publicUrl;
         }
-        
+
         function refreshPreview() {
             if (!currentTemplate) return;
             const themeToUse = currentTemplate.theme_class || 'theme-classic';
@@ -748,7 +739,7 @@
                 refreshPreview();
             });
 
-            // รูปหลัก: ใช้ original file และแสดง preview ด้วย dataURL (ไม่บีบอัด preview)
+            // รูปหลัก: ใช้ original file และแสดง preview ด้วย dataURL
             imageInput.addEventListener('change', async (e) => {
                 const file = e.target.files[0];
                 if (!file) {
@@ -758,7 +749,6 @@
                     refreshPreview();
                     return;
                 }
-                // แสดง preview ทันที (ไม่บีบอัดเพื่อความเร็ว)
                 const reader = new FileReader();
                 reader.onload = (ev) => {
                     currentImageDataUrl = ev.target.result;
@@ -767,7 +757,6 @@
                     refreshPreview();
                 };
                 reader.readAsDataURL(file);
-                // เก็บ original file ไว้ให้ generate ใช้ (จะไปบีบอัดอีกทีใน uploadImage)
                 imageInput._originalFile = file;
             });
 
@@ -780,10 +769,8 @@
                     currentPreImageBlob = null;
                     return;
                 }
-                // สำหรับ pre/post image เราจะบีบอัดตอนอัปโหลดใน uploadImageToBucket เท่านั้น
-                // แต่ preview ก็ใช้ original
                 previewImage(file, preImagePreviewContainer, preImagePreviewElement);
-                currentPreImageBlob = file; // original (จะบีบอัดอีกทีใน uploadImageToBucket)
+                currentPreImageBlob = file;
             });
 
             // Post Image
@@ -820,7 +807,7 @@
             postEffectSelect.innerHTML = `<option value="">ไม่มี</option>${optionsHtml}`;
         }
 
-        // -------- GENERATE BUTTON (ใช้ _originalFile แทน _compressedFile) --------
+        // -------- GENERATE BUTTON (ใช้ dnaDataFromIframe และ voice blobs) --------
         generateBtn.onclick = async () => {
             if (!dnaDataFromIframe) {
                 alert("⚠️ กรุณาสร้าง DNA และตัวเลขศาสตร์ก่อน โดยกรอกข้อมูลใน iframe ด้านบน (กด 'สร้างเพลงตัวเลขชีวิต')");
@@ -903,7 +890,7 @@
 
             try {
                 let imageUrl = null;
-                const imageFile = imageInput._originalFile || imageInput.files[0];  // ใช้ _originalFile
+                const imageFile = imageInput._originalFile || imageInput.files[0];
                 if (imageFile) {
                     try {
                         imageUrl = await uploadImage(imageFile);
@@ -1054,7 +1041,7 @@
         postClearVoiceBtn.addEventListener('click', () => clearPostVoice());
 
         (async function init() {
-            console.log('send_giftcard.html V8.2 - initializing...');
+            console.log('send_giftcard.html V8.4 - initializing...');
             await populateEffectDropdowns();
             const success = await loadTemplates();
             if (success) bindEvents();
