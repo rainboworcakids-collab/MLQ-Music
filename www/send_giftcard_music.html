@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Send Giftcard Music V2.2.4</title>
+    <title>Send Giftcard Music V2.2.8</title>
     
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#4f46e5">
@@ -30,6 +30,7 @@
     <link rel="stylesheet" href="styles.css">
 
     <style>
+    /* คงสไตล์เดิมทั้งหมด (ไม่เปลี่ยนแปลง) */
     html, body {
         margin: 0 !important;
         padding: 0 !important;
@@ -369,7 +370,7 @@
 </head>
 <body>
 
-    <!-- จัดการ Storage -->
+    <!-- จัดการ Storage (รวมการดักจับ payload สำหรับ iPad) -->
     <script>
       (function() {
         const STORAGE_PREFIX = 'gift_';
@@ -385,7 +386,7 @@
         function shouldPrefix(key) {
             return SYSTEM_KEYS.includes(key) 
                 || key.startsWith('psychomatrix')
-                || key.startsWith('sb-')          // ← auth tokens จาก Supabase
+                || key.startsWith('sb-')
                 || key.includes('auth-token');
         }
     
@@ -394,22 +395,86 @@
         const originalRemoveItem = localStorage.removeItem;
         const originalClear = localStorage.clear;
     
+        // ตัวแปรสะสม payload สำหรับ iPad (localStorage อาจเขียนไม่ได้)
+        let _pendingDNAParts = {};
+        let _dnaSent = false;
+    
+        // ฟังก์ชันส่ง DNA ไปยัง parent
+        function sendDNADataToParent(payload) {
+            if (!payload) return;
+            window.parent.postMessage({
+                type: 'DNA_READY',
+                payload: payload
+            }, '*');
+            console.log('[DNA] 📤 Sent to parent', payload);
+            _dnaSent = true;
+        }
+    
+        // ตรวจสอบและส่งเมื่อครบ 3 ส่วน
+        function trySendDNA() {
+            if (_dnaSent) return;
+            if (_pendingDNAParts.defaultDNA && _pendingDNAParts.customDNA && _pendingDNAParts.numerology) {
+                sendDNADataToParent({
+                    defaultDNA: _pendingDNAParts.defaultDNA,
+                    customDNA: _pendingDNAParts.customDNA,
+                    numerology: _pendingDNAParts.numerology
+                });
+            }
+        }
+    
+        // Override localStorage.getItem / setItem
         localStorage.getItem = function(key) {
             if (shouldPrefix(key)) return originalGetItem.call(this, STORAGE_PREFIX + key);
             return originalGetItem.call(this, key);
         };
+    
         localStorage.setItem = function(key, value) {
-            if (shouldPrefix(key)) return originalSetItem.call(this, STORAGE_PREFIX + key, value);
-            return originalSetItem.call(this, key, value);
+            // ดักจับ payload ก่อน (เพื่อ iPad)
+            if (key === 'psychomatrixMusicDefault') {
+                try { _pendingDNAParts.defaultDNA = JSON.parse(value); console.log('[DNA] captured defaultDNA'); } catch(e) {}
+            } else if (key === 'psychomatrixMusicCustomStyle') {
+                try { _pendingDNAParts.customDNA = JSON.parse(value); console.log('[DNA] captured customDNA'); } catch(e) {}
+            } else if (key === 'psychomatrixNumerologyData') {
+                try { _pendingDNAParts.numerology = JSON.parse(value); console.log('[DNA] captured numerology'); } catch(e) {}
+            }
+            trySendDNA();
+    
+            // เรียก setItem จริง (อาจ fail บน iPad แต่ไม่เป็นไร)
+            if (shouldPrefix(key)) {
+                return originalSetItem.call(this, STORAGE_PREFIX + key, value);
+            } else {
+                return originalSetItem.call(this, key, value);
+            }
         };
+    
         localStorage.removeItem = function(key) {
             if (shouldPrefix(key)) return originalRemoveItem.call(this, STORAGE_PREFIX + key);
             return originalRemoveItem.call(this, key);
         };
+    
         localStorage.clear = function() {
             console.warn('localStorage.clear blocked to prevent data loss');
         };
-        console.log('✅ demo localStorage isolated with prefix:', STORAGE_PREFIX);
+    
+        console.log('✅ localStorage isolated with prefix + payload capture for iPad');
+    
+        // Fallback: ถ้ามีข้อมูลใน localStorage อยู่แล้ว (Android/Desktop) ให้ส่งหลังจากโหลด
+        setTimeout(() => {
+            if (!_dnaSent) {
+                const defaultDNAStr = localStorage.getItem('psychomatrixMusicDefault');
+                const customDNAStr = localStorage.getItem('psychomatrixMusicCustomStyle');
+                const numerologyStr = localStorage.getItem('psychomatrixNumerologyData');
+                if (defaultDNAStr && customDNAStr && numerologyStr) {
+                    try {
+                        sendDNADataToParent({
+                            defaultDNA: JSON.parse(defaultDNAStr),
+                            customDNA: JSON.parse(customDNAStr),
+                            numerology: JSON.parse(numerologyStr)
+                        });
+                    } catch(e) {}
+                }
+            }
+        }, 2000);
      })();
     </script>
 
@@ -645,7 +710,7 @@
     <script src="js/music-prerender.js?v=1.6"></script>
     <script src="js/ui-displayDemo.js?v=3.6.9"></script>
 
-    <!-- Timer & Sync with AudioController -->
+    <!-- Timer & Sync with AudioController (ไม่เปลี่ยนแปลง) -->
     <script>
         // --- Timer Variables ---
         let stopHours12 = 12;
@@ -806,7 +871,7 @@
         });
     </script>
 
-    <!-- Date handling script (unchanged, but kept) -->
+    <!-- Date handling script (ไม่เปลี่ยนแปลง) -->
     <script>
     (function() {
         const birthInput = document.getElementById('birthDate');
@@ -951,7 +1016,7 @@
     })();
     </script>
 
-    <!-- Initialization -->
+    <!-- Initialization (ไม่ต้อง override localStorage ซ้ำ) -->
     <script>
         (function() {
             const volumeSlider = document.getElementById('volumeSlider');
@@ -966,7 +1031,6 @@
                     modal.addEventListener('click', function(e) { if (e.target === modal) modal.classList.add('hidden'); });
                 }
             });
-            
             
             document.getElementById('donationBtn')?.addEventListener('click', () => document.getElementById('donationModal')?.classList.remove('hidden'));
             ['closeDonationBtn', 'closeDonationBtn2'].forEach(id => {
@@ -1004,46 +1068,6 @@
                 }
             }, 100);
             setTimeout(() => document.getElementById('loadingScreen')?.classList.add('hidden'), 5000);
-            
-            
-            // ========== ส่ง DNA ไปยัง parent window ==========
-function sendDNADataToParent() {
-    try {
-        const defaultDNAStr = localStorage.getItem('psychomatrixMusicDefault');
-        const customDNAStr = localStorage.getItem('psychomatrixMusicCustomStyle');
-        const numerologyStr = localStorage.getItem('psychomatrixNumerologyData');
-        if (defaultDNAStr && customDNAStr && numerologyStr) {
-            const payload = {
-                defaultDNA: JSON.parse(defaultDNAStr),
-                customDNA: JSON.parse(customDNAStr),
-                numerology: JSON.parse(numerologyStr)
-            };
-            window.parent.postMessage({ type: 'DNA_READY', payload: payload }, '*');
-            console.log('📤 Sent DNA data to parent');
-        } else {
-            console.warn('DNA data not ready yet');
-        }
-    } catch (e) {
-        console.error('sendDNADataToParent error:', e);
-    }
-}
-
-// เรียกเมื่อโหลดเสร็จและทุกครั้งที่มีการสร้าง DNA ใหม่
-// วิธีที่ 1: เรียกหลังจาก initialization
-setTimeout(() => {
-    sendDNADataToParent();
-}, 2000);
-
-// วิธีที่ 2: ฟัง event การเปลี่ยนแปลง localStorage (เผื่อมีการอัปเดตภายหลัง)
-const originalSetItem = localStorage.setItem;
-localStorage.setItem = function(key, value) {
-    originalSetItem.apply(this, arguments);
-    if (key === 'psychomatrixMusicDefault' || key === 'psychomatrixMusicCustomStyle' || key === 'psychomatrixNumerologyData') {
-        sendDNADataToParent();
-    }
-};
-            
-            
         })();
     </script>
 
@@ -1101,8 +1125,6 @@ localStorage.setItem = function(key, value) {
                 console.log('[backToFrm] เปิดฟอร์มแก้ไขข้อมูล');
             });
         }
-
-        
     })();
     </script>
     
