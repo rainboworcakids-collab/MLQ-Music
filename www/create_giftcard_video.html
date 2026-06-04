@@ -1,10 +1,10 @@
-<!-- Create giftcard Video Recorder (รองรับเสียง .m4a, connect recorder) -->
+<!-- Create giftcard Video Recorder V12.6 - แก้ Nature Effect, ปรับ gain staging -->
 <!DOCTYPE html>
 <html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>MLQ Music - ซองเพลง DNA Video Recorder  V12.82</title>
+    <title>MLQ Music - ซองเพลง DNA Video Recorder V12.6</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -21,7 +21,7 @@
     <script src="config/supabase-config.js"></script>
 
     <!-- MLQ Music Engine Modules -->
-    <script src="js/debug-logger.js"></script>
+    <!-- script src="js/debug-logger.js"></script -->
     <script src="js/data-contract.js?v=2.1"></script>
     <script src="js/client_edge-function-integration.js?v=3.9"></script>   
     <script src="js/app-main.js?v=7.9"></script>
@@ -38,7 +38,7 @@
     <script src="js/giftcard-render.js"></script>
 
     <style>
-        /* ========== สไตล์หลัก (คงเดิม ไม่เปลี่ยนแปลง) ========== */
+        /* ========== สไตล์หลัก (คงเดิม) ========== */
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             background: linear-gradient(145deg, #f9f3e9, #fff0e0);
@@ -315,8 +315,10 @@
 </div>
 
 <script>
-    // ========== V12.6: แก้เสียง Voice หายจากวิดีโอ (routing ผ่าน Tone.Destination) ==========
-    const PRE_POST_EFFECT_INTENSITY = 0.35;   // ลด Effect เพื่อให้ Voice ชัดขึ้น
+    // ========== V12.5: Pre/Post Stage แยกอิสระ (Effect เล่นได้แม้ไม่มี Voice) + ปรับระดับเสียง ==========
+    
+    // ควบคุมระดับเสียง Pre/Post Effect (0.0 - 1.0) — ปรับตามต้องการ
+    const PRE_POST_EFFECT_INTENSITY = 0.7;
     
     async function getQrDataUrl(text, size = 240) {
         return new Promise((resolve) => {
@@ -369,75 +371,69 @@
         });
     }
     
-    
     let activeVoicePlayer = null;
-
     function playVoiceWithTone(url) {
         return new Promise((resolve) => {
-            if (!url) {
-                resolve();
-                return;
-        }
-        if (activeVoicePlayer) {
-            try {
+            if (!url) { resolve(); return; }
+
+            if (activeVoicePlayer) {
+                try {
                 activeVoicePlayer.pause();
                 if (activeVoicePlayer._sourceNode) activeVoicePlayer._sourceNode.disconnect();
-            } catch(e) {}
-            activeVoicePlayer = null;
-        }
-        
-        const audio = new Audio();
-        audio.crossOrigin = 'anonymous';
-        audio.src = url;
-        audio.preload = 'auto';
-        
-        audio.onended = () => {
-            if (audio._sourceNode) {
-                try { audio._sourceNode.disconnect(); } catch(e) {}
-                audio._sourceNode = null;
+                } catch(e) {}
+                activeVoicePlayer = null;
             }
-            if (activeVoicePlayer === audio) activeVoicePlayer = null;
-            resolve();
-        };
-        
-        audio.onerror = (e) => {
-            console.error('Voice playback error:', e);
-            if (audio._sourceNode) {
-                try { audio._sourceNode.disconnect(); } catch(e) {}
-                audio._sourceNode = null;
-            }
-            if (activeVoicePlayer === audio) activeVoicePlayer = null;
-            resolve();
-        };
-        
+
+            const audio = new Audio();
+            audio.crossOrigin = 'anonymous';
+            audio.src = url;
+            audio.preload = 'auto';
+
+            audio.onended = () => {
+                if (audio._sourceNode) {
+                    try { audio._sourceNode.disconnect(); } catch(e) {}
+                    audio._sourceNode = null;
+                }
+                if (activeVoicePlayer === audio) activeVoicePlayer = null;
+                resolve();
+            };
+
+            audio.onerror = (e) => {
+                console.error('[Voice] playback error:', e);
+                if (audio._sourceNode) {
+                    try { audio._sourceNode.disconnect(); } catch(e) {}
+                    audio._sourceNode = null;
+                }
+                if (activeVoicePlayer === audio) activeVoicePlayer = null;
+                resolve(); // ไม่ reject เพื่อไม่หยุด pipeline
+            };
+
         try {
             const ctx = Tone.context.rawContext;
             const source = ctx.createMediaElementSource(audio);
             const gainNode = ctx.createGain();
-            gainNode.gain.value = 4.0;   // ปรับตามต้องการ
-            
+            gainNode.gain.value = 2;       // เสียงที่ได้ยินระหว่างบันทึก
+
             source.connect(gainNode);
-            
-            // ไปยังลำโพง (ให้ได้ยินระหว่างบันทึก)
-            gainNode.connect(ctx.destination);
-            
-            // 🔥 bypass Tone ทั้งหมด → ส่งตรงไปยัง recorder destination
-            const recDest = window.recorderDestNode;
+            gainNode.connect(ctx.destination); // → ลำโพง
+
+            // → recorder ผ่าน voiceGain (gain=2.0) แยกจาก DNA
+            const recDest = window.recorderVoiceGain || window.recorderDestNode;
             if (recDest) {
                 gainNode.connect(recDest);
-                console.log('[Voice] Bypassed Tone, connected directly to recorderDestNode');
+                console.log('[Voice] Connected to recorderVoiceGain, recorder gain=2.0');
             } else {
-                console.warn('[Voice] recorderDestNode not ready — voice will not be in video');
+                console.warn('[Voice] recorderVoiceGain not ready');
             }
-            
+
             audio._sourceNode = source;
         } catch(e) {
             console.warn('[Voice] Web Audio connection failed:', e);
         }
-        
-        activeVoicePlayer = audio;
-        audio.play().catch(e => {
-            console.error('audio.play() failed:', e);
+
+            activeVoicePlayer = audio;
+            audio.play().catch(e => {
+                console.error('[Voice] audio.play() failed:', e);
                 if (audio._sourceNode) {
                     try { audio._sourceNode.disconnect(); } catch(e2) {}
                     audio._sourceNode = null;
@@ -448,25 +444,26 @@
         });
     }
     
+    // เล่น Nature Effect (เสียงธรรมชาติ) ใช้ intensity คงที่ PRE_POST_EFFECT_INTENSITY
     async function playNatureEffect(effect, destination, durationSec) {
         if (!effect || !effect.type) {
-            console.warn('[V12.6] playNatureEffect skipped: no effect or type', effect);
+            console.warn('[V12.5] playNatureEffect skipped: no effect or type', effect);
             return;
         }
         const intensity = PRE_POST_EFFECT_INTENSITY;
-        console.log(`[V12.6] Playing nature effect: ${effect.type}, intensity=${intensity}, duration=${durationSec}s`);
+        console.log(`[V12.5] Playing nature effect: ${effect.type}, intensity=${intensity}, duration=${durationSec}s, destination=${destination === Tone.Destination ? 'Tone.Destination' : 'other'}`);
         try {
             const instance = await window.NatureSounds.create(effect.type, intensity, Tone.now(), durationSec, destination);
             if (instance) {
                 if (instance.connect) instance.connect(destination);
                 await new Promise(resolve => setTimeout(resolve, durationSec * 1000));
                 if (instance.stop) instance.stop();
-                console.log(`[V12.6] Nature effect ${effect.type} finished`);
+                console.log(`[V12.5] Nature effect ${effect.type} finished`);
             } else {
-                console.warn(`[V12.6] NatureSounds.create returned null for ${effect.type}`);
+                console.warn(`[V12.5] NatureSounds.create returned null for ${effect.type}`);
             }
         } catch(e) {
-            console.error("[V12.6] Nature effect error:", e);
+            console.error("[V12.5] Nature effect error:", e);
         }
     }
     
@@ -475,7 +472,7 @@
         return String(s).replace(/[&<>]/g, m => m === '&' ? '&amp;' : (m === '<' ? '&lt;' : '&gt;'));
     }
     
-    // ========== MediaRecorder (ลำดับ Pre/Post 4 วินาที) ==========
+    // ========== MediaRecorder (ปรับลำดับ Pre/Post 3 วินาที) ==========
     (function() {
         let mediaRecorder = null;
         let recordedChunks = [];
@@ -487,16 +484,17 @@
         let recordingStartTime = 0;
         let stopRecordingTimeout = null;
         let dnaStarted = false;
-        let effectDurationSec = 4;
+        let effectDurationSec = 4;   // Pre/Post stage 4 วินาที
         
         const mainBtn = document.getElementById('recordAndPlayBtn');
         const timerStatusEl = document.getElementById('timerStatus');
         const statusDiv = document.getElementById('videoStatusMsg');
         const formatSelect = document.getElementById('videoFormatSelect');
         
+        // ตัวแปร dynamic (จะถูกเซ็ตจาก window.currentSongDNA)
         let videoDurationSec = 15;
-        let preImageUrl = null;
-        let postImageUrl = null;
+        let preImageUrl = null;     // intro_image_url
+        let postImageUrl = null;    // outro_image_url
         let preVoiceUrl = null;
         let postVoiceUrl = null;
         let preEffect = null;
@@ -531,10 +529,7 @@
                 Tone.Transport.position = 0;
             }
             if (activeVoicePlayer) {
-                try {
-                    activeVoicePlayer.pause();
-                    if (activeVoicePlayer._sourceNode) activeVoicePlayer._sourceNode.disconnect();
-                } catch(e) {}
+                try { activeVoicePlayer.stop(); activeVoicePlayer.dispose(); } catch(e) {}
                 activeVoicePlayer = null;
             }
         }
@@ -542,10 +537,20 @@
         async function setupToneAudioStream() {
             if (!Tone || !Tone.context) throw new Error('Tone not ready');
             if (!recorderDestination) {
-                recorderDestination = Tone.context.createMediaStreamDestination();
+                const ctx = Tone.context.rawContext;
+                recorderDestination = ctx.createMediaStreamDestination();
+        
+                // DNA Music + Nature Effect → Tone.Destination → recorder (เหมือนเดิม)
                 Tone.Destination.connect(recorderDestination);
+        
+                // Voice แยก GainNode → recorder โดยตรง (ไม่ผ่าน Tone.Destination)
+                const voiceGain = ctx.createGain();
+                voiceGain.gain.value = 2.0;          // ปรับได้ 1.5-3.0
+                voiceGain.connect(recorderDestination);
+                window.recorderVoiceGain = voiceGain;
+        
                 window.recorderDestNode = recorderDestination;
-                console.log('[V12.6] Tone destination connected to recorder stream');
+                console.log('[V12.5] Tone destination connected to recorder stream');
             }
             return recorderDestination.stream;
         }
@@ -609,12 +614,12 @@
                         ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
                         setTimeout(resolve, durationSec * 1000);
                     } catch(e) {
-                        console.error('[V12.6] Error drawing image:', e);
+                        console.error('[V12.5] Error drawing image:', e);
                         setTimeout(resolve, durationSec * 1000);
                     }
                 };
                 img.onerror = (err) => {
-                    console.error('[V12.6] Cannot load image:', imgUrl, err);
+                    console.error('[V12.5] Cannot load image:', imgUrl, err);
                     setTimeout(resolve, durationSec * 1000);
                 };
                 img.src = imgUrl;
@@ -622,6 +627,7 @@
         }
         
         async function startRecordAndPlay() {
+            // ปิด prerender
             if (window.MusicPrerenderController) {
                 try {
                     if (typeof window.MusicPrerenderController.stop === 'function') window.MusicPrerenderController.stop();
@@ -630,6 +636,7 @@
                 } catch(e) {}
             }
             
+            // อ่านค่า dynamic จาก window.currentSongDNA (V12.x structure)
             if (window.currentSongDNA) {
                 videoDurationSec = (window.currentSongDNA.duration_sec !== undefined && window.currentSongDNA.duration_sec !== null) 
                     ? window.currentSongDNA.duration_sec : 15;
@@ -639,7 +646,7 @@
                 postVoiceUrl = window.currentSongDNA.post_voice_url || null;
                 preEffect = window.currentSongDNA.pre_effect || null;
                 postEffect = window.currentSongDNA.post_effect || null;
-                console.log(`[V12.6] Loaded: dur=${videoDurationSec}s, preImg=${preImageUrl}, postImg=${postImageUrl}, preVoice=${!!preVoiceUrl}, postVoice=${!!postVoiceUrl}, preEffect=${preEffect?.type}, postEffect=${postEffect?.type}`);
+                console.log(`[V12.5] Loaded: dur=${videoDurationSec}s, preImg=${preImageUrl}, postImg=${postImageUrl}, preVoice=${!!preVoiceUrl}, postVoice=${!!postVoiceUrl}, preEffect=${preEffect?.type}, postEffect=${postEffect?.type}`);
             } else {
                 videoDurationSec = 15;
                 preImageUrl = null;
@@ -648,7 +655,7 @@
                 postVoiceUrl = null;
                 preEffect = null;
                 postEffect = null;
-                console.warn('[V12.6] window.currentSongDNA not found, using defaults');
+                console.warn('[V12.5] window.currentSongDNA not found, using defaults');
             }
             
             if (timerStatusEl) timerStatusEl.innerHTML = `🎬 ${videoDurationSec}s`;
@@ -663,6 +670,7 @@
             
             setStatus('📷 กำลังเรนเดอร์การ์ด...', 'info');
             
+            // 1. เรนเดอร์การ์ดเป็น canvas
             let cardCanvas;
             try {
                 cardCanvas = await html2canvas(cardDiv, {
@@ -679,6 +687,7 @@
                 return;
             }
             
+            // 2. เตรียม Audio Stream (ยังไม่ต้องเริ่ม Tone ที่นี่)
             let audioStream;
             try {
                 audioStream = await setupToneAudioStream();
@@ -690,6 +699,7 @@
                 return;
             }
             
+            // 3. สร้าง canvas stream + รวม streams
             const canvasWidth = cardCanvas.width;
             const canvasHeight = cardCanvas.height;
             canvas = document.createElement('canvas');
@@ -703,7 +713,7 @@
             const selectedFormat = formatSelect.value;
             let mimeType = getMimeTypeForFormat(selectedFormat);
             const isMP4 = mimeType.startsWith('video/mp4');
-            console.log(`[V12.6] Format: ${selectedFormat}, mimeType: ${mimeType}, duration: ${videoDurationSec}s`);
+            console.log(`[V12.5] Format: ${selectedFormat}, mimeType: ${mimeType}, duration: ${videoDurationSec}s`);
             
             let recorderOptions = { mimeType };
             try {
@@ -739,34 +749,37 @@
                 if (timerStatusEl) timerStatusEl.innerHTML = `🎬 ${videoDurationSec}s`;
             };
             
+            // เริ่มบันทึก
             mediaRecorder.start(1000);
             isRecording = true;
             updateButtonState(true);
             recordingStartTime = Date.now();
             
+            // ฟังก์ชันวาดการ์ดปกติ
             function drawCardFrame() {
                 if (!canvas || !ctx || !isRecording) return;
                 ctx.drawImage(cardCanvas, 0, 0, canvas.width, canvas.height);
                 animationId = requestAnimationFrame(drawCardFrame);
             }
             
+            // ===== เปิด Tone context ก่อน Pre stage =====
             if (Tone.context.state !== 'running') {
                 await Tone.start();
                 await Tone.context.resume();
-                console.log('[V12.6] Tone context started before Pre stage');
+                console.log('[V12.5] Tone context started before Pre stage');
             }
             
+            // ===== PRE STAGE (อิสระ: ทำงานถ้ามีอย่างน้อย 1 ใน Voice/Image/Effect) =====
             const preTasks = [];
             if (preVoiceUrl) preTasks.push(playVoiceWithTone(preVoiceUrl));
             if (preImageUrl) preTasks.push(showImageOnCanvas(ctx, canvas, preImageUrl, effectDurationSec));
             if (preEffect) preTasks.push(playNatureEffect(preEffect, Tone.Destination, effectDurationSec));
             if (preTasks.length > 0) {
-                setStatus('🎬 Pre stage: รูป + เสียง + Effect (4s)...', 'info');
+                setStatus('🎬 Pre stage: รูป + เสียง + Effect (3s)...', 'info');
                 await Promise.all(preTasks);
-            } else {
-                await new Promise(r => setTimeout(r, effectDurationSec * 1000));
             }
             
+            // เริ่มวาดการ์ด และเริ่ม DNA Music
             drawCardFrame();
             
             const startDNA = () => {
@@ -775,36 +788,40 @@
                     window.AudioController.handleCombinedDNA(window.currentSongDNA.defaultDNA, window.currentSongDNA.customDNA);
                     window.AudioController.play();
                     dnaStarted = true;
-                    console.log('[V12.6] DNA Music started');
+                    console.log('[V12.5] DNA Music started');
                 }
             };
             startDNA();
             
+            // ตั้งเวลาหยุดบันทึก (หลัง DNA ครบ duration)
             stopRecordingTimeout = setTimeout(async () => {
                 if (!isRecording) return;
-                console.log('[V12.6] DNA duration finished, stopping DNA music');
+                console.log('[V12.5] DNA duration finished, stopping DNA music');
                 if (window.AudioController && window.AudioController.isPlaying) {
                     window.AudioController.stop();
                 }
+                
+                // หยุดวาดการ์ดก่อนแสดง Post stage
                 if (animationId) cancelAnimationFrame(animationId);
                 
+                // ===== POST STAGE (อิสระ: ทำงานถ้ามีอย่างน้อย 1 ใน Voice/Image/Effect) =====
                 const postTasks = [];
                 if (postVoiceUrl) postTasks.push(playVoiceWithTone(postVoiceUrl));
                 if (postImageUrl) postTasks.push(showImageOnCanvas(ctx, canvas, postImageUrl, effectDurationSec));
                 if (postEffect) postTasks.push(playNatureEffect(postEffect, Tone.Destination, effectDurationSec));
                 if (postTasks.length > 0) {
-                    setStatus('🎬 Post stage: รูป + เสียง + Effect (4s)...', 'info');
+                    setStatus('🎬 Post stage: รูป + เสียง + Effect (3s)...', 'info');
                     await Promise.all(postTasks);
-                } else {
-                    await new Promise(r => setTimeout(r, effectDurationSec * 1000));
                 }
                 
+                // หยุด MediaRecorder
                 if (mediaRecorder && mediaRecorder.state === 'recording') {
                     mediaRecorder.stop();
                 }
                 setStatus('⏹️ สิ้นสุดการบันทึก', 'info');
             }, videoDurationSec * 1000);
             
+            // ตัวนับเวลาที่แสดงบน UI (เฉพาะช่วง DNA)
             let lastRemaining = videoDurationSec;
             const progressInterval = setInterval(() => {
                 if (!isRecording) return;
@@ -845,6 +862,7 @@
             setStatus('⏹️ หยุดการบันทึก', 'info');
         };
         
+        // ตรวจสอบ DNA พร้อม
         let dnaReadyInterval = setInterval(() => {
             if (window.musicDNAReady && window.currentSongDNA) {
                 clearInterval(dnaReadyInterval);
@@ -852,7 +870,7 @@
                     mainBtn.disabled = false;
                     const dur = (window.currentSongDNA.duration_sec !== undefined) ? window.currentSongDNA.duration_sec : 15;
                     if (timerStatusEl) timerStatusEl.innerHTML = `🎬 ${dur}s`;
-                    setStatus('💡 กดปุ่มเพื่อบันทึกวิดีโอ (V12.6 - แก้เสียง Voice ในคลิป)', 'info');
+                    setStatus('💡 กดปุ่มเพื่อบันทึกวิดีโอ (V12.5 - Effect อิสระ, ปรับระดับเสียง)', 'info');
                 }
             } else {
                 if (mainBtn && mainBtn.disabled === false) mainBtn.disabled = true;
@@ -876,9 +894,9 @@
         }, 10000);
     })();
     
-    // ========== โหลดข้อมูลการ์ด และดึง payload ==========
+    // ========== โหลดข้อมูลการ์ด และดึง payload (แบบใหม่ pre_voice, post_voice, effect) ==========
     document.addEventListener('DOMContentLoaded', async () => {
-        console.log('🎁 create_giftcard_video V12.6 - routing voice ผ่าน Tone.Destination');
+        console.log('🎁 create_giftcard_video V12.5 - Pre/Post Effect อิสระ, ปรับระดับเสียง');
         
         await new Promise(resolve => {
             const check = setInterval(() => {
@@ -934,13 +952,14 @@
         if (!defaultDNA?.sequence) { document.getElementById('cardContent').innerHTML = '<p class="text-red-500">DNA error</p>'; return; }
         if (!defaultDNA.instruments) defaultDNA.instruments = ["piano"];
         
+        // ฟิลด์ใหม่: pre_voice_url, post_voice_url, pre_effect, post_effect
         const preVoiceUrl = payload.pre_voice_url || null;
         const postVoiceUrl = payload.post_voice_url || null;
         const preEffect = payload.pre_effect || null;
         const postEffect = payload.post_effect || null;
         const durationSec = (payload.duration_sec !== undefined && payload.duration_sec !== null) ? payload.duration_sec : 15;
-        const preImageUrl = payload.intro_image_url || null;
-        const postImageUrl = payload.outro_image_url || null;
+        const preImageUrl = payload.intro_image_url || null;   // ใช้ intro_image_url เป็น Pre Image
+        const postImageUrl = payload.outro_image_url || null;  // ใช้ outro_image_url เป็น Post Image
         
         window.currentSongDNA = { 
             defaultDNA, customDNA,
@@ -953,7 +972,7 @@
             outro_image_url: postImageUrl
         };
         window.musicDNAReady = true;
-        console.log(`[V12.6] Payload loaded: duration=${durationSec}s, preImg=${preImageUrl}, postImg=${postImageUrl}, preVoice=${!!preVoiceUrl}, postVoice=${!!postVoiceUrl}, preEffect=${preEffect?.type}, postEffect=${postEffect?.type}`);
+        console.log(`[V12.5] Payload loaded: duration=${durationSec}s, preImg=${preImageUrl}, postImg=${postImageUrl}, preVoice=${!!preVoiceUrl}, postVoice=${!!postVoiceUrl}, preEffect=${preEffect?.type}, postEffect=${postEffect?.type}`);
         
         const playUrl = song.play_url || `${window.location.origin}${window.location.pathname}?song=${shortId}`;
         const edition = payload.edition || 'premium';
