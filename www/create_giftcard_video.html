@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>MLQ Music - ซองเพลง DNA Video Recorder V12.7</title>
+    <title>MLQ Music - ซองเพลง DNA Video Recorder V12.8</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -745,27 +745,41 @@
                 const filename = `MLQ_Gift_${videoDurationSec}s_${timestamp}.${ext}`;
                 const url = URL.createObjectURL(finalBlob);
                 
+                
                 if (isIOS()) {
-                    // iPad / iPhone: เปิด blob ในแท็บใหม่ ให้ user กด Share -> Save to Files
-                    const newTab = window.open(url, '_blank');
-                    if (!newTab) {
-                        // ถ้า popup ถูกบล็อก ให้แสดงลิงก์ให้กดค้าง
-                        setStatus('📥 กดค้างที่ลิงก์ด้านล่างแล้วเลือก "Save to Files" เพื่อบันทึกวิดีโอ', 'download-link');
-                        const link = document.createElement('a');
-                        link.href = url;
-                        link.textContent = '📥 กดค้างที่นี่เพื่อบันทึกวิดีโอ';
-                        link.className = 'download-link-custom';
-                        link.setAttribute('target', '_blank');
-                        // เอา link เก่าออกถ้ามี
-                        const oldLink = document.querySelector('.download-link-custom');
-                        if (oldLink) oldLink.remove();
-                        statusDiv.parentNode.insertBefore(link, statusDiv.nextSibling);
-                        // revoke หลังจาก 60 วินาที
-                        setTimeout(() => URL.revokeObjectURL(url), 60000);
-                    } else {
-                        // revoke ช้า ๆ
-                        setTimeout(() => URL.revokeObjectURL(url), 60000);
-                    }
+                    // แปลง blob → base64 data URL
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        const dataUrl = reader.result; // data:video/mp4;base64,...
+        
+                        // เปิด data URL ใน new tab → Safari เล่นวิดีโอได้ → กด Share → Save to Files
+                        const newTab = window.open('', '_blank');
+                        if (newTab) {
+                            newTab.document.write(`
+                                <html><body style="margin:0;background:#000">
+                                <video src="${dataUrl}" controls autoplay 
+                                    style="width:100%;max-height:100vh">
+                                </video>
+                                <p style="color:white;text-align:center;font-size:18px;padding:10px">
+                                    กด Share (□↑) แล้วเลือก "Save to Files" เพื่อบันทึก
+                                </p>
+                                </body></html>
+                            `);
+                        } else {
+                            // popup blocked → แสดงลิงก์ data URL
+                            const link = document.createElement('a');
+                            link.href = dataUrl;
+                            link.download = filename;
+                            link.textContent = '📥 กดค้างที่นี่ → Open in Files → Save';
+                            link.style.cssText = 'display:block;padding:16px;background:#3b82f6;color:white;text-align:center;border-radius:8px;margin:8px;font-size:16px;';
+                            const oldLink = document.querySelector('.download-link-custom');
+                            if (oldLink) oldLink.remove();
+                            link.className = 'download-link-custom';
+                            statusDiv.parentNode.insertBefore(link, statusDiv.nextSibling);
+                        }
+                        URL.revokeObjectURL(url); // revoke blob URL ได้เลย ไม่ต้องใช้แล้ว
+                    };
+                    reader.readAsDataURL(finalBlob);
                 } else {
                     // Desktop / Android: ใช้ a.click() กับ download attribute
                     const a = document.createElement('a');
@@ -776,6 +790,8 @@
                     document.body.removeChild(a);
                     setTimeout(() => URL.revokeObjectURL(url), 5000);
                 }
+                
+                
                 
                 setStatus(`✅ บันทึกวิดีโอสำเร็จ (${ext.toUpperCase()})`, 'success');
                 updateButtonState(false);
@@ -891,7 +907,7 @@
                     mainBtn.disabled = false;
                     const dur = (window.currentSongDNA.duration_sec !== undefined) ? window.currentSongDNA.duration_sec : 15;
                     if (timerStatusEl) timerStatusEl.innerHTML = `🎬 ${dur}s`;
-                    setStatus('💡 กดปุ่มเพื่อบันทึกวิดีโอ (V12.7 - รองรับ iPad)', 'info');
+                    setStatus('💡 กดปุ่มเพื่อบันทึกวิดีโอ (V12.8 - รองรับ iPad)', 'info');
                 }
             } else {
                 if (mainBtn && mainBtn.disabled === false) mainBtn.disabled = true;
