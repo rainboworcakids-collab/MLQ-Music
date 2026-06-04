@@ -1,5 +1,5 @@
-// pwa-handler.js - เวอร์ชัน 3.0 (URL Install สำหรับ iOS / Android / PC)
-console.log('📱 PWA Handler Module version 3.0 - โหลดสำเร็จ');
+// pwa-handler.js - เวอร์ชัน 3.1 (รองรับ Safari iOS/macOS อย่างสมบูรณ์)
+console.log('📱 PWA Handler Module version 3.1 - โหลดสำเร็จ');
 
 class PWAHandler {
     constructor() {
@@ -15,7 +15,6 @@ class PWAHandler {
     }
 
     // ─── Platform Detection ───────────────────────────────────────────────────
-
     detectPlatform() {
         const ua = navigator.userAgent;
         const isIOS     = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
@@ -36,7 +35,6 @@ class PWAHandler {
     }
 
     // ─── Modal HTML Injection ─────────────────────────────────────────────────
-
     _injectInstallModalHTML() {
         if (document.getElementById('pwaInstallModal')) return;
 
@@ -155,11 +153,11 @@ class PWAHandler {
     }
 
     // ─── Initialize ───────────────────────────────────────────────────────────
-
     initialize() {
         this.setupEventListeners();
         this.checkInstallStatus();
         this._setupModalListeners();
+        this.updateInstallButtonVisibility(); // เรียกอัปเดตปุ่มทันที
 
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => this.onDOMLoaded());
@@ -179,12 +177,15 @@ class PWAHandler {
             installPWAButton.addEventListener('click', () => this.openInstallModal());
         }
 
-        // ✅ ตรวจ URL Query Params
+        // ตรวจสอบสถานะการแสดงผลของปุ่มอีกครั้งหลัง DOM พร้อม
+        this.checkInstallStatus();
+        this.updateInstallButtonVisibility();
+
+        // ตรวจ URL Query Params
         this._handleInstallURL();
     }
 
     // ─── URL Install Handler ──────────────────────────────────────────────────
-
     _handleInstallURL() {
         const params = new URLSearchParams(window.location.search);
         const action  = params.get('action');   // ?action=install
@@ -202,21 +203,12 @@ class PWAHandler {
         // รอให้ DOM พร้อม + delay เล็กน้อยให้ app โหลดก่อน
         const tryInstall = () => {
             if (this.isInstalled) {
-                // ติดตั้งแล้ว — แจ้งให้รู้
                 this._showInstalledAlready();
                 return;
             }
-
-//            if (this.deferredPrompt) {
-                // Chrome/Edge/Android — prompt ได้เลย
-                this.install();
-//            } else {
-                // iOS หรือยังไม่มี prompt — เปิด guide modal
-                this.openInstallModal();
-//            }
+            this.install(); // install() จะจัดการเปิด modal ถ้าไม่มี deferredPrompt
         };
 
-        // รอ beforeinstallprompt ก่อน (max 2.5s) แล้วค่อย fallback
         let resolved = false;
         const onPrompt = () => {
             if (resolved) return;
@@ -237,7 +229,6 @@ class PWAHandler {
     }
 
     // ─── Install Modal ────────────────────────────────────────────────────────
-
     openInstallModal() {
         const modal = document.getElementById('pwaInstallModal');
         if (!modal) return;
@@ -264,7 +255,7 @@ class PWAHandler {
         const actionText = document.getElementById('pwaInstallActionText');
         const tipEl    = document.getElementById('pwaInstallTip');
 
-        // --- Platform badge ---
+        // Platform badge
         const platformInfo = {
             ios:     { label: 'iOS / iPadOS', color: '#0ea5e9', bg: 'rgba(14,165,233,0.15)', icon: '🍎' },
             android: { label: 'Android',      color: '#10b981', bg: 'rgba(16,185,129,0.15)', icon: '🤖' },
@@ -286,7 +277,7 @@ class PWAHandler {
             `;
         }
 
-        // --- Steps & Action per platform ---
+        // Steps & Action per platform
         if (type === 'ios') {
             stepsEl.innerHTML = this._stepsHTML([
                 { icon: '🌐', text: 'เปิดหน้าเว็บนี้ใน <strong>Safari</strong> (ต้องเป็น Safari เท่านั้น)' },
@@ -295,7 +286,6 @@ class PWAHandler {
                 { icon: '✅', text: 'กด <strong>Add</strong> มุมขวาบน — เสร็จแล้ว!' },
             ]);
             if (browser !== 'safari') {
-                // Chrome บน iOS ไม่รองรับ
                 if (tipEl) {
                     tipEl.style.display = 'block';
                     tipEl.innerHTML = '⚠️ Chrome บน iOS ไม่รองรับ Add to Home Screen — กรุณาเปิดลิงก์นี้ใน <strong>Safari</strong>';
@@ -312,7 +302,6 @@ class PWAHandler {
 
         } else if (type === 'android') {
             if (this.deferredPrompt) {
-                // Native prompt available
                 stepsEl.innerHTML = this._stepsHTML([
                     { icon: '📲', text: 'กดปุ่ม <strong>"ติดตั้งเลย"</strong> ด้านล่าง' },
                     { icon: '✅', text: 'กด <strong>Install</strong> / <strong>ติดตั้ง</strong> ในกล่องที่ปรากฏ' },
@@ -325,7 +314,6 @@ class PWAHandler {
                     this.install();
                 };
             } else {
-                // Manual guide
                 stepsEl.innerHTML = this._stepsHTML([
                     { icon: '⋮',  text: 'กดเมนู <strong>3 จุด</strong> (⋮) มุมขวาบนของ Chrome' },
                     { icon: '📲', text: 'เลือก <strong>"Add to Home screen"</strong> หรือ <strong>"Install App"</strong>' },
@@ -360,7 +348,6 @@ class PWAHandler {
                 actionText.textContent = 'ดูไอคอน Install ใน Address Bar';
                 actionBtn.onclick = () => { this.closeInstallModal(); };
             } else {
-                // Firefox ไม่รองรับ PWA install
                 stepsEl.innerHTML = this._stepsHTML([
                     { icon: '🌐', text: 'เปิดลิงก์นี้ใน <strong>Google Chrome</strong> หรือ <strong>Microsoft Edge</strong>' },
                     { icon: '📲', text: 'จะมีปุ่ม Install ปรากฏขึ้นอัตโนมัติ' },
@@ -396,7 +383,6 @@ class PWAHandler {
             if (e.target.id === 'pwaInstallModalClose' || e.target.id === 'pwaInstallCancelBtn') {
                 this.closeInstallModal();
             }
-            // Click outside
             if (e.target.id === 'pwaInstallModal') {
                 this.closeInstallModal();
             }
@@ -408,16 +394,13 @@ class PWAHandler {
     }
 
     // ─── Install (Native Prompt) ──────────────────────────────────────────────
-
     setupEventListeners() {
         window.addEventListener('beforeinstallprompt', (e) => {
             console.log('📱 ระบบพร้อมสำหรับการติดตั้ง (beforeinstallprompt captured)');
             e.preventDefault();
             this.deferredPrompt = e;
             this.showBanner();
-
-            const btn = document.getElementById('installPWAButton');
-            if (btn) btn.classList.remove('hidden');
+            this.updateInstallButtonVisibility(); // อัปเดตปุ่มเมื่อมี prompt
         });
 
         window.addEventListener('appinstalled', () => {
@@ -426,9 +409,7 @@ class PWAHandler {
             this.deferredPrompt = null;
             this.hideBanner();
             this.closeInstallModal();
-
-            const btn = document.getElementById('installPWAButton');
-            if (btn) btn.classList.add('hidden');
+            this.updateInstallButtonVisibility(); // ซ่อนปุ่มหลังติดตั้ง
 
             if (window.AppMain?.setState) {
                 window.AppMain.setState('pwa.installed', true);
@@ -444,12 +425,12 @@ class PWAHandler {
                 window.AppMain.setState('pwa.installDate', null);
             }
             this.isInstalled = false;
+            this.updateInstallButtonVisibility(); // อาจแสดงปุ่มอีกครั้ง
         });
     }
 
     async install() {
         if (!this.deferredPrompt) {
-            // ไม่มี native prompt → เปิด guide modal แทน
             this.openInstallModal();
             return { success: false, message: 'No native prompt — modal opened' };
         }
@@ -474,20 +455,13 @@ class PWAHandler {
         }
     }
 
-    // ─── URL Generator (helper สำหรับแชร์) ───────────────────────────────────
-
-    /**
-     * สร้าง URL สำหรับแชร์ — ใช้แนบใน QR, SMS, Line, Email ฯลฯ
-     * @param {string} ref - แหล่งที่มา เช่น 'qr', 'line', 'sms', 'email'
-     * @returns {string} Full install URL
-     */
+    // ─── URL Generator ───────────────────────────────────────────────────────
     getInstallURL(ref = 'share') {
         const base = window.location.origin + window.location.pathname;
         return `${base}?action=install&ref=${ref}`;
     }
 
-    // ─── Banner ───────────────────────────────────────────────────────────────
-
+    // ─── Banner ──────────────────────────────────────────────────────────────
     showBanner() {
         if (this.installBanner) {
             this.installBanner.classList.add('show');
@@ -502,8 +476,7 @@ class PWAHandler {
         }
     }
 
-    // ─── Status ───────────────────────────────────────────────────────────────
-
+    // ─── Status & Button Visibility (核心新增) ──────────────────────────────────
     checkInstallStatus() {
         const isStandalone = window.matchMedia('(display-mode: standalone)').matches
                           || window.navigator.standalone === true;
@@ -517,10 +490,54 @@ class PWAHandler {
         if (this.isInstalled) {
             console.log('📱 แอปถูกติดตั้งแล้ว (standalone mode)');
             this.hideBanner();
-            document.getElementById('installPWAButton')?.classList.add('hidden');
         }
+        // ไม่ต้องจัดการปุ่มโดยตรงในนี้ ให้เรียก updateInstallButtonVisibility แทน
+        this.updateInstallButtonVisibility();
     }
 
+    /**
+     * อัปเดตการแสดง/ซ่อนปุ่มติดตั้ง พร้อมปรับไอคอนตามแพลตฟอร์ม
+     * - แสดงเมื่อยังไม่ติดตั้ง และ (มี deferredPrompt หรือ เป็น iOS/macOS/Safari)
+     */
+    updateInstallButtonVisibility() {
+        const btn = document.getElementById('installPWAButton');
+        if (!btn) return;
+
+        const isStandalone =
+            window.matchMedia('(display-mode: standalone)').matches ||
+            window.navigator.standalone === true;
+
+        const hasPrompt = !!this.deferredPrompt;
+
+        const isSafari =
+            this.platform.browser === 'safari';
+
+        const isApple =
+            this.platform.type === 'ios' ||
+            this.platform.type === 'mac';
+
+        const shouldShow =
+            !isStandalone &&
+            (hasPrompt || (isSafari && isApple));
+
+        btn.classList.toggle('hidden', !shouldShow);
+
+        if (shouldShow) {
+            if (isSafari && !hasPrompt) {
+                btn.innerHTML =
+                    '<i class="fas fa-share-alt"></i>';
+                btn.title =
+                'เพิ่มลงหน้าจอหลัก';
+            } else {
+            btn.innerHTML =
+                '<i class="fas fa-download"></i>';
+            btn.title =
+                'ติดตั้งแอป';
+            }
+        }
+    }
+    
+    
     getStatus() {
         return {
             hasDeferredPrompt : !!this.deferredPrompt,
@@ -532,31 +549,24 @@ class PWAHandler {
     }
 
     // ─── Toast ────────────────────────────────────────────────────────────────
-
     _dispatchToast(message, type = 'info') {
         window.dispatchEvent(new CustomEvent('showToast', { detail: { message, type } }));
         console.log(`[${type.toUpperCase()}] ${message}`);
     }
 
-    // Legacy alias
     showToast(message, type = 'info') { this._dispatchToast(message, type); }
 }
 
 // ─── Instance & Global API ────────────────────────────────────────────────────
-
 window.PWAHandler = new PWAHandler();
 
-/** เรียกจาก HTML button onclick */
 window.handleAppInstall = () => window.PWAHandler?.install()
     ?? window.dispatchEvent(new CustomEvent('showToast', {
         detail: { message: 'ระบบติดตั้งยังไม่พร้อม กรุณารอสักครู่...', type: 'warning' }
     }));
 
-/** เปิด install guide modal (เรียกได้จากทุกที่) */
 window.openPWAInstallModal = () => window.PWAHandler?.openInstallModal();
-
-/** คืน install URL พร้อม ref tag */
 window.getPWAInstallURL = (ref) => window.PWAHandler?.getInstallURL(ref);
 
-console.log('✅ PWA Handler (v3.0) พร้อมใช้งานแล้ว');
+console.log('✅ PWA Handler (v3.1) พร้อมใช้งานแล้ว (รองรับ Safari แล้ว)');
 console.log(`📱 Platform detected: ${window.PWAHandler.platform.type} / ${window.PWAHandler.platform.browser}`);
