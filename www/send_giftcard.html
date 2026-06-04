@@ -1,9 +1,10 @@
+<!-- Send Giftcard - V8.2 (Fix upload image compression) -->
 <!DOCTYPE html>
 <html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MLQ Music - สร้างซองเพลง V8.1 (iPad Fix: รูปใหญ่, เสียง m4a, postMessage)</title>
+    <title>MLQ Music - สร้างซองเพลง V8.2</title>
     <meta name="theme-color" content="#4f46e5">
     <meta name="description" content="สร้างเพลงส่วนตัวจากตัวเลขวันเกิดและชื่อของคุณ ฟรี รองรับ iPad">
     <link rel="icon" href="icons/icon-72x72.png" type="image/png">
@@ -15,7 +16,7 @@
     <link rel="stylesheet" href="css/gift-card-base.css">
 
     <style>
-        /* (คงสไตล์เดิมทั้งหมด ไม่เปลี่ยนแปลง) */
+        /* คงสไตล์เดิมทั้งหมด ไม่เปลี่ยนแปลง */
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             background: linear-gradient(145deg, #f9f3e9, #fff0e0);
@@ -161,7 +162,7 @@
             <p class="text-amber-700">สร้างการ์ดอวยพร และ การ์ดโปรโมท วิดีโอโปรโมท</p>
         </div>
 
-        <!-- iframe สร้างเพลง เก็บ Storage ก่อน -->
+        <!-- iframe สร้างเพลง -->
         <p class="text-xl text-blue-700">🎵 กรุณาสร้าง DNA ในส่วนด้านบนก่อน</p>
         <div class="dna-iframe-container mt-12">
             <iframe 
@@ -173,7 +174,7 @@
             </iframe>
         </div>
 
-        <!-- เลือกธีม สร้างการ์ด  -->
+        <!-- ส่วนเลือกการ์ดและอัปโหลด (คงเดิม) -->
         <p class="text-xl text-blue-700">🖼️ เลือกแบรนด์, ธีมการ์ด, อัปโหลดรูป และเขียนคำอวยพร</p>
         <div class="part-card2 space-y-5">
             <div class="ml-2" >
@@ -197,7 +198,6 @@
                 </div>
             </div>
 
-
             <div class="two-column-layout space-y-5">
                 <div>
                     <label class="form-label">📸 รูปภาพประกอบการ์ด</label>
@@ -208,7 +208,6 @@
                     <p class="text-xs text-gray-500 mt-1">อัปโหลดรูปส่วนตัว (สูงสุด 2MB) จะแสดงบนการ์ดแบบสี่เหลี่ยมขอบมน</p>
                 </div>
 
-                <!-- Duration Selector -->
                 <div>
                     <label class="form-label">⏱️ ระยะเวลาดนตรีในวิดีโอ (วินาที)</label>
                     <select id="durationSelect" class="form-input">
@@ -223,7 +222,6 @@
                 </div>
             </div>
             <div class="tree-column-layout">
-                <!-- Pre Image (Intro) -->
                 <div>
                     <label class="form-label">🖼️ รูปภาพก่อนเพลง (Pre Image)</label>
                     <input type="file" id="preImageInput" accept="image/jpeg,image/png,image/webp" class="form-input">
@@ -233,7 +231,6 @@
                     <p class="text-xs text-gray-500 mt-1">รูปที่จะแสดงในช่วง Pre (3 วินาที) ถ้าไม่เลือกจะใช้การ์ดแทน</p>
                 </div>
 
-                <!-- Post Image (Outro) -->
                 <div>
                     <label class="form-label">🖼️ รูปภาพหลังเพลง (Post Image)</label>
                     <input type="file" id="postImageInput" accept="image/jpeg,image/png,image/webp" class="form-input">
@@ -242,21 +239,17 @@
                     </div>
                     <p class="text-xs text-gray-500 mt-1">รูปที่จะแสดงในช่วง Post (3 วินาที) ถ้าไม่เลือกจะใช้การ์ดแทน</p>
                 </div>
-                <!-- AI Prompt Helper Link -->
                 <div class="ai-prompt-link">
                     <p><i class="fas fa-magic text-amber-600"></i>ใช้ AI สร้าง Prompt ส้างรูปประกอบการ์ด</p>
                     <a href="./create_prompt_giftcard.html" target="_blank">✨ สร้าง Prompt รูปภาพ AI ✨</a>
                 </div>
-
             </div>
             <div class="two-column-layout space-y-5">
-
                 <div>
                     <label class="form-label">👤 ชื่อผู้รับ / ข้อความหลัก <span class="text-gray-400 text-xs">(เว้นว่างได้)</span></label>
                     <input type="text" id="receiverName" class="form-input" placeholder="เช่น 250 HUNGRY, คุณพ่อ, ทีมขาย...">
                     <p class="text-xs text-gray-500 mt-1">จะแสดงบนการ์ดตามที่คุณพิมพ์ (ถ้าเว้นว่างจะไม่แสดงข้อความ)</p>
                 </div>
-
                 <div>
                     <label class="form-label">✍️ ชื่อผู้ส่ง / ข้อความท้าย <span class="text-gray-400 text-xs">(เว้นว่างได้)</span></label>
                     <input type="text" id="senderName" class="form-input" placeholder="เช่น Gourmet Eats, MLQ Music, น้องโอม...">
@@ -264,9 +257,7 @@
                 </div>
             </div>    
 
-            <!-- แยก Pre Voice และ Post Voice -->
             <div class="grid grid-cols-2 gap-4 mt-2">
-                <!-- Pre Voice Note -->
                 <div>
                     <label class="form-label">🎙️ Pre Voice Note (ก่อนเพลง)</label>
                     <div class="flex gap-2 mb-2">
@@ -282,8 +273,6 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Post Voice Note -->
                 <div>
                     <label class="form-label">🎙️ Post Voice Note (หลังเพลง)</label>
                     <div class="flex gap-2 mb-2">
@@ -301,7 +290,6 @@
                 </div>
             </div>
 
-            <!-- Pre Effect และ Post Effect (เสียงธรรมชาติ) -->
             <div class="grid grid-cols-2 gap-4 mt-2">
                 <div>
                     <label class="form-label">🌿 Pre Effect (เสียงธรรมชาติก่อนเพลง)</label>
@@ -355,13 +343,13 @@
 
 <script>
     (function() {
-        // ========== V8.1 iPad Fixes ==========
-        // 1. รูปเกิน 2MB -> บีบอัดอัตโนมัติด้วย compressImage()
-        // 2. บันทึกเสียง -> ใช้ MediaRecorder พร้อม mimeType audio/mp4 (iPad) และนามสกุล .m4a
-        // 3. localStorage ข้าม frame ไม่ได้ (ITP) -> ใช้ postMessage แทน
+        // ========== V8.2 iPad Fixes ==========
+        // 1. บีบอัดรูปในขั้นตอนอัปโหลดอีกครั้ง (เผื่อ preview ยังใหญ่เกิน)
+        // 2. ใช้ _originalFile แทน _compressedFile ใน generate
+        // 3. เพิ่ม log ขนาดไฟล์ก่อน-หลังบีบอัด
         // =====================================
         let currentUserPlan = 'premium';
-        console.log(`🚀 send_giftcard.html V8.1 (iPad Patch) - รองรับรูปใหญ่, บันทึกเสียง m4a, postMessage แทน localStorage`);
+        console.log(`🚀 send_giftcard.html V8.2 - บีบอัดรูปก่อนอัปโหลดทุกครั้ง`);
 
         // DOM elements (เหมือนเดิม)
         const cardSelect = document.getElementById('cardSelect');
@@ -436,7 +424,7 @@
             document.body.removeChild(link);
         }
 
-        // -------- 1. Image Compression (iPad fix) --------
+        // -------- 1. Image Compression (เหมือนเดิม) --------
         async function compressImage(file, maxWidth = 1200, quality = 0.8) {
             return new Promise((resolve, reject) => {
                 if (!file.type.startsWith('image/')) {
@@ -544,7 +532,6 @@
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
                 
-                // ตรวจสอบ mimeType ที่รองรับ (iPad ต้องการ audio/mp4)
                 let mimeType = '';
                 if (MediaRecorder.isTypeSupported('audio/mp4')) {
                     mimeType = 'audio/mp4';
@@ -600,12 +587,48 @@
             container.classList.remove('hidden');
         }
 
+        // -------- แก้ไข: บีบอัดรูปก่อนอัปโหลดเสมอ --------
         async function uploadImageToBucket(file, prefix) {
+            if (!file) return null;
+            // บีบอัดให้เล็กกว่า 1MB แน่นอน
+            let compressed = file;
+            try {
+                const originalSize = (file.size / 1024).toFixed(1);
+                compressed = await compressImage(file, 1024, 0.7);
+                const newSize = (compressed.size / 1024).toFixed(1);
+                console.log(`📦 Upload ${prefix}: ${originalSize}KB → ${newSize}KB`);
+                if (compressed.size > 1.5 * 1024 * 1024) {
+                    console.warn(`⚠️ ขนาดหลังบีบอัดยัง ${newSize}KB อาจใกล้เคียง limit`);
+                }
+            } catch(e) {
+                console.warn('Compress failed, using original', e);
+            }
             const supabase = getSupabaseClient();
-            const ext = file.name.split('.').pop();
+            const ext = compressed.name.split('.').pop();
             const fileName = `${prefix}_${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${ext}`;
-            const { error } = await supabase.storage.from('gift-images').upload(fileName, file, { cacheControl: '3600', upsert: false });
+            const { error } = await supabase.storage.from('gift-images').upload(fileName, compressed, { cacheControl: '3600', upsert: false });
             if (error) throw new Error(`Image upload failed: ${error.message}`);
+            const { data: { publicUrl } } = supabase.storage.from('gift-images').getPublicUrl(fileName);
+            return publicUrl;
+        }
+
+        // -------- แก้ไขฟังก์ชัน uploadImage สำหรับรูปหลัก (บีบอัดก่อน) --------
+        async function uploadImage(file) {
+            if (!file) return null;
+            let compressed = file;
+            try {
+                const originalSize = (file.size / 1024).toFixed(1);
+                compressed = await compressImage(file, 1024, 0.7);
+                const newSize = (compressed.size / 1024).toFixed(1);
+                console.log(`📦 Upload card image: ${originalSize}KB → ${newSize}KB`);
+            } catch(e) {
+                console.warn('Compress failed, using original', e);
+            }
+            const supabase = getSupabaseClient();
+            const ext = compressed.name.split('.').pop();
+            const fileName = `gift_${Date.now()}.${ext}`;
+            const { error } = await supabase.storage.from('gift-images').upload(fileName, compressed, { cacheControl: '3600', upsert: false });
+            if (error) throw error;
             const { data: { publicUrl } } = supabase.storage.from('gift-images').getPublicUrl(fileName);
             return publicUrl;
         }
@@ -707,41 +730,7 @@
             }
         });
 
-        // -------- Image Event Handlers (พร้อมบีบอัด) --------
-        async function handleImageInput(file, setDataUrlCallback, setBlobCallback, previewContainer, previewImg) {
-            if (!file) {
-                setDataUrlCallback(null);
-                if (previewContainer) previewContainer.classList.add('hidden');
-                if (previewImg) previewImg.src = '';
-                refreshPreview();
-                return;
-            }
-            let processedFile = file;
-            if (file.size > 2 * 1024 * 1024) {
-                try {
-                    processedFile = await compressImage(file);
-                    if (processedFile.size > 2 * 1024 * 1024) {
-                        alert('รูปภาพยังมีขนาดใหญ่เกิน 2MB หลังจากบีบอัดแล้ว กรุณาเลือกรูปอื่น');
-                        return;
-                    }
-                } catch(err) {
-                    alert('ไม่สามารถบีบอัดรูปภาพได้');
-                    return;
-                }
-            }
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                setDataUrlCallback(ev.target.result);
-                if (previewImg) previewImg.src = ev.target.result;
-                if (previewContainer) previewContainer.classList.remove('hidden');
-                refreshPreview();
-            };
-            reader.readAsDataURL(processedFile);
-            if (setBlobCallback) setBlobCallback(processedFile);
-            return processedFile;
-        }
-
-        // Bind events ใหม่ทั้งหมด
+        // -------- Image Event Handlers (เก็บ original file) --------
         function bindEvents() {
             brandSelect.addEventListener('change', () => updateCardSelectByBrand());
             cardSelect.addEventListener('change', onCardSelectChange);
@@ -758,7 +747,7 @@
                 refreshPreview();
             });
 
-            // รูปหลัก
+            // รูปหลัก: ใช้ original file และแสดง preview ด้วย dataURL (ไม่บีบอัด preview)
             imageInput.addEventListener('change', async (e) => {
                 const file = e.target.files[0];
                 if (!file) {
@@ -768,20 +757,7 @@
                     refreshPreview();
                     return;
                 }
-                let processedFile = file;
-                if (file.size > 2 * 1024 * 1024) {
-                    try {
-                        processedFile = await compressImage(file);
-                        if (processedFile.size > 2 * 1024 * 1024) {
-                            alert('รูปภาพยังมีขนาดใหญ่เกิน 2MB หลังจากบีบอัดแล้ว');
-                            imageInput.value = '';
-                            return;
-                        }
-                    } catch(err) {
-                        alert('ไม่สามารถบีบอัดรูปภาพได้');
-                        return;
-                    }
-                }
+                // แสดง preview ทันที (ไม่บีบอัดเพื่อความเร็ว)
                 const reader = new FileReader();
                 reader.onload = (ev) => {
                     currentImageDataUrl = ev.target.result;
@@ -789,8 +765,9 @@
                     imagePreviewContainer.classList.remove('hidden');
                     refreshPreview();
                 };
-                reader.readAsDataURL(processedFile);
-                imageInput._compressedFile = processedFile;
+                reader.readAsDataURL(file);
+                // เก็บ original file ไว้ให้ generate ใช้ (จะไปบีบอัดอีกทีใน uploadImage)
+                imageInput._originalFile = file;
             });
 
             // Pre Image
@@ -802,22 +779,10 @@
                     currentPreImageBlob = null;
                     return;
                 }
-                let processedFile = file;
-                if (file.size > 2 * 1024 * 1024) {
-                    try {
-                        processedFile = await compressImage(file);
-                        if (processedFile.size > 2 * 1024 * 1024) {
-                            alert('Pre Image ขนาดใหญ่เกิน 2MB หลังจากบีบอัด');
-                            preImageInput.value = '';
-                            return;
-                        }
-                    } catch(err) {
-                        alert('ไม่สามารถบีบอัด Pre Image');
-                        return;
-                    }
-                }
-                currentPreImageBlob = processedFile;
-                previewImage(processedFile, preImagePreviewContainer, preImagePreviewElement);
+                // สำหรับ pre/post image เราจะบีบอัดตอนอัปโหลดใน uploadImageToBucket เท่านั้น
+                // แต่ preview ก็ใช้ original
+                previewImage(file, preImagePreviewContainer, preImagePreviewElement);
+                currentPreImageBlob = file; // original (จะบีบอัดอีกทีใน uploadImageToBucket)
             });
 
             // Post Image
@@ -829,33 +794,9 @@
                     currentPostImageBlob = null;
                     return;
                 }
-                let processedFile = file;
-                if (file.size > 2 * 1024 * 1024) {
-                    try {
-                        processedFile = await compressImage(file);
-                        if (processedFile.size > 2 * 1024 * 1024) {
-                            alert('Post Image ขนาดใหญ่เกิน 2MB หลังจากบีบอัด');
-                            postImageInput.value = '';
-                            return;
-                        }
-                    } catch(err) {
-                        alert('ไม่สามารถบีบอัด Post Image');
-                        return;
-                    }
-                }
-                currentPostImageBlob = processedFile;
-                previewImage(processedFile, postImagePreviewContainer, postImagePreviewElement);
+                previewImage(file, postImagePreviewContainer, postImagePreviewElement);
+                currentPostImageBlob = file;
             });
-        }
-
-        async function uploadImage(file) {
-            const supabase = getSupabaseClient();
-            const ext = file.name.split('.').pop();
-            const fileName = `gift_${Date.now()}.${ext}`;
-            const { error } = await supabase.storage.from('gift-images').upload(fileName, file, { cacheControl: '3600', upsert: false });
-            if (error) throw error;
-            const { data: { publicUrl } } = supabase.storage.from('gift-images').getPublicUrl(fileName);
-            return publicUrl;
         }
 
         function extractShortId(playUrl) {
@@ -878,7 +819,7 @@
             postEffectSelect.innerHTML = `<option value="">ไม่มี</option>${optionsHtml}`;
         }
 
-        // -------- GENERATE BUTTON (ใช้ dnaDataFromIframe แทน localStorage) --------
+        // -------- GENERATE BUTTON (ใช้ _originalFile แทน _compressedFile) --------
         generateBtn.onclick = async () => {
             if (!dnaDataFromIframe) {
                 alert("⚠️ กรุณาสร้าง DNA และตัวเลขศาสตร์ก่อน โดยกรอกข้อมูลใน iframe ด้านบน (กด 'สร้างเพลงตัวเลขชีวิต')");
@@ -961,7 +902,7 @@
 
             try {
                 let imageUrl = null;
-                const imageFile = imageInput._compressedFile || imageInput.files[0];
+                const imageFile = imageInput._originalFile || imageInput.files[0];  // ใช้ _originalFile
                 if (imageFile) {
                     try {
                         imageUrl = await uploadImage(imageFile);
@@ -1112,7 +1053,7 @@
         postClearVoiceBtn.addEventListener('click', () => clearPostVoice());
 
         (async function init() {
-            console.log('send_giftcard.html V8.1 - initializing...');
+            console.log('send_giftcard.html V8.2 - initializing...');
             await populateEffectDropdowns();
             const success = await loadTemplates();
             if (success) bindEvents();
