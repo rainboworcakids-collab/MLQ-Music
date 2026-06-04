@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>MLQ Music - ซองเพลง DNA Video Recorder V12.8</title>
+    <title>MLQ Music - ซองเพลง DNA Video Recorder V12.81</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -20,6 +20,8 @@
     <script src="config/supabase-config.js"></script>
 
     <!-- MLQ Music Engine Modules -->
+    <!-- script src="js/debug-logger.js"></script -->
+
     <script src="js/data-contract.js?v=2.1"></script>
     <script src="js/client_edge-function-integration.js?v=3.9"></script>   
     <script src="js/app-main.js?v=7.9"></script>
@@ -907,7 +909,7 @@
                     mainBtn.disabled = false;
                     const dur = (window.currentSongDNA.duration_sec !== undefined) ? window.currentSongDNA.duration_sec : 15;
                     if (timerStatusEl) timerStatusEl.innerHTML = `🎬 ${dur}s`;
-                    setStatus('💡 กดปุ่มเพื่อบันทึกวิดีโอ (V12.8 - รองรับ iPad)', 'info');
+                    setStatus('💡 กดปุ่มเพื่อบันทึกวิดีโอ (V12.81 - รองรับ iPad)', 'info');
                 }
             } else {
                 if (mainBtn && mainBtn.disabled === false) mainBtn.disabled = true;

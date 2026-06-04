@@ -462,7 +462,7 @@
     <input type="file" id="musicFileInput" accept=".json" class="hidden">
     
     <!-- JavaScript Files -->
-    <script src="js/debug-logger.js"></script>
+    <!-- script src="js/debug-logger.js"></script -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config/supabase-config.js?v=7.01"></script>
     <script src="js/data-contract.js?v=2.1"></script>
@@ -886,22 +886,6 @@
             if(st){ st.textContent='กดปุ่ม ▶ เพื่อเล่น'; st.style.color='#f59e0b'; }
         });
     })();
-    </script>
-    
-    <!-- PWA สำหรับ iOS วิธีติดตั้ง -->
-    <script>
-        (function() {
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-            const isStandalone = window.navigator.standalone === true;
-            const btn = document.getElementById('installPWAButton');
-                if (isIOS && !isStandalone && btn) {
-                    btn.classList.remove('hidden');
-                    btn.innerHTML = '<i class="fas fa-share-alt"></i> ติดตั้งแอป';
-                    btn.addEventListener('click', () => {
-                        alert('📲 วิธีติดตั้ง:\n1. แตะปุ่มแชร์ (สี่เหลี่ยมมีลูกศร)\n2. เลือก “เพิ่มลงหน้าจอโฮม”\n3. กด “เพิ่ม”');
-                    });
-                }
-        })();
     </script>
 </body>
 </html>
