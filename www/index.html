@@ -179,7 +179,6 @@
     </style>
 </head>
 <body>
-
     <!-- Loading Screen -->
     <div id="loadingScreen" class="loading-screen">
         <div class="loading-spinner"></div>
@@ -889,5 +888,20 @@
     })();
     </script>
     
+    <!-- PWA สำหรับ iOS วิธีติดตั้ง -->
+    <script>
+        (function() {
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+            const isStandalone = window.navigator.standalone === true;
+            const btn = document.getElementById('installPWAButton');
+                if (isIOS && !isStandalone && btn) {
+                    btn.classList.remove('hidden');
+                    btn.innerHTML = '<i class="fas fa-share-alt"></i> ติดตั้งแอป';
+                    btn.addEventListener('click', () => {
+                        alert('📲 วิธีติดตั้ง:\n1. แตะปุ่มแชร์ (สี่เหลี่ยมมีลูกศร)\n2. เลือก “เพิ่มลงหน้าจอโฮม”\n3. กด “เพิ่ม”');
+                    });
+                }
+        })();
+    </script>
 </body>
 </html>
