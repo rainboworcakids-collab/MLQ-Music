@@ -3,278 +3,253 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>✨ สร้าง Prompt รูปภาพ | + สัดส่วนภาพตามแพลตฟอร์ม ✨</title>
+    <title>MLQ PROMPT MASTER | เลือก Mood, Style, Pose, Ratio · พร้อมใช้ทันที</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-
         body {
             background: linear-gradient(145deg, #fef9e8 0%, #fff3e0 100%);
-            font-family: 'Prompt', 'Sukhumvit Set', system-ui, -apple-system, 'Segoe UI', sans-serif;
-            padding: 2rem 1.5rem;
+            font-family: 'Prompt', 'Sukhumvit Set', system-ui, sans-serif;
+            padding: 1.8rem;
             color: #2d2a24;
         }
-
         .container {
-            max-width: 1400px;
+            max-width: 1600px;
             margin: 0 auto;
         }
-
         .hero {
             text-align: center;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
         }
         .hero h1 {
-            font-size: 2.1rem;
-            background: linear-gradient(135deg, #c78a3a, #e7b25c);
+            font-size: 2rem;
+            background: linear-gradient(135deg, #b45309, #d97706, #f59e0b);
             background-clip: text;
             -webkit-background-clip: text;
             color: transparent;
-            display: inline-block;
-            margin-bottom: 0.3rem;
         }
-        .hero p {
-            color: #7e6a4f;
-            font-weight: 400;
-        }
-
         .principle-banner {
-            background: #fff0e0;
-            border-radius: 2rem;
-            padding: 0.8rem 1.5rem;
-            margin: 1rem auto;
-            max-width: 800px;
+            background: linear-gradient(95deg, #fff7ed, #fffbeb);
+            border-radius: 3rem;
+            padding: 0.6rem 1.5rem;
+            margin: 0.8rem auto;
+            max-width: 1000px;
             text-align: center;
-            border-left: 8px solid #f5b042;
-            border-right: 8px solid #f5b042;
+            border-left: 8px solid #d97706;
+            border-right: 8px solid #d97706;
             font-weight: 500;
-            color: #b45f1b;
+            color: #7c2d12;
         }
-
-        .badge-real {
-            background: #2c7a4d;
+        .badge-premium {
+            background: linear-gradient(135deg, #d97706, #b45309);
             color: white;
-            border-radius: 30px;
-            padding: 0.2rem 0.9rem;
+            border-radius: 40px;
+            padding: 0.2rem 1rem;
             font-size: 0.7rem;
             display: inline-block;
-            margin-top: 0.5rem;
-            font-weight: 500;
+            margin-top: 0.3rem;
         }
-
         .dashboard {
             display: flex;
             flex-wrap: wrap;
             gap: 1.8rem;
         }
-
-        .controls {
+        .controls-panel {
             flex: 1.2;
-            min-width: 280px;
-            background: rgba(255, 252, 245, 0.9);
-            backdrop-filter: blur(2px);
-            border-radius: 2rem;
-            padding: 1.5rem;
-            box-shadow: 0 12px 28px rgba(0,0,0,0.05);
-            border: 1px solid #ffefcf;
-        }
-
-        .prompt-area {
-            flex: 2;
             min-width: 340px;
+            background: rgba(255,251,240,0.96);
+            border-radius: 2rem;
+            padding: 1.3rem;
+            border: 1px solid #fae6c3;
         }
-
+        .preview-panel {
+            flex: 1.6;
+            min-width: 380px;
+        }
         .card {
-            background: #ffffffdd;
-            backdrop-filter: blur(4px);
-            border-radius: 1.8rem;
-            padding: 1.4rem 1.6rem;
-            margin-bottom: 1.8rem;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.03);
+            background: rgba(255,252,245,0.95);
+            border-radius: 1.6rem;
+            padding: 1.2rem;
+            margin-bottom: 1.4rem;
             border: 1px solid #ffe1b5;
-            transition: all 0.2s;
         }
-
         .card h3 {
-            font-size: 1.3rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            border-left: 6px solid #f5b042;
-            padding-left: 0.8rem;
-            color: #4e3b28;
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 0.7rem;
+            border-left: 5px solid #d97706;
+            padding-left: 0.7rem;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
         }
-
         .label {
             font-weight: 600;
             color: #8b6946;
-            margin-bottom: 0.4rem;
-            display: block;
-            font-size: 0.85rem;
-            letter-spacing: 0.5px;
+            font-size: 0.75rem;
+            margin: 0.5rem 0 0.2rem;
         }
-
-        select, input, textarea {
+        textarea, input, select {
             width: 100%;
-            padding: 0.8rem 1rem;
-            border-radius: 1.5rem;
+            padding: 0.7rem 1rem;
+            border-radius: 1.4rem;
             border: 1.5px solid #f0ddc0;
             background: white;
-            font-family: inherit;
-            font-size: 0.9rem;
+            font-family: 'Prompt', monospace;
+            font-size: 0.85rem;
             transition: 0.2s;
-            margin-top: 0.2rem;
-            margin-bottom: 0.6rem;
         }
-
-        select:focus, input:focus, textarea:focus {
-            outline: none;
-            border-color: #f5b042;
-            box-shadow: 0 0 0 3px rgba(245,176,66,0.2);
+        textarea {
+            font-family: 'Courier New', 'Fira Code', monospace;
+            font-size: 0.8rem;
+            resize: vertical;
         }
-
+        select {
+            cursor: pointer;
+            background: white;
+        }
         .tag-group {
             display: flex;
             flex-wrap: wrap;
-            gap: 0.6rem;
-            margin: 0.8rem 0 0.4rem;
+            gap: 0.5rem;
+            margin: 0.4rem 0;
         }
-
-        .tag-btn {
+        .tag-btn, .mood-btn, .char-btn, .style-btn, .ratio-btn, .pose-btn {
             background: #f9efdf;
             border: none;
-            padding: 0.4rem 1rem;
+            padding: 0.35rem 0.9rem;
             border-radius: 2rem;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             font-weight: 500;
-            color: #7a5a3a;
             cursor: pointer;
             transition: 0.1s;
         }
-
-        .tag-btn.active {
-            background: #f5b042;
+        .tag-btn.active, .mood-btn.mood-active, .char-btn.active, .style-btn.active, .ratio-btn.active, .pose-btn.active {
+            background: linear-gradient(135deg, #d97706, #b45309);
             color: white;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 10px rgba(217,119,6,0.25);
         }
-
-        .tag-btn:hover {
-            background: #f0cf9c;
-        }
-
-        .free-input {
-            margin-top: 0.4rem;
-        }
-
-        .mood-buttons {
+        .flex-btns {
             display: flex;
-            gap: 0.8rem;
+            gap: 0.6rem;
             flex-wrap: wrap;
-            margin-bottom: 1rem;
+            margin: 0.8rem 0;
         }
-        .mood-btn {
-            background: #f9e4c7;
+        .small-btn {
+            background: #e9dbc9;
             border: none;
-            padding: 0.5rem 1rem;
+            padding: 0.35rem 1rem;
             border-radius: 2rem;
-            font-weight: 600;
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             cursor: pointer;
-            transition: 0.1s;
+            font-weight: 500;
         }
-        .mood-active {
-            background: #c2812e;
-            color: white;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.1);
-        }
-
-        .editable-prompt {
-            width: 100%;
-            background: #1f1c18;
-            color: #fff5e6;
-            border-radius: 1.5rem;
-            padding: 1.2rem;
-            font-family: 'SF Mono', 'Fira Code', monospace;
-            font-size: 0.85rem;
-            white-space: pre-wrap;
-            border: 2px solid #e6c294;
-            resize: vertical;
-            min-height: 450px;
-            line-height: 1.5;
-        }
-
         .copy-btn {
-            background: #f5b042;
-            color: #2c241a;
+            background: linear-gradient(135deg, #f5b042, #d97706);
             border: none;
-            padding: 0.7rem 1.3rem;
+            padding: 0.8rem;
             border-radius: 2rem;
             font-weight: bold;
-            margin-top: 1rem;
-            cursor: pointer;
             width: 100%;
+            margin-top: 0.6rem;
+            cursor: pointer;
+            color: white;
             font-size: 1rem;
-            transition: 0.1s;
         }
-
-        .copy-btn:active {
-            transform: scale(0.97);
-            background: #dd932a;
+        .mockup-card {
+            background: #1f1b16;
+            border-radius: 1.5rem;
+            padding: 1rem;
+            margin: 0.8rem 0;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
         }
-
-        .reset-btn {
-            background: #e0cdb3;
+        .mockup-title {
+            text-align: center;
+            color: #fcd34d;
+            font-weight: 600;
+            font-size: 0.7rem;
+            letter-spacing: 1px;
+            margin-bottom: 0.5rem;
+        }
+        .infographic-mock {
+            background: #2c241e;
+            border-radius: 1.2rem;
+            padding: 1rem;
+            position: relative;
+            min-height: 280px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .mock-top-left {
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            padding: 0.5rem;
+            border-radius: 1rem;
+            width: 60%;
+            border-left: 3px solid #f5b042;
+            font-size: 0.7rem;
+            color: #fff2df;
+        }
+        .mock-character {
+            text-align: center;
+            font-size: 3rem;
+            margin: 0.5rem 0;
+        }
+        .mock-speech {
+            background: white;
+            color: #2d2a24;
+            padding: 0.4rem 0.8rem;
+            border-radius: 2rem;
+            width: fit-content;
+            max-width: 80%;
+            font-size: 0.7rem;
+            font-weight: 500;
+            margin-left: auto;
+            margin-right: 0.5rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .mock-headline {
+            background: linear-gradient(90deg, #f5b042, #d97706);
+            text-align: center;
+            padding: 0.4rem;
+            border-radius: 2rem;
+            font-weight: bold;
+            font-size: 0.75rem;
+            color: #2c241a;
             margin-top: 0.5rem;
         }
-
-        .quote-btn-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            margin: 0.5rem 0;
+        .badge-mock {
+            text-align: right;
+            font-size: 0.55rem;
+            color: #f5b042;
+            margin-top: 0.4rem;
         }
-        .mini-quote-btn {
-            background: #e9dbc9;
-            border: none;
-            padding: 0.3rem 0.8rem;
-            border-radius: 1.5rem;
-            font-size: 0.7rem;
-            cursor: pointer;
-            transition: 0.1s;
-        }
-        .mini-quote-btn:hover {
-            background: #d5c0a4;
-        }
-
-        .ratio-group {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-            align-items: center;
-            margin: 0.5rem 0;
-        }
-        .ratio-btn {
-            background: #e9dbc9;
-            border: none;
-            padding: 0.4rem 1rem;
-            border-radius: 2rem;
+        .cheer-message {
+            background: #fff0e0;
+            border-radius: 1.2rem;
+            padding: 0.7rem;
             font-size: 0.8rem;
-            cursor: pointer;
+            text-align: center;
+            color: #7c2d12;
         }
-        .ratio-btn.active {
-            background: #f5b042;
-            color: white;
+        hr {
+            margin: 0.8rem 0;
+            border-color: #f1dec2;
         }
-
+        .info-note {
+            background: #fef2e0;
+            border-radius: 1rem;
+            padding: 0.5rem;
+            font-size: 0.7rem;
+            margin-top: 0.5rem;
+            text-align: center;
+        }
         @media (max-width: 780px) {
-            body {
-                padding: 1rem;
-            }
-            .card {
-                padding: 1rem;
-            }
+            body { padding: 1rem; }
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -282,404 +257,503 @@
 <body>
 <div class="container">
     <div class="hero">
-        <h1>📸✨ โปรดิวซ์เซอร์ภาพถ่าย + อินโฟกราฟิก ✨🐾</h1>
-        <p>สร้าง Prompt สำหรับ AI รูปภาพ | ภาพสัตว์จริง/เด็กจริง + ข้อความหลัก + คำพูดตัวละคร + สัดส่วนภาพตามแพลตฟอร์ม</p>
-        <span class="badge-real">✅ ภาพถ่ายจริงเท่านั้น • เลือกขนาดภาพให้พอดีกับโซเชียลมีเดีย</span>
+        <h1>✨ MLQ PROMPT MASTER ✨</h1>
+        <p>ระบบสร้าง Prompt อัจฉริยะ | เลือก Mood, Style, Pose, Ratio · ไม่ต้องอัปโหลด · ข้อความอมยิ้ม กำลังใจ มงคล</p>
+        <span class="badge-premium">🎭 3 Moods · 5 Art Styles · ท่าทางตัวละคร · สัดส่วนภาพ · พร้อมแก้ไข</span>
     </div>
-
     <div class="principle-banner">
-        🧸✨ <strong>หลักการสร้าง Prompt</strong> ✨🧸<br>
-        📌 ไม่ใช้ข้อความขัดแย้ง • คล้อยตามแล้วใช้มุกหักมุม • หาเนื้อหาเพลง • เน้นน่ารัก อมยิ้ม 🍭
+        🍭 ปรัชญาอมยิ้ม: “ไม่ใช้ข้อความขัดแย้ง • คล้อยตามแล้วหักมุม • เนื้อเพลง/มุกน่ารัก • กำลังใจยิ้มเก่ง”
     </div>
 
     <div class="dashboard">
-        <div class="controls">
-            <!-- หมวดอารมณ์ -->
+        <!-- LEFT PANEL -->
+        <div class="controls-panel">
+            <!-- Mood + Character (เดิม) + เพิ่ม Pose -->
             <div class="card">
-                <h3>📌 1. หมวดอารมณ์</h3>
-                <div class="mood-buttons" id="mood-buttons">
-                    <button data-mood="peace" class="mood-btn mood-active">🕯️ ความสงบ ก่อนนอน</button>
-                    <button data-mood="morning" class="mood-btn">🌤️ สวัสดี ตอนเช้า</button>
-                    <button data-mood="encourage" class="mood-btn">💪 กำลังใจ คนอ่อนล้า</button>
+                <h3>📌 1. Mood & ตัวละคร & ท่าทาง</h3>
+                <div class="tag-group" id="mood-buttons">
+                    <button data-mood="peace" class="mood-btn mood-active">🕯️ Peace · สงบเยียวยา</button>
+                    <button data-mood="morning" class="mood-btn">🌤️ Morning · รุ่งอรุณ</button>
+                    <button data-mood="encourage" class="mood-btn">💪 Encourage · กำลังใจ</button>
                 </div>
-                <div class="label">✨ รายละเอียดเพิ่มเติม</div>
-                <input type="text" id="moodCustom" placeholder="เช่น ฝนตก, แสงเทียน, วันที่เหนื่อยล้า" value="">
-            </div>
-
-            <!-- Option 1: ตัวละคร -->
-            <div class="card">
-                <h3>🐾 Option 1 · ตัวละคร (ถ่ายจริง)</h3>
-                <div class="tag-group" id="character-presets">
-                    <button type="button" data-char="แมว" class="tag-btn active">🐱 แมว</button>
-                    <button type="button" data-char="แพนกริน" class="tag-btn">🐻‍❄️ แพนกริน</button>
-                    <button type="button" data-char="แพนด้า" class="tag-btn">🐼 แพนด้า</button>
-                    <button type="button" data-char="เด็กผู้หญิง" class="tag-btn">👧 เด็กหญิง</button>
-                    <button type="button" data-char="เด็กผู้ชาย" class="tag-btn">👦 เด็กชาย</button>
-                    <button type="button" data-char="หมา (สุนัข)" class="tag-btn">🐶 หมา</button>
-                    <button type="button" data-char="วัว" class="tag-btn">🐮 วัว</button>
-                    <button type="button" data-char="เพนกวิน" class="tag-btn">🐧 เพนกวิน</button>
-                    <button type="button" data-char="กบ" class="tag-btn">🐸 กบ</button>
-                    <button type="button" data-char="วาฬ" class="tag-btn">🐳 วาฬ</button>
-                    <button type="button" data-char="แพะ" class="tag-btn">🐐 แพะ</button>
+                <div class="label">🐾 ตัวละครหลัก (เลือกเพื่อรับข้อความเฉพาะ)</div>
+                <div class="tag-group" id="character-buttons">
+                    <button data-char="แพะ" class="char-btn active">🐐 แพะ (หลัก)</button>
+                    <button data-char="แมว" class="char-btn">🐱 แมว</button>
+                    <button data-char="หมา" class="char-btn">🐶 หมา</button>
+                    <button data-char="เด็กหญิง" class="char-btn">👧 เด็กหญิง</button>
+                    <button data-char="default" class="char-btn">🌟 ข้อความกลาง</button>
                 </div>
-                <div class="free-input">
-                    <div class="label">✏️ หรือพิมพ์เอง</div>
-                    <input type="text" id="customCharacter" placeholder="เช่น แพะน้อยยิ้ม, สุนัขใส่สูท">
-                </div>
-                <small>ตัวละคร: <span id="selectedCharDisplay">แมว</span> (ภาพถ่ายจริงเท่านั้น)</small>
-            </div>
-
-            <!-- Option 2: ท่าทาง + มงคล -->
-            <div class="card">
-                <h3>🧸 Option 2 · ท่าทาง / Pose</h3>
+                <input type="text" id="customCharacter" placeholder="หรือพิมพ์ชื่อตัวละครเอง (เช่น กระต่าย)">
+                
+                <!-- ท่าทาง (Pose) เพิ่มจากไฟล์ที่สอง -->
+                <div class="label" style="margin-top: 0.8rem;">💃 ท่าทาง (Pose / Action)</div>
                 <div class="tag-group" id="pose-presets">
-                    <button data-pose="lying comfortably on its back, paws up, on a soft fluffy mattress, cozy sleepy expression" class="tag-btn">🛌 นอนหงาย</button>
-                    <button data-pose="sitting in Maneki-neko style, one paw raised, smiling gently" class="tag-btn">🐈 แมวนางกวัก</button>
-                    <button data-pose="curled up in a warm hug, holding a small heart-shaped pillow" class="tag-btn">💤 กอดหมอน</button>
-                    <button data-pose="stretching forward like morning yoga, yawning cutely" class="tag-btn">🧘 ยืดตัวสายโยคะ</button>
-                    <button data-pose="giving a high-five with tiny sparkling stars, encouraging gesture" class="tag-btn">✋ ไฮไฟว์</button>
-                    <button data-pose="wearing cozy cotton pajama onesie, sitting with warm tea" class="tag-btn">☕ ชุดนอนจิบชา</button>
-                    <button data-pose="floating softly on a fluffy cloud, hugging a sleepy moon" class="tag-btn">🌙 ลอยบนเมฆ</button>
+                    <button data-pose="lying comfortably on soft cloud, paws up, sleepy sweet smile" class="pose-btn">🛌 นอนสบาย</button>
+                    <button data-pose="standing confidently on a gear wheel, smiling, pointing to the future" class="pose-btn">⚙️ ยืนบนฟันเฟือง</button>
+                    <button data-pose="giving high-five with magical sparkles, cheerful" class="pose-btn">✋ ไฮไฟว์</button>
+                    <button data-pose="smiling goat wearing tiny floral crown, standing on green hill, scapegoat with joy" class="pose-btn active">🐐 แพะยิ้มบนดอย</button>
                 </div>
-                <div class="label" style="margin-top:8px">🍀 สัตว์มงคล + แพะยิ้ม</div>
-                <div class="tag-group" id="lucky-poses">
-                    <button data-pose="Akabeko red cow head bobbing, sitting on red cushion, Japanese lucky charm" class="tag-btn">🐄 คาบิ</button>
-                    <button data-pose="Inu-hariko papier-mâché dog sitting proudly, traditional talisman" class="tag-btn">🐕 อินุฮาริโกะ</button>
-                    <button data-pose="real fluffy rabbit sitting gracefully in meadow, ears perked, symbol of prosperity" class="tag-btn">🐇 กระต่ายมงคล</button>
-                    <button data-pose="Jin Chan three-legged golden toad sitting on ancient coins, wealth symbol" class="tag-btn">🐸 คางคกสามขา</button>
-                    <button data-pose="real brown horse standing proudly on green pasture, symbol of success" class="tag-btn">🐎 ม้าทรงพลัง</button>
-                    <button data-pose="smiling goat standing confidently on green hill, wearing tiny floral wreath, cheerful scapegoat vibe" class="tag-btn">🐐 แพะยิ้ม</button>
-                </div>
-                <div class="label">🖌️ หรือพิมพ์ท่าทางเอง</div>
-                <textarea id="customPose" rows="2" placeholder="เช่น standing on two legs wearing a suit"></textarea>
-                <small>ท่าทางที่ใช้: <span id="selectedPoseDisplay">lying comfortably...</span></small>
+                <textarea id="customPose" rows="2" placeholder="ท่าทางเฉพาะ (พิมพ์เอง)"></textarea>
             </div>
 
-            <!-- Option 3: ข้อความหลัก -->
+            <!-- Premium Art Style (ใหม่) -->
             <div class="card">
-                <h3>📢 Option 3 · ข้อความหลัก (Main Headline)</h3>
-                <div class="label">📝 ข้อความ headline 金色ตัวใหญ่ด้านล่าง</div>
-                <textarea id="textOverlay" rows="3">อายุ 2 ขวบ 🐐 แพะไม่ได้โม้ • เลี้ยงแพะไว้ไม่กลัวเคราะห์ • รับเคราะห์ให้คุณหมด</textarea>
-                <div class="label">🎨 สไตล์ตัวอักษรหลัก</div>
-                <input type="text" id="extraTypo" value="Thai playful font + golden bold headline + shiny gradient">
-            </div>
-
-            <!-- Option 4: คำพูดตัวละคร (Speech Bubble) -->
-            <div class="card">
-                <h3>💬 Option 4 · คำพูดตัวละคร (Speech Bubble)</h3>
-                <div class="label">🗣️ ข้อความที่ตัวละครพูด (ใส่ใน bubble)</div>
-                <textarea id="speechBubble" rows="2">เชื่อเรื่องมงคลได้สิ่งมงคล • แพะไม่ได้โม้</textarea>
-                <div class="label">🎲 ตัวอย่างคำพูดฮาๆ</div>
-                <div class="quote-btn-group" id="speechPresets">
-                    <button type="button" class="mini-quote-btn" data-speech="เชื่อเรื่องมงคลได้สิ่งมงคล • แพะไม่ได้โม้">🐐 แพะไม่ได้โม้</button>
-                    <button type="button" class="mini-quote-btn" data-speech="ขี้เกียจจะไปสน แต่เงินเข้ากระเป๋า เหมียวๆ">😼 แมวขี้เกียจรวย</button>
-                    <button type="button" class="mini-quote-btn" data-speech="ทนายส่วนตัวรออยู่ อย่ามาเถียง">🐶 หมา Lawyer</button>
-                    <button type="button" class="mini-quote-btn" data-speech="Moo-la เงินเข้าไม่ขาดสาย • นมอย่างเดียวก็รวย">🐮 Cash Cow</button>
-                    <button type="button" class="mini-quote-btn" data-speech="NFT ตัวละล้าน • ฉันคือนั่งเล่นก็รวย">🐧 Pudgy Penguin</button>
-                    <button type="button" class="mini-quote-btn" data-speech="แตะตัวทีไรเงินเข้าเพียบ • แต่อย่าเอาน้ำร้อนลวกนะ">🐸 คางคกสามขา</button>
-                    <button type="button" class="mini-quote-btn" data-speech="มหาเศรษฐีคืออาหาร • อร่อยทุกตัว">🐳 Orca</button>
-                    <button type="button" class="mini-quote-btn" data-speech="ยิ้มรับเคราะห์ • แล้วโชคดีมาเอง • แพะไม่ได้โม้">🐐 แพะอมยิ้ม</button>
+                <h3>🎨 2. Premium Art Style</h3>
+                <div class="tag-group" id="style-buttons">
+                    <button data-style="luxury_real" class="style-btn active">📸 Realistic Luxury (ภาพถ่ายพรีเมียม)</button>
+                    <button data-style="isometric_3d" class="style-btn">🧊 3D Isometric Studio</button>
+                    <button data-style="minimal_vector" class="style-btn">✨ Minimal Vector Corporate</button>
+                    <button data-style="neo_memphis" class="style-btn">🎭 Neo-Memphis Fun</button>
+                    <button data-style="editorial_vintage" class="style-btn">📰 Editorial Vintage / Magazine</button>
                 </div>
             </div>
 
-            <!-- 🆕 Option 5: สัดส่วนภาพ (Aspect Ratio) ตามแพลตฟอร์ม -->
+            <!-- ข้อความ & มุกอมยิ้ม (Dropdown Template + แก้ไข) -->
             <div class="card">
-                <h3>📐 Option 5 · สัดส่วนภาพ / แพลตฟอร์ม</h3>
-                <div class="label">เลือกขนาดภาพที่ต้องการ (เปลี่ยน --ar ใน prompt)</div>
-                <div class="ratio-group" id="ratio-group">
-                    <button type="button" data-ratio="1:1" class="ratio-btn">📱 Instagram / Facebook Post (1:1)</button>
-                    <button type="button" data-ratio="4:5" class="ratio-btn">📸 Instagram Portrait (4:5)</button>
-                    <button type="button" data-ratio="16:9" class="ratio-btn">🎬 YouTube / Facebook Cover (16:9)</button>
-                    <button type="button" data-ratio="9:16" class="ratio-btn">📱 TikTok / IG Story / Reels (9:16)</button>
-                    <button type="button" data-ratio="2:3" class="ratio-btn">🖼️ Pinterest / Portrait (2:3)</button>
-                    <button type="button" data-ratio="custom" class="ratio-btn">✏️ กำหนดเอง</button>
+                <h3>📢 3. ข้อความ & มุกอมยิ้ม (เลือก Template + แก้ไขเอง)</h3>
+                
+                <div class="label">🎵 TOP LEFT BOX (กล่องฮีลใจ / เนื้อเพลง)</div>
+                <select id="topLeftTemplateSelect" class="template-select">
+                    <option value="">-- เลือก Template TopLeft --</option>
+                </select>
+                <textarea id="topLeftBox" rows="3" placeholder="ข้อความที่จะแสดงมุมซ้ายบน..."></textarea>
+                <button class="small-btn" id="randomTopLeftBtn">🎲 สุ่ม TopLeft</button>
+
+                <div class="label" style="margin-top: 0.8rem;">🌟 MAIN HEADLINE (พาดหัวใหญ่ ด้านล่าง)</div>
+                <select id="headlineTemplateSelect" class="template-select">
+                    <option value="">-- เลือก Template Headline --</option>
+                </select>
+                <textarea id="mainHeadline" rows="3" placeholder="พาดหัวหลัก金色ตัวหนา..."></textarea>
+                <button class="small-btn" id="randomHeadlineBtn">🎲 สุ่ม Headline</button>
+
+                <div class="label" style="margin-top: 0.8rem;">💬 SPEECH BUBBLE (คำพูดตัวละครหักมุม)</div>
+                <select id="speechTemplateSelect" class="template-select">
+                    <option value="">-- เลือก Template Speech --</option>
+                </select>
+                <textarea id="speechBubble" rows="3" placeholder="ประโยคเด็ดจากตัวละคร..."></textarea>
+                <button class="small-btn" id="randomSpeechBtn">🎲 สุ่ม Speech Bubble</button>
+                
+                <div class="flex-btns" style="margin-top: 0.8rem;">
+                    <button class="small-btn" id="randomAllBtn">✨ สุ่มข้อความทั้งหมด (ตาม Mood+ตัวละคร)</button>
+                    <button class="small-btn" id="resetDefaultTextsBtn">🔄 รีเซ็ตข้อความเริ่มต้นของ Mood นี้</button>
                 </div>
-                <div id="customRatioInput" style="display: none; margin-top: 0.5rem;">
-                    <div class="label">ป้อนสัดส่วนเอง (เช่น 3:2, 7:5)</div>
-                    <input type="text" id="customAspect" placeholder="16:10 หรือ 4:3">
+                <div class="info-note">
+                    💡 ข้อความทั้งหมดถูกออกแบบให้ “อมยิ้ม · กำลังใจ · มงคล” (มีคำว่า ยิ้ม, โชคดี, รับเคราะห์, ไม่ได้โม้, สู้, ฯลฯ) 
+                    <br>✨ เมื่อเปลี่ยน Mood หรือตัวละคร Dropdown templates จะเปลี่ยนตามทันที
                 </div>
-                <small>⚡ สัดส่วนภาพจะถูกเพิ่มท้าย prompt เช่น --ar 9:16</small>
+            </div>
+
+            <!-- สัดส่วนภาพ (Aspect Ratio) ใหม่ -->
+            <div class="card">
+                <h3>📐 4. สัดส่วนภาพ (Aspect Ratio)</h3>
+                <div class="tag-group" id="ratio-group">
+                    <button data-ratio="1:1" class="ratio-btn active">1:1 (IG/FB)</button>
+                    <button data-ratio="9:16" class="ratio-btn">9:16 (TikTok/Reels)</button>
+                    <button data-ratio="4:5" class="ratio-btn">4:5 (Portrait)</button>
+                    <button data-ratio="16:9" class="ratio-btn">16:9 (YouTube/Cover)</button>
+                    <button data-ratio="custom" class="ratio-btn">✏️ กำหนดเอง</button>
+                </div>
+                <div id="customRatioWrap" style="display: none; margin-top: 0.5rem;">
+                    <input type="text" id="customAspect" placeholder="เช่น 3:2, 7:5">
+                </div>
             </div>
         </div>
 
-        <!-- ส่วนแสดง prompt แก้ไขได้ -->
-        <div class="prompt-area">
+        <!-- RIGHT PANEL -->
+        <div class="preview-panel">
+            <!-- MOCKUP INFOGRAPHIC -->
             <div class="card">
-                <h3>✏️ แก้ไข Prompt ได้โดยตรง</h3>
-                <textarea id="promptEditor" class="editable-prompt" placeholder="// Prompt จะแสดงที่นี่..."></textarea>
-                <div style="display: flex; gap: 0.8rem; flex-wrap: wrap;">
-                    <button class="copy-btn" id="copyPromptBtn">📋 คัดลอก Prompt</button>
-                    <button class="copy-btn reset-btn" id="regenerateBtn">🔄 สร้างใหม่จากตัวเลือก</button>
-                </div>
-                <div class="info-note" style="margin-top: 1rem;">
-                    ✨ Option 5 ช่วยปรับสัดส่วนภาพให้ตรงกับแต่ละแพลตฟอร์ม ลดการครอปภายหลัง
+                <h3>🎯 ตัวอย่างผลลัพธ์อินโฟกราฟิก (Mockup)</h3>
+                <div class="mockup-card">
+                    <div class="mockup-title">📸 ตำแหน่งข้อความในภาพ (ตัวอย่างสไตล์ Premium Infographic)</div>
+                    <div class="infographic-mock">
+                        <div class="mock-top-left" id="mockTopLeftPreview">เชื่อฉัน อย่าหลงไปเชื่อใคร • ฉันนี้แหละห่วงใย</div>
+                        <div class="mock-character">🐐✨</div>
+                        <div class="mock-speech" id="mockSpeechPreview">เชื่อเรื่องมงคลได้สิ่งมงคล • แพะไม่ได้โม้</div>
+                        <div class="mock-headline" id="mockHeadlinePreview">อายุ 2 ขวบ 🐐 แพะไม่ได้โม้ • ยิ้มเข้าไว้ชีวิตดี๊ดี ✨</div>
+                        <div class="badge-mock">⚡ MLQ · Life Blueprint</div>
+                    </div>
+                    <p style="font-size:0.65rem; margin-top:0.5rem; color:#b45f1b;">※ ตัวอย่างตำแหน่ง layout ข้อความบนภาพจริง (เฉพาะการจัดวาง)</p>
                 </div>
             </div>
+
+            <!-- PROMPT EDITOR -->
             <div class="card">
-                <h3>🧠 แนวทางน่ารักอมยิ้ม + มุกหักมุม</h3>
-                <p style="font-size: 0.85rem;">
-                🍭 <strong>ไม่ใช้ข้อความขัดแย้ง:</strong> เลี่ยงคำรุนแรง ใช้มุขแบบ “แพะไม่ได้โม้” หรือ “ขี้เกียจแต่รวย”<br>
-                🎭 <strong>คล้อยตามแล้วหักมุม:</strong> เริ่มเหมือนซีเรียส แต่จบฮา เช่น “ฉันคือแพะรับบาป... แต่วันนี้ขอยิ้ม”<br>
-                🎶 <strong>หาเนื้อหาเพลง:</strong> อาจแทรกคำร้อง เช่น “ยิ้มเข้าไว้... แล้วชีวิตจะดี๊ดี”<br>
-                😊 <strong>เน้นน่ารัก อมยิ้ม:</strong> ใช้คำว่า ยิ้ม, อมยิ้ม, น่ารัก, พองฟู<br>
-                📸 ภาพถ่ายจริงสัตว์/เด็ก + ข้อความและสติกเกอร์ได้เต็มที่
-                </p>
+                <h3>✍️ PREMIUM PROMPT (แก้ไขได้ก่อนคัดลอก)</h3>
+                <textarea id="promptEditor" rows="12" style="font-family: monospace; font-size:0.8rem; background:#1e1b18; color:#ffefcf;"></textarea>
+                <button class="copy-btn" id="copyPromptBtn">📋 คัดลอก Prompt สุดท้าย</button>
+                <button class="copy-btn" id="regeneratePromptBtn" style="background:#e0cdb3; color:#4e3b28; margin-top:0.4rem;">🔄 สร้าง Prompt ใหม่จากข้อความปัจจุบัน</button>
+            </div>
+
+            <!-- คู่มือ + กำลังใจ -->
+            <div class="card">
+                <h3>🧸 คู่มือการใช้ + ปรัชญาอมยิ้ม</h3>
+                <div class="cheer-message" id="cheerMessage">
+                    💛 “แพะไม่ได้โม้... แต่ยิ้มให้ชีวิตใหม่นะทุกคน”
+                </div>
+                <button class="small-btn" id="randomCheerBtn" style="margin-top:0.5rem;">🍭 สุ่มกำลังใจอมยิ้ม</button>
+                <hr>
+                <ul style="font-size:0.75rem; padding-left:1rem; color:#5c4d3c;">
+                    <li>✅ เลือก Mood (Peace/Morning/Encourage) → ข้อมูลข้อความเปลี่ยนตามทันที</li>
+                    <li>✅ เลือกตัวละคร → ได้ข้อความเฉพาะตัวละคร พร้อมท่าทางที่เลือก</li>
+                    <li>🎨 Premium Art Style: 5 สไตล์ระดับพรีเมียม (Realistic, 3D, Vector, Memphis, Vintage)</li>
+                    <li>💃 ท่าทาง (Pose): ปรับบุคลิกตัวละครให้เหมาะกับคอนเซ็ปต์</li>
+                    <li>📐 สัดส่วนภาพ: รองรับ 1:1, 9:16, 4:5, 16:9 หรือกำหนดเอง</li>
+                    <li>📋 Dropdown แต่ละช่องแสดง Template ของ Mood+Character</li>
+                    <li>🎲 กดปุ่มสุ่มเพื่อเติมข้อความใหม่ หรือเลือกจาก dropdown แล้วแก้ไขต่อได้</li>
+                    <li>✏️ แก้ไขข้อความใน textarea โดยตรง Mockup และ Prompt จะเปลี่ยนอัตโนมัติ</li>
+                    <li>🔄 กด "รีเซ็ตข้อความเริ่มต้นของ Mood นี้" เพื่อคืนค่าข้อความกลับเป็น template แรก</li>
+                    <li>🚀 Prompt ที่ได้บังคับภาพถ่ายจริง (Real Animal/Child) + อินโฟกราฟิก + Style + Pose + Aspect Ratio</li>
+                </ul>
             </div>
         </div>
     </div>
 </div>
 
 <script>
-    // ---------- STATE ----------
+    // ---------- 🎁 EMBEDDED JSON DATA (peace, morning, encourage) อมยิ้ม+กำลังใจ+มงคล ----------
+    const embeddedData = {
+        peace: {
+            default: {
+                topLeft: [ "นอนไม่หลับ คิดถึง{character} • {character}ยิ้มสู้ • ไม่เคยทิ้งกัน", "เสียงคลื่นรหัสชีวิต 6/42 • ฟื้นฟูความเหนื่อยล้าด้วยท่วงทำนองส่วนบุคคล", "หลับตาแล้วฝันถึงแสงดาว • พรุ่งนี้คือวันใหม่ที่สดใส", "{character} รับฝันร้ายไปหมดแล้ว • เหลือไว้แค่รอยยิ้มก่อนนอน", "คืนนี้ไม่มีอะไรต้องกลัว เพราะ{character}คอยเฝ้าฝันดี" ],
+                headline: [ "นอนหลับฝันดี • {character}รับเคราะห์ให้หมด • พรุ่งนี้ยิ้มได้ ✨", "พักผ่อนให้พอ • {character}อยู่ข้างๆ เสมอ", "หลับตาแล้วคิดถึงสิ่งดีๆ • พรุ่งนี้โชคดีมาเยือนแน่นอน" ],
+                speech: [ "เชื่อเรื่องมงคลได้สิ่งมงคล • {character}ไม่ได้โม้", "ขี้เกียจจะไปสน แต่โชคเข้าใส่ • หลับก่อนนะ", "ฝันดีแล้วพรุ่งนี้เจอกัน • {character} ส่งพลังบวกให้ทุกคน" ]
+            },
+            แพะ: { topLeft: [ "เชื่อแพะ อย่าหลงเชื่อใคร • แพะนี้แหละห่วงใย • รักแท้ และแน่จริง", "แพะยิ้มบอก: โลกยังสวย ถ้ายังหายใจ", "คืนนี้แพะยืนเฝ้าดวงดาว • ส่องแสงให้เธอหลับฝันดี" ], headline: [ "🐐 แพะไม่ได้โม้ • เลี้ยงแพะไว้ไม่กลัวเคราะห์ • ยิ้มเข้าไว้ชีวิตดี๊ดี ✨" ], speech: [ "เชื่อเรื่องมงคลได้สิ่งมงคล • แพะไม่ได้โม้จริงนะ!", "แบ๊ะ~ รับเคราะห์ให้แล้ว ที่เหลือนอนยิ้มอย่างเดียว" ] },
+            แมว: { topLeft: [ "แมวเหมียวหลับตาแล้วฝันถึงปลาทอง • ชีวิตง่าย ๆ ก็สุขใจ", "คืนนี้ฟ้าสดใส • แมวขอบคุณทุกความรัก" ], headline: [ "😼 แมวรวยขี้เกียจ • แค่นอนทั้งวันก็มีบ้านหลังใหญ่" ], speech: [ "เหมียว~ อย่าคิดมาก เดี๋ยวแมวปลอบ • ฝันดีนะ" ] },
+            หมา: { topLeft: [ "หมาหาง wag • ทุกคืนมีคนคอยกอด • นอนหลับอุ่นใจ", "หมาเห่าเบาๆ ให้รู้ว่าไม่เหงา" ], headline: [ "🐶 รวยเพราะนอน • มีทาสรัก 4 ขา" ], speech: [ "โฮ่ง! ไม่ต้องห่วง เดี๋ยวหมาเฝ้าฝันดีให้" ] },
+            เด็กหญิง: { topLeft: [ "นิทานก่อนนอน: เจ้าหญิงน้อยยิ้มเก่ง • ฝันดีทุกคืน", "เด็กหญิงนับดาว • ขอให้ทุกคนมีความสุข" ], headline: [ "👧 เธอคือนางฟ้าตัวน้อย • พรุ่งนี้จะสดใสกว่าเดิม" ], speech: [ "หนูไม่กลัวฝันร้าย เพราะหนูคือความหวัง" ] }
+        },
+        morning: {
+            default: {
+                topLeft: [ "รุ่งอรุณของชีวิต • แสงใหม่วันใหม่ • {character}ยิ้มทักทาย", "ตื่นมาแล้วโลกสวย ลองยิ้มให้กระจกดู", "ตะวันยิ้มให้เราแล้ว • วันนี้ของเราต้องดี", "ลืมตาแล้วเจอ {character} • รับรองทั้งวันเฮง" ],
+                headline: [ "🌤️ สวัสดีตอนเช้า • วันนี้เป็นวันของเรา • พลังงานบวกมาเต็ม", "เชื่อในตัวเอง • {character}เชื่อในตัวเธอ" ],
+                speech: [ "早安จ้า • วันนี้เราจะทำได้ • {character}เชื่อในตัวเธอ", "ยิ้มเข้าไว้ • แล้วโชคดีจะมาหาเอง" ]
+            },
+            แพะ: { topLeft: [ "แพะน้อยตื่นแต่เช้า • เดินดอมดมดอกไม้ • สุขภาพดีไม่มีเคราะห์", "แพะยืนรับแสงแรก • ขอให้วันนี้สมหวังดังใจ" ], headline: [ "🐐 เช้านี้แพะมาเติมพลัง • อมยิ้มไว้แล้วโชคดีมา" ], speech: [ "แบ๊ะ ๆ • ตื่นมาสู้วันใหม่ด้วยรอยยิ้ม" ] },
+            แมว: { topLeft: [ "แมวยืดตัวทักทายตะวัน • วันนี้มีปลาทองสดใหม่", "เหมียว~ เช้านี้ขอให้ทุกคนสดชื่น" ], headline: [ "😽 ตื่นมาแล้วรวย • เพราะมีเราเป็นเพื่อน" ], speech: [ "เหมียว~ กาแฟแก้วโปรดรออยู่" ] },
+            หมา: { topLeft: [ "หมาวิ่งเล่นท่ามกลางแสงทอง • สุขภาพดีเริ่มที่รอยยิ้ม", "หมาตื่นเต้นเจอตะวัน • ขอให้วันนี้เจอแต่เรื่องดีๆ" ], headline: [ "🐕 วันนี้หมาพาเดินเล่น รับรองพลังล้น" ], speech: [ "โฮ่ง! ตื่นๆ ไปกินข้าวกัน" ] },
+            เด็กหญิง: { topLeft: [ "เด็กหญิงโบกมือทักตะวัน • พลังบริสุทธิ์เติมเต็มวัน", "หนูยิ้มรับเช้า • ขอให้ทุกคนยิ้มเก่งเหมือนกัน" ], headline: [ "👧 วันนี้เธอคือซูเปอร์สตาร์ • ยิ้มสู้ทุกเรื่อง" ], speech: [ "หนูจะทำให้วันนี้พิเศษ!" ] }
+        },
+        encourage: {
+            default: {
+                topLeft: [ "เหนื่อยใช่ไหม • แต่ไม่เป็นไร • พักแล้วสู้ใหม่", "Life Path 6: ผู้ออกแบบระบบ • พลังเยียวยาจากเสียงหัวเราะ", "ทุกปัญหาคือบทเรียน • {character} อยู่ข้างๆ เสมอ", "แค่ก้าวเล็กๆ ก็ดีกว่าไม่ก้าว • {character} เชียร์อยู่" ],
+                headline: [ "💪 เธอแข็งแกร่งกว่าที่คิด • ก้าวเล็ก ๆ ก็ยังดี", "อย่ายอมแพ้ • {character} ยังไม่ท้อ" ],
+                speech: [ "ผิดก็ลองใหม่ • เราไม่ล้มเลิก • {character} อยู่ข้างๆ", "ไม่เป็นไร • วันใหม่เริ่มได้เสมอ" ]
+            },
+            แพะ: { topLeft: [ "แพะไม่ได้โม้ • แต่วันนี้จะเป็นกำลังใจให้เธอ", "แพะยิ้มกว้าง • ความทุกข์ให้แพะรับเคราะห์หมด" ], headline: [ "🐐 แพะยิ้มรับ • ทุกปัญหามีทางออก" ], speech: [ "รับเคราะห์ให้แล้ว ที่เหลือยิ้มอย่างเดียวพอ!" ] },
+            แมว: { topLeft: [ "แมวขี้เกียจแต่ให้กำลังใจ • แค่ขยับนิดก็เก่งแล้ว", "แมวฟี้ • อย่าเครียดเลย มานั่งเล่นด้วยกัน" ], headline: [ "😼 อย่าเครียดเลย มานอนกอดกันดีกว่า" ], speech: [ "เหมียว~ ฉันเชื่อว่าเธอทำได้" ] },
+            หมา: { topLeft: [ "หมาหาง wag ปลอบใจ • ความรักไม่มีเงื่อนไข", "หมาไม่เคยทิ้งนาย • สู้ต่อไป" ], headline: [ "🐶 ใจชื้นขึ้นมาได้ เพราะหมาเคียงข้าง" ], speech: [ "โฮ่ง! อย่ายอมแพ้ เดี๋ยวหมาเห่าให้กำลังใจ" ] },
+            เด็กหญิง: { topLeft: [ "เด็กหญิงยิ้มให้ความหวัง • ทุกปัญหาคือบทเรียน", "หนูไม่เก่ง แต่หนูไม่ยอมแพ้" ], headline: [ "👧 เธอเก่งที่สุดแล้ว • แค่ได้ลองก็ชนะใจตัวเอง" ], speech: [ "หนูเป็นกำลังใจให้นะคะ!" ] }
+        }
+    };
+
+    let currentData = JSON.parse(JSON.stringify(embeddedData));
     let currentMood = "peace";
-    let currentCharacter = "แมว";
-    let currentPose = "lying comfortably on its back, paws up, on a soft fluffy mattress, cozy sleepy expression";
-    let currentAspect = "1:1";   // default
+    let currentCharacter = "แพะ";
+    
+    // ---- NEW STATE : Style, Pose, Aspect ----
+    let currentStyle = "luxury_real";
+    let currentPose = "smiling goat wearing tiny floral crown, standing on green hill, scapegoat with joy";
+    let currentAspect = "1:1";
 
-    const moodBtns = document.querySelectorAll('[data-mood]');
-    const charPresetBtns = document.querySelectorAll('#character-presets .tag-btn');
+    // style mapping (จากไฟล์ที่สอง)
+    const styleMap = {
+        luxury_real: "Ultra-premium realistic commercial photograph, shot on Hasselblad, shallow depth of field, rich natural textures, cinematic lighting, infographic elements integrate seamlessly with photoreal texture.",
+        isometric_3d: "Premium 3D isometric illustration, smooth clay render, pastel & glossy finishes, soft volumetric light, clean infographic layout with 3D badges, playful yet professional.",
+        minimal_vector: "Luxury minimal vector infographic design, modern corporate aesthetic, clean typographic hierarchy, delicate pastel gradients, sleek geometric frames, editorial infographic style.",
+        neo_memphis: "Vibrant neo-memphis infographic style, bold geometric shapes, retro-futuristic vibe, playful color blocks, energetic composition, high-contrast but harmonious, cute stickers.",
+        editorial_vintage: "Vintage editorial magazine layout, textured paper grain, warm nostalgic tones, elegant infographic borders, serif mixed with sans-serif, classic premium atmosphere."
+    };
+
+    // DOM Elements
+    const moodBtns = document.querySelectorAll('.mood-btn');
+    const charBtns = document.querySelectorAll('.char-btn');
     const customCharInput = document.getElementById('customCharacter');
-    const selectedCharDisplay = document.getElementById('selectedCharDisplay');
-    
-    const allPoseBtns = document.querySelectorAll('#pose-presets .tag-btn, #lucky-poses .tag-btn');
-    const customPoseText = document.getElementById('customPose');
-    const selectedPoseDisplay = document.getElementById('selectedPoseDisplay');
-    
-    const textOverlayInput = document.getElementById('textOverlay');
-    const extraTypoInput = document.getElementById('extraTypo');
-    const moodCustomInput = document.getElementById('moodCustom');
-    const speechBubbleInput = document.getElementById('speechBubble');
-    
-    const ratioBtns = document.querySelectorAll('.ratio-btn');
-    const customRatioDiv = document.getElementById('customRatioInput');
-    const customAspectInput = document.getElementById('customAspect');
-    
+    const topLeftBox = document.getElementById('topLeftBox');
+    const mainHeadline = document.getElementById('mainHeadline');
+    const speechBubble = document.getElementById('speechBubble');
     const promptEditor = document.getElementById('promptEditor');
-    const copyBtn = document.getElementById('copyPromptBtn');
-    const regenerateBtn = document.getElementById('regenerateBtn');
-    const speechPresetBtns = document.querySelectorAll('#speechPresets .mini-quote-btn');
+    const topLeftSelect = document.getElementById('topLeftTemplateSelect');
+    const headlineSelect = document.getElementById('headlineTemplateSelect');
+    const speechSelect = document.getElementById('speechTemplateSelect');
+    const randomTopLeftBtn = document.getElementById('randomTopLeftBtn');
+    const randomHeadlineBtn = document.getElementById('randomHeadlineBtn');
+    const randomSpeechBtn = document.getElementById('randomSpeechBtn');
+    const randomAllBtn = document.getElementById('randomAllBtn');
+    const resetDefaultTextsBtn = document.getElementById('resetDefaultTextsBtn');
+    const copyPromptBtn = document.getElementById('copyPromptBtn');
+    const regeneratePromptBtn = document.getElementById('regeneratePromptBtn');
+    const randomCheerBtn = document.getElementById('randomCheerBtn');
+    const cheerMessage = document.getElementById('cheerMessage');
+    const mockTopLeftPreview = document.getElementById('mockTopLeftPreview');
+    const mockSpeechPreview = document.getElementById('mockSpeechPreview');
+    const mockHeadlinePreview = document.getElementById('mockHeadlinePreview');
 
-    // --- Aspect Ratio Logic ---
-    function setActiveRatio(ratioValue) {
-        currentAspect = ratioValue;
-        ratioBtns.forEach(btn => {
-            if (btn.getAttribute('data-ratio') === ratioValue || (ratioValue !== 'custom' && btn.getAttribute('data-ratio') === ratioValue)) {
-                btn.classList.add('active');
-            } else {
-                btn.classList.remove('active');
+    // NEW DOM elements
+    const styleBtns = document.querySelectorAll('.style-btn');
+    const poseBtns = document.querySelectorAll('.pose-btn');
+    const customPoseInput = document.getElementById('customPose');
+    const ratioBtns = document.querySelectorAll('.ratio-btn');
+    const customRatioWrap = document.getElementById('customRatioWrap');
+    const customAspectInput = document.getElementById('customAspect');
+    const moodExtra = (() => { if(!document.getElementById('moodExtra')){ const div = document.createElement('input'); div.id='moodExtra'; div.type='text'; div.placeholder='บรรยากาศเพิ่มเติม'; document.querySelector('.controls-panel').appendChild(div); } return document.getElementById('moodExtra'); })();
+
+    // helper
+    function getEffectiveCharacterKey() {
+        let custom = customCharInput.value.trim();
+        if (custom !== "") return custom;
+        let active = document.querySelector('.char-btn.active');
+        return active ? active.getAttribute('data-char') : "default";
+    }
+
+    function getTextArrayForCategory(category) {
+        let moodData = currentData[currentMood];
+        if (!moodData) return [];
+        let charKey = getEffectiveCharacterKey();
+        let charData = moodData[charKey];
+        if (!charData || !charData[category] || charData[category].length === 0) {
+            let defaultData = moodData["default"];
+            return defaultData && defaultData[category] ? defaultData[category] : [];
+        }
+        return charData[category];
+    }
+
+    function updateSelectOptions(selectElement, category) {
+        let arr = getTextArrayForCategory(category);
+        selectElement.innerHTML = '<option value="">-- เลือก Template ' + (category === 'topLeft' ? 'TopLeft' : category === 'headline' ? 'Headline' : 'Speech') + ' --</option>';
+        arr.forEach((text, idx) => {
+            let option = document.createElement('option');
+            option.value = text;
+            option.textContent = text.length > 60 ? text.substring(0,60)+'…' : text;
+            selectElement.appendChild(option);
+        });
+    }
+
+    function refreshAllDropdowns() {
+        updateSelectOptions(topLeftSelect, 'topLeft');
+        updateSelectOptions(headlineSelect, 'headline');
+        updateSelectOptions(speechSelect, 'speech');
+    }
+
+    function bindSelectEvent(selectElement, textareaElement) {
+        selectElement.addEventListener('change', () => {
+            if (selectElement.value) {
+                textareaElement.value = selectElement.value;
+                updateMockupAndPrompt();
             }
         });
-        if (ratioValue === 'custom') {
-            customRatioDiv.style.display = 'block';
-            const customVal = customAspectInput.value.trim();
-            if (customVal && /^\d+:\d+$/.test(customVal)) currentAspect = customVal;
-            else currentAspect = '1:1';
-        } else {
-            customRatioDiv.style.display = 'none';
-        }
-        regeneratePrompt();
     }
 
-    ratioBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const val = btn.getAttribute('data-ratio');
-            setActiveRatio(val);
-        });
-    });
-
-    customAspectInput.addEventListener('input', () => {
-        if (currentAspect === 'custom') {
-            const val = customAspectInput.value.trim();
-            if (val && /^\d+:\d+$/.test(val)) {
-                currentAspect = val;
-                regeneratePrompt();
-            }
-        }
-    });
-
-    // --- character sync ---
-    function syncCharacter() {
-        let activeChar = null;
-        charPresetBtns.forEach(btn => {
-            if (btn.classList.contains('active')) activeChar = btn.getAttribute('data-char');
-        });
-        const customVal = customCharInput.value.trim();
-        if (customVal !== "") {
-            currentCharacter = customVal;
-            selectedCharDisplay.innerText = currentCharacter + " (ปรับแต่ง)";
-            charPresetBtns.forEach(btn => btn.classList.remove('active'));
-        } else if (activeChar) {
-            currentCharacter = activeChar;
-            selectedCharDisplay.innerText = currentCharacter;
-        } else {
-            currentCharacter = "แมว";
-            selectedCharDisplay.innerText = currentCharacter;
-        }
-        regeneratePrompt();
+    function randomField(textarea, category) {
+        let arr = getTextArrayForCategory(category);
+        if (arr.length === 0) return;
+        let randomIndex = Math.floor(Math.random() * arr.length);
+        let selected = arr[randomIndex];
+        let charName = getEffectiveCharacterKey();
+        selected = selected.replace(/\{character\}/g, charName);
+        textarea.value = selected;
+        updateMockupAndPrompt();
     }
 
-    charPresetBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            customCharInput.value = "";
-            charPresetBtns.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            syncCharacter();
-        });
-    });
-    customCharInput.addEventListener('input', () => {
-        if (customCharInput.value.trim() !== "") {
-            charPresetBtns.forEach(btn => btn.classList.remove('active'));
-        } else if (!Array.from(charPresetBtns).some(btn => btn.classList.contains('active'))) {
-            document.querySelector('[data-char="แมว"]')?.classList.add('active');
-        }
-        syncCharacter();
-    });
-
-    // pose sync
-    function syncPose() {
-        let activePoseText = null;
-        allPoseBtns.forEach(btn => {
-            if (btn.classList.contains('active')) activePoseText = btn.getAttribute('data-pose');
-        });
-        const customVal = customPoseText.value.trim();
-        if (customVal !== "") {
-            currentPose = customVal;
-            selectedPoseDisplay.innerText = currentPose.substring(0,70)+(currentPose.length>70?"…":"");
-            allPoseBtns.forEach(btn => btn.classList.remove('active'));
-        } else if (activePoseText) {
-            currentPose = activePoseText;
-            selectedPoseDisplay.innerText = currentPose.substring(0,70)+(currentPose.length>70?"…":"");
-        } else {
-            currentPose = "lying comfortably on its back, paws up, on a soft fluffy mattress, cozy sleepy expression";
-            selectedPoseDisplay.innerText = currentPose.substring(0,70)+"…";
-        }
-        regeneratePrompt();
+    function randomAllFields() {
+        randomField(topLeftBox, 'topLeft');
+        randomField(mainHeadline, 'headline');
+        randomField(speechBubble, 'speech');
     }
 
-    allPoseBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            customPoseText.value = "";
-            allPoseBtns.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            syncPose();
-        });
-    });
-    customPoseText.addEventListener('input', () => {
-        if (customPoseText.value.trim() !== "") {
-            allPoseBtns.forEach(btn => btn.classList.remove('active'));
-        } else if (!Array.from(allPoseBtns).some(btn => btn.classList.contains('active'))) {
-            document.querySelector('#pose-presets .tag-btn')?.classList.add('active');
-        }
-        syncPose();
-    });
+    function resetDefaultTextsForCurrentMood() {
+        let topLeftArr = getTextArrayForCategory('topLeft');
+        let headlineArr = getTextArrayForCategory('headline');
+        let speechArr = getTextArrayForCategory('speech');
+        let charKey = getEffectiveCharacterKey();
+        if (topLeftArr.length) topLeftBox.value = topLeftArr[0].replace(/\{character\}/g, charKey);
+        if (headlineArr.length) mainHeadline.value = headlineArr[0].replace(/\{character\}/g, charKey);
+        if (speechArr.length) speechBubble.value = speechArr[0].replace(/\{character\}/g, charKey);
+        updateMockupAndPrompt();
+    }
 
-    // mood
+    function updateMockupAndPrompt() {
+        mockTopLeftPreview.innerText = topLeftBox.value.trim() || "(กรอกข้อความ TopLeft)";
+        mockSpeechPreview.innerText = speechBubble.value.trim() || "(Speech Bubble)";
+        mockHeadlinePreview.innerText = mainHeadline.value.trim() || "(Main Headline)";
+        generatePromptFromFields();
+    }
+
+    function generatePromptFromFields() {
+        let moodDesc = "";
+        if (currentMood === "peace") moodDesc = "บรรยากาศสงบเยียวยา, หลับฝันดี, แสงนุ่มนวล, ความอบอุ่น";
+        else if (currentMood === "morning") moodDesc = "รุ่งอรุณพลังชีวิต, แสงทองอ่อนๆ, ความหวังใหม่";
+        else moodDesc = "กำลังใจสำหรับคนอ่อนล้า, เสริมพลังคานผ่อนแรง, แสงสีทองสดใส";
+        let extra = document.getElementById('moodExtra') ? document.getElementById('moodExtra').value : "";
+        if (extra) moodDesc += `, เพิ่ม: ${extra}`;
+
+        let character = getEffectiveCharacterKey();
+        let realConstraint = (character.includes("เด็ก") || character.includes("หญิง") || character.includes("ชาย"))
+            ? "real child photography, authentic human child, no illustration, no anime"
+            : "real animal photography, authentic animal, real fur/texture, no illustration, no cartoon, no CGI";
+        
+        // รวม Pose
+        let poseText = currentPose;
+        
+        // รวม Style
+        let styleText = styleMap[currentStyle] || styleMap.luxury_real;
+        
+        let topLeft = topLeftBox.value.trim() || "เชื่อฉัน อย่าหลงไปเชื่อใคร";
+        let headline = mainHeadline.value.trim() || "ยิ้มเข้าไว้ ชีวิตดี๊ดี ✨";
+        let speech = speechBubble.value.trim() || "แพะไม่ได้โม้";
+        
+        let aspectParam = "";
+        if (currentAspect === 'custom' && customAspectInput.value.trim().match(/^\d+:\d+$/)) {
+            aspectParam = ` --ar ${customAspectInput.value.trim()}`;
+        } else if (currentAspect !== 'custom') {
+            aspectParam = ` --ar ${currentAspect}`;
+        }
+
+        let prompt = `🏆 **PREMIUM VISUAL SYSTEM:** ${styleText}
+
+🎯 **MOOD & ATMOSPHERE:** ${moodDesc}.
+🐾 **MAIN CHARACTER:** A cute real ${character} (${realConstraint}), ${poseText}. Highly expressive, warm aura, premium quality.
+
+🖼️ **INFOGRAPHIC LAYOUT (Premium Commercial Style):**
+- [TOP LEFT BOX] : Inspirational / lyrical text: "${topLeft}"
+- [BOTTOM CENTER HEADLINE] : Grand golden headline: "${headline}"
+- [SPEECH BUBBLE - attached to character] : The character says: "${speech}" (humorous, warm, smile-inducing)
+- [SMALL TRUST BADGE] : "MLQ · Life Blueprint" at bottom corner.
+
+🎨 **TYPOGRAPHY & DETAILS:** Playful Thai font, golden gradient, soft sparkles, clean infographic borders. Keep everything optimistic, no harsh contradictions, follow 'smile & twist' principle.
+
+✨ **FINAL COMMAND:** Soft natural lighting, commercial grade. REAL PHOTO of a real ${character} (real animal or real child). Text overlays & speech bubbles allowed. Funny, adorable, re-energizing.${aspectParam} --v 6`;
+        promptEditor.value = prompt;
+    }
+
+    // set active mood
     function setActiveMood(mood) {
         currentMood = mood;
         moodBtns.forEach(btn => {
             if (btn.getAttribute('data-mood') === mood) btn.classList.add('mood-active');
             else btn.classList.remove('mood-active');
         });
-        regeneratePrompt();
+        refreshAllDropdowns();
+        resetDefaultTextsForCurrentMood();
     }
-    moodBtns.forEach(btn => btn.addEventListener('click', () => setActiveMood(btn.getAttribute('data-mood'))));
 
-    // speech presets
-    speechPresetBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const speech = btn.getAttribute('data-speech');
-            if (speech) speechBubbleInput.value = speech;
-            regeneratePrompt();
+    function setActiveCharacter(characterKey) {
+        currentCharacter = characterKey;
+        charBtns.forEach(btn => {
+            if (btn.getAttribute('data-char') === characterKey) btn.classList.add('active');
+            else btn.classList.remove('active');
         });
-    });
-
-    // main builder with aspect ratio
-    function buildPrompt() {
-        let moodDesc = "";
-        const moodExtra = moodCustomInput.value.trim();
-        if (currentMood === "peace") {
-            moodDesc = "ก่อนนอน, ความสงบ, หลับฝันดี, บรรยากาศนุ่มนวล ไฟนวลตา, ท้องฟ้าเต็มไปด้วยดวงดาว, ความอบอุ่น";
-        } else if (currentMood === "morning") {
-            moodDesc = "ตอนเช้า, แสงอาทิตย์อ่อนๆ, ตื่นอย่างสดชื่น, ความหวังใหม่, สายลมบางเบา, กลิ่นกาแฟและดอกไม้";
-        } else {
-            moodDesc = "กำลังใจสำหรับคนอ่อนล้า, ความหวัง, กอดอันอบอุ่น, คำพูดให้พลัง, สีสันสดใส, รอยยิ้มและแสงทอง";
-        }
-        if (moodExtra) moodDesc += `, เพิ่ม: ${moodExtra}`;
-
-        const character = currentCharacter;
-        const pose = currentPose;
-        let mainHeadline = textOverlayInput.value.trim();
-        if (mainHeadline === "") mainHeadline = "อายุ 2 ขวบ 🐐 แพะไม่ได้โม้ • เลี้ยงแพะไว้ไม่กลัวเคราะห์";
-        const typoStyle = extraTypoInput.value.trim() || "Thai playful font + golden bold headline + shiny gradient";
-        let speechText = speechBubbleInput.value.trim();
-        if (speechText === "") speechText = "เชื่อเรื่องมงคลได้สิ่งมงคล • แพะไม่ได้โม้";
-
-        let aspectRatioParam = "";
-        if (currentAspect && currentAspect !== 'custom') {
-            aspectRatioParam = ` --ar ${currentAspect}`;
-        } else if (currentAspect === 'custom' && customAspectInput.value.trim() && /^\d+:\d+$/.test(customAspectInput.value.trim())) {
-            aspectRatioParam = ` --ar ${customAspectInput.value.trim()}`;
-        } else if (currentAspect !== 'custom') {
-            aspectRatioParam = ` --ar ${currentAspect}`;
-        }
-
-        const realConstraint = (character.includes("เด็ก") || character.includes("เด็กผู้หญิง") || character.includes("เด็กผู้ชาย"))
-            ? "real child photography, authentic human child, no illustration, no anime, no cartoon, no 3D render"
-            : "real animal photography, real fur/texture, authentic animal, no illustration, no anime, no cartoon, no CGI";
-
-        const prompt = `🎨 **STYLE:** Realistic Photograph with Infographic Overlay, Bright, Clean, Commercial Ad style. ${realConstraint}.
-
-📌 **SUBJECT & MOOD:** ${moodDesc}.
-🐾 **CHARACTER:** A cute ${character} with expressive eyes, looking adorable (real photo style).
-🧸 **POSE / ACTION:** ${pose}.
-
-🖼️ **COMPOSITION & BACKGROUND:** Blurred cozy background matching the mood, focus on main character. Add small sparkles or icons.
-
-📝 **TEXT & GRAPHICS (Infographic Overlay):**
-- Top Left Box: Fun facts / age & status (เช่น "อายุ 2 ขวบ • มีบ้านเป็นของตัวเอง • ไม่ต้องทำงาน")
-- Main Headline (Bottom Center): Big bold golden-yellow text with star sparkles: "${mainHeadline}"
-- **💬 Secondary Text / Speech Bubble (Top Right)**: A cute speech bubble where the character says: "${speechText}"
-- Source Citation (Bottom Center in an orange ellipse): "เริ่มต้นไปกับ... ❤️"
-- Typography: ${typoStyle}. Include star sparkles and animal icons.
-
-✨ **FINAL INSTRUCTION:** Soft natural lighting. MUST be REAL PHOTO of a real ${character}, not cartoon, not anime. Text overlays and speech bubbles allowed. Keep tone funny, adorable, smile-inducing, no conflicting messages.${aspectRatioParam}`;
-
-        return prompt;
+        if (customCharInput.value.trim() !== "") customCharInput.value = "";
+        refreshAllDropdowns();
+        resetDefaultTextsForCurrentMood();
+    }
+    
+    // New: style, pose, ratio handlers
+    function setActiveStyle(style) {
+        currentStyle = style;
+        styleBtns.forEach(btn => {
+            if (btn.getAttribute('data-style') === style) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
+        updateMockupAndPrompt();
+    }
+    
+    function setActivePose(pose) {
+        currentPose = pose;
+        poseBtns.forEach(btn => {
+            if (btn.getAttribute('data-pose') === pose) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
+        updateMockupAndPrompt();
+    }
+    
+    function setActiveRatio(ratio) {
+        currentAspect = ratio;
+        ratioBtns.forEach(btn => {
+            if (btn.getAttribute('data-ratio') === ratio) btn.classList.add('active');
+            else btn.classList.remove('active');
+        });
+        if (ratio === 'custom') customRatioWrap.style.display = 'block';
+        else customRatioWrap.style.display = 'none';
+        updateMockupAndPrompt();
     }
 
-    function regeneratePrompt() {
-        promptEditor.value = buildPrompt();
+    // สุ่มกำลังใจ
+    const cheerList = [
+        "🍭 แพะไม่ได้โม้... แต่ยิ้มให้ชีวิตใหม่นะทุกคน 💛",
+        "✨ ผิดก็ลองใหม่ แพะยังสู้ เราก็สู้ได้ 😊",
+        "🎵 ชีวิตเหมือนฟันเฟือง: หมุนช้าไปบ้างก็ได้ แค่อย่าหยุดยิ้ม",
+        "🐐 ‘แพะรับบาป’ แต่รับเคราะห์แล้วยิ้มเก่ง สุขภาพดีตามมา",
+        "💖 วันนี้แพะส่งยิ้มมาให้ อย่าลืมกระจายต่อน้า ~",
+        "🌟 คลื่นเสียงรหัสชีวิต 6/42: เสียงหัวเราะคือยาอายุวัฒนะ"
+    ];
+    function randomCheer() {
+        let idx = Math.floor(Math.random() * cheerList.length);
+        cheerMessage.innerText = cheerList[idx];
     }
 
-    copyBtn.addEventListener('click', () => {
-        const text = promptEditor.value;
-        navigator.clipboard.writeText(text).then(() => {
-            const original = copyBtn.innerText;
-            copyBtn.innerText = '✅ คัดลอกแล้ว!';
-            setTimeout(() => copyBtn.innerText = original, 2000);
-        }).catch(() => alert("กด Ctrl+C เพื่อคัดลอกครับ"));
+    // event bindings (รวมใหม่)
+    moodBtns.forEach(btn => btn.addEventListener('click', () => setActiveMood(btn.getAttribute('data-mood'))));
+    charBtns.forEach(btn => btn.addEventListener('click', () => setActiveCharacter(btn.getAttribute('data-char'))));
+    customCharInput.addEventListener('input', () => {
+        if (customCharInput.value.trim() !== "") charBtns.forEach(btn => btn.classList.remove('active'));
+        refreshAllDropdowns();
+        resetDefaultTextsForCurrentMood();
     });
-    regenerateBtn.addEventListener('click', regeneratePrompt);
-
-    // event listeners
-    textOverlayInput.addEventListener('input', regeneratePrompt);
-    extraTypoInput.addEventListener('input', regeneratePrompt);
-    moodCustomInput.addEventListener('input', regeneratePrompt);
-    speechBubbleInput.addEventListener('input', regeneratePrompt);
-
-    // init
+    topLeftBox.addEventListener('input', updateMockupAndPrompt);
+    mainHeadline.addEventListener('input', updateMockupAndPrompt);
+    speechBubble.addEventListener('input', updateMockupAndPrompt);
+    randomTopLeftBtn.addEventListener('click', () => randomField(topLeftBox, 'topLeft'));
+    randomHeadlineBtn.addEventListener('click', () => randomField(mainHeadline, 'headline'));
+    randomSpeechBtn.addEventListener('click', () => randomField(speechBubble, 'speech'));
+    randomAllBtn.addEventListener('click', randomAllFields);
+    resetDefaultTextsBtn.addEventListener('click', resetDefaultTextsForCurrentMood);
+    regeneratePromptBtn.addEventListener('click', updateMockupAndPrompt);
+    copyPromptBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(promptEditor.value);
+        alert("✅ คัดลอก Prompt เรียบร้อย! วางใน Midjourney/DALL·E ได้เลย");
+    });
+    randomCheerBtn.addEventListener('click', randomCheer);
+    bindSelectEvent(topLeftSelect, topLeftBox);
+    bindSelectEvent(headlineSelect, mainHeadline);
+    bindSelectEvent(speechSelect, speechBubble);
+    
+    // New event listeners
+    styleBtns.forEach(btn => btn.addEventListener('click', () => setActiveStyle(btn.getAttribute('data-style'))));
+    poseBtns.forEach(btn => btn.addEventListener('click', () => {
+        customPoseInput.value = "";
+        setActivePose(btn.getAttribute('data-pose'));
+    }));
+    customPoseInput.addEventListener('input', () => {
+        if (customPoseInput.value.trim()) {
+            poseBtns.forEach(b => b.classList.remove('active'));
+            currentPose = customPoseInput.value.trim();
+            updateMockupAndPrompt();
+        }
+    });
+    ratioBtns.forEach(btn => btn.addEventListener('click', () => setActiveRatio(btn.getAttribute('data-ratio'))));
+    customAspectInput.addEventListener('input', () => {
+        if (currentAspect === 'custom') updateMockupAndPrompt();
+    });
+    
+    // เพิ่ม moodExtra element ถ้ายังไม่มี (แต่มีแล้วใน HTML)
+    if(!document.getElementById('moodExtra')) {
+        let extraDiv = document.createElement('div');
+        extraDiv.innerHTML = `<div class="label">✨ รายละเอียดเพิ่มเติม (Mood Extra)</div><input type="text" id="moodExtra" placeholder="เช่น แสงเทียน, เสียงน้ำตก">`;
+        document.querySelector('.controls-panel').insertBefore(extraDiv.firstChild, document.querySelector('#style-buttons').parentNode);
+    }
+    document.getElementById('moodExtra')?.addEventListener('input', updateMockupAndPrompt);
+    
     function init() {
-        charPresetBtns.forEach(btn => btn.classList.remove('active'));
-        document.querySelector('[data-char="แมว"]')?.classList.add('active');
-        allPoseBtns.forEach(btn => btn.classList.remove('active'));
-        document.querySelector('#pose-presets .tag-btn')?.classList.add('active');
-        customCharInput.value = "";
-        customPoseText.value = "";
-        setActiveRatio("1:1");
-        syncCharacter();
-        syncPose();
         setActiveMood("peace");
-        regeneratePrompt();
+        setActiveCharacter("แพะ");
+        setActiveStyle("luxury_real");
+        setActivePose("smiling goat wearing tiny floral crown, standing on green hill, scapegoat with joy");
+        setActiveRatio("1:1");
+        randomCheer();
+        updateMockupAndPrompt();
     }
     init();
 </script>
