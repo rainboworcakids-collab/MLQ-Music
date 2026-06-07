@@ -1,5 +1,5 @@
-// pwa-handler.js - เวอร์ชัน 3.1 (รองรับ Safari iOS/macOS อย่างสมบูรณ์)
-console.log('📱 PWA Handler Module version 3.1 - โหลดสำเร็จ');
+// pwa-handler.js - เวอร์ชัน 3.2 (แก้ไข UX สำหรับ Safari/iOS และแก้บัคติดตั้งบน iPad)
+console.log('📱 PWA Handler Module version 3.2 - โหลดสำเร็จ');
 
 class PWAHandler {
     constructor() {
@@ -43,7 +43,7 @@ class PWAHandler {
         modal.innerHTML = `
 <div id="pwaInstallModal" style="
     display:none; position:fixed; inset:0; z-index:9999;
-    background:rgba(10,10,30,0.82); backdrop-filter:blur(8px);
+    background:rgba(10,10,30,0.92); 
     align-items:center; justify-content:center; padding:1rem;
 " role="dialog" aria-modal="true" aria-labelledby="pwaInstallTitle">
 
@@ -121,7 +121,7 @@ class PWAHandler {
   </div>
 </div>`;
 
-        // Insert styles
+        // Insert styles (no backdrop-filter)
         const style = document.createElement('style');
         style.textContent = `
             #pwaInstallModal { display:none; }
@@ -291,13 +291,11 @@ class PWAHandler {
                     tipEl.innerHTML = '⚠️ Chrome บน iOS ไม่รองรับ Add to Home Screen — กรุณาเปิดลิงก์นี้ใน <strong>Safari</strong>';
                 }
             }
-            actionIcon.textContent = '📤';
-            actionText.textContent = 'คัดลอกลิงก์เพื่อเปิดใน Safari';
+            // ปรับให้เป็น Tutorial ล้วนๆ ไม่มี action copy link
+            actionIcon.textContent = '📖';
+            actionText.textContent = 'ดูวิธีติดตั้ง';
             actionBtn.onclick = () => {
-                navigator.clipboard?.writeText(window.location.href).then(() => {
-                    this._dispatchToast('คัดลอกลิงก์แล้ว! เปิดใน Safari แล้วกด Share → Add to Home Screen', 'success');
-                    this.closeInstallModal();
-                });
+                this.closeInstallModal(); // แค่ปิด modal ไม่ต้องทำอย่างอื่น
             };
 
         } else if (type === 'android') {
@@ -309,8 +307,10 @@ class PWAHandler {
                 ]);
                 actionIcon.textContent = '📲';
                 actionText.textContent = 'ติดตั้งเลย';
-                actionBtn.onclick = () => {
+                actionBtn.onclick = async () => {
                     this.closeInstallModal();
+                    // รอให้ overlay หายก่อนค่อยเรียก install เพื่อป้องกัน Safari bug (ในกรณี Android แต่ก็ปลอดภัย)
+                    await new Promise(r => setTimeout(r, 400));
                     this.install();
                 };
             } else {
@@ -334,8 +334,9 @@ class PWAHandler {
                 ]);
                 actionIcon.textContent = '💻';
                 actionText.textContent = 'ติดตั้งบน Desktop';
-                actionBtn.onclick = () => {
+                actionBtn.onclick = async () => {
                     this.closeInstallModal();
+                    await new Promise(r => setTimeout(r, 400));
                     this.install();
                 };
             } else if (browser === 'chrome' || browser === 'edge') {
@@ -358,11 +359,10 @@ class PWAHandler {
                 }
                 actionIcon.textContent = '📋';
                 actionText.textContent = 'คัดลอกลิงก์';
-                actionBtn.onclick = () => {
-                    navigator.clipboard?.writeText(window.location.href).then(() => {
-                        this._dispatchToast('คัดลอกลิงก์แล้ว! เปิดใน Chrome หรือ Edge', 'success');
-                        this.closeInstallModal();
-                    });
+                actionBtn.onclick = async () => {
+                    await navigator.clipboard?.writeText(window.location.href);
+                    this._dispatchToast('คัดลอกลิงก์แล้ว! เปิดใน Chrome หรือ Edge', 'success');
+                    this.closeInstallModal();
                 };
             }
         }
@@ -476,7 +476,7 @@ class PWAHandler {
         }
     }
 
-    // ─── Status & Button Visibility (核心新增) ──────────────────────────────────
+    // ─── Status & Button Visibility (แก้ไขให้ใช้ icon download เสมอ) ───────────────
     checkInstallStatus() {
         const isStandalone = window.matchMedia('(display-mode: standalone)').matches
                           || window.navigator.standalone === true;
@@ -491,12 +491,11 @@ class PWAHandler {
             console.log('📱 แอปถูกติดตั้งแล้ว (standalone mode)');
             this.hideBanner();
         }
-        // ไม่ต้องจัดการปุ่มโดยตรงในนี้ ให้เรียก updateInstallButtonVisibility แทน
         this.updateInstallButtonVisibility();
     }
 
     /**
-     * อัปเดตการแสดง/ซ่อนปุ่มติดตั้ง พร้อมปรับไอคอนตามแพลตฟอร์ม
+     * อัปเดตการแสดง/ซ่อนปุ่มติดตั้ง พร้อมปรับไอคอนเป็น download เสมอ (ไม่แยก share)
      * - แสดงเมื่อยังไม่ติดตั้ง และ (มี deferredPrompt หรือ เป็น iOS/macOS/Safari)
      */
     updateInstallButtonVisibility() {
@@ -523,20 +522,11 @@ class PWAHandler {
         btn.classList.toggle('hidden', !shouldShow);
 
         if (shouldShow) {
-            if (isSafari && !hasPrompt) {
-                btn.innerHTML =
-                    '<i class="fas fa-share-alt"></i>';
-                btn.title =
-                'เพิ่มลงหน้าจอหลัก';
-            } else {
-            btn.innerHTML =
-                '<i class="fas fa-download"></i>';
-            btn.title =
-                'ติดตั้งแอป';
-            }
+            // ใช้ icon download เหมือนกันทุกแพลตฟอร์ม เพื่อไม่ให้สับสน
+            btn.innerHTML = '<i class="fas fa-download"></i>';
+            btn.title = 'ติดตั้งแอป';
         }
     }
-    
     
     getStatus() {
         return {
@@ -568,5 +558,5 @@ window.handleAppInstall = () => window.PWAHandler?.install()
 window.openPWAInstallModal = () => window.PWAHandler?.openInstallModal();
 window.getPWAInstallURL = (ref) => window.PWAHandler?.getInstallURL(ref);
 
-console.log('✅ PWA Handler (v3.1) พร้อมใช้งานแล้ว (รองรับ Safari แล้ว)');
+console.log('✅ PWA Handler (v3.2) พร้อมใช้งานแล้ว (แก้ไข Safari UX และบัคติดตั้งบน iPad)');
 console.log(`📱 Platform detected: ${window.PWAHandler.platform.type} / ${window.PWAHandler.platform.browser}`);
