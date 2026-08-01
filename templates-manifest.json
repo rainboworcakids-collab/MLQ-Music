@@ -14,19 +14,33 @@
       "color": "#0ea5e9",
       "templates": [
         {
-          "name": "Aquarium Bangkok · Showcase กระเบน",
+          "name": "Showcase กระเบน - Aquarium Bangkok",
           "template_file_id": "1npqf3-apeI1ItUXUQdpxiDZh0zpLZAsK",
           "target_file_id": "1JZhJBiYd6B0cQUMhPtH9O9eKkd7Z25qz",
           "duration": 30,
           "type": "showcase"
         },
         {
-          "name": "Aquarium Bangkok · Gift Card ท่องเรือ",
+          "name": "Gift Card ท่องเรือ - Aquarium Bangkok",
           "template_file_id": "1pPnR-gLTsPL-BlFXCBYtBdHmx2E6vtvq",
           "target_file_id": "REPLACE_WITH_SEPARATE_TARGET_FILE_ID",
           "duration": 30,
           "type": "gift",
           "_note": "⚠️ target_file_id ต้องเป็น ID ของไฟล์ output แยกต่างหาก ไม่ใช่ ID เดียวกับ template_file_id"
+        },
+        {
+          "name": "Calm ปลาทะเล-ปาการัง  - Aquarium Bangkok",
+          "template_file_id": "1O-itTXK5rMUNG_CWs4ENDWez-z95ENfk",
+          "target_file_id": "REPLACE_WITH_SEPARATE_TARGET_FILE_ID",
+          "duration": 30,
+          "type": "calm"
+        },
+						{
+          "name": "hook   - Aquarium Bangkok",
+          "template_file_id": "1csJkE6eEqPzVe0Yno2_vM_4Yhd-EBtjl",
+          "target_file_id": "REPLACE_WITH_SEPARATE_TARGET_FILE_ID",
+          "duration": 30,
+          "type": "hook"
         }
       ]
     },
