@@ -6,21 +6,21 @@
 
   "series": [
     {
-      "id": "parent",
-      "label": "🌟 Parent Edition — Origin",
+      "id": "Aquarium Bangkok 2026",
+      "label": "🌟 Sea Life Bangkok Ocean World 2026 - Aquarium Bangkok Sea Life",
       "color": "#f59e0b",
       "templates": [
         {
-          "name": "Parent Edition · Showcase v1",
-          "template_file_id": "REPLACE_WITH_DRIVE_FILE_ID",
-          "target_file_id": "REPLACE_WITH_TARGET_FILE_ID",
+          "name": "Aquarium Bangkok · Showcase กระเบน",
+          "template_file_id": "1npqf3-apeI1ItUXUQdpxiDZh0zpLZAsK",
+          "target_file_id": "1npqf3-apeI1ItUXUQdpxiDZh0zpLZAsK",
           "duration": 30,
           "type": "showcase"
         },
         {
-          "name": "Parent Edition · Gift Card v1",
-          "template_file_id": "REPLACE_WITH_DRIVE_FILE_ID",
-          "target_file_id": "REPLACE_WITH_TARGET_FILE_ID",
+          "name": "Parent Edition · Gift Card ท่องเรือ",
+          "template_file_id": "1pPnR-gLTsPL-BlFXCBYtBdHmx2E6vtvq",
+          "target_file_id": "1pPnR-gLTsPL-BlFXCBYtBdHmx2E6vtvq",
           "duration": 30,
           "type": "gift"
         }
