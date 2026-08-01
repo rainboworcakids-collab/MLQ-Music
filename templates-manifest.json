@@ -1,0 +1,177 @@
+{
+  "_version": "1.1",
+  "_updated": "2026-08-01",
+  "_repo": "rainboworcakids-collab/MLQ-Music",
+  "_note": "แก้ไขไฟล์นี้โดยตรงใน GitHub เพื่ออัปเดต Template ที่แสดงใน Composer",
+
+  "series": [
+    {
+      "id": "parent",
+      "label": "🌟 Parent Edition — Origin",
+      "color": "#f59e0b",
+      "templates": [
+        {
+          "name": "Parent Edition · Showcase v1",
+          "template_file_id": "REPLACE_WITH_DRIVE_FILE_ID",
+          "target_file_id": "REPLACE_WITH_TARGET_FILE_ID",
+          "duration": 30,
+          "type": "showcase"
+        },
+        {
+          "name": "Parent Edition · Gift Card v1",
+          "template_file_id": "REPLACE_WITH_DRIVE_FILE_ID",
+          "target_file_id": "REPLACE_WITH_TARGET_FILE_ID",
+          "duration": 30,
+          "type": "gift"
+        }
+      ]
+    },
+    {
+      "id": "A",
+      "label": "📗 Edition A — Life Path Discovery",
+      "color": "#10b981",
+      "templates": [
+        {
+          "name": "Edition A · Showcase v1",
+          "template_file_id": "REPLACE_WITH_DRIVE_FILE_ID",
+          "target_file_id": "REPLACE_WITH_TARGET_FILE_ID",
+          "duration": 30,
+          "type": "showcase"
+        },
+        {
+          "name": "Edition A · Gift Card v1",
+          "template_file_id": "REPLACE_WITH_DRIVE_FILE_ID",
+          "target_file_id": "REPLACE_WITH_TARGET_FILE_ID",
+          "duration": 30,
+          "type": "gift"
+        }
+      ]
+    },
+    {
+      "id": "B",
+      "label": "📘 Edition B — Skill Mapping",
+      "color": "#3b82f6",
+      "templates": [
+        {
+          "name": "Edition B · Showcase v1",
+          "template_file_id": "REPLACE_WITH_DRIVE_FILE_ID",
+          "target_file_id": "REPLACE_WITH_TARGET_FILE_ID",
+          "duration": 30,
+          "type": "showcase"
+        },
+        {
+          "name": "Edition B · Gift Card v1",
+          "template_file_id": "REPLACE_WITH_DRIVE_FILE_ID",
+          "target_file_id": "REPLACE_WITH_TARGET_FILE_ID",
+          "duration": 30,
+          "type": "gift"
+        }
+      ]
+    },
+    {
+      "id": "C",
+      "label": "📙 Edition C — Leverage",
+      "color": "#f97316",
+      "templates": [
+        {
+          "name": "Edition C · Showcase v1",
+          "template_file_id": "REPLACE_WITH_DRIVE_FILE_ID",
+          "target_file_id": "REPLACE_WITH_TARGET_FILE_ID",
+          "duration": 30,
+          "type": "showcase"
+        },
+        {
+          "name": "Edition C · Gift Card v1",
+          "template_file_id": "REPLACE_WITH_DRIVE_FILE_ID",
+          "target_file_id": "REPLACE_WITH_TARGET_FILE_ID",
+          "duration": 30,
+          "type": "gift"
+        }
+      ]
+    },
+    {
+      "id": "D",
+      "label": "📕 Edition D — Family Blueprint",
+      "color": "#ef4444",
+      "templates": [
+        {
+          "name": "Edition D · Showcase v1",
+          "template_file_id": "REPLACE_WITH_DRIVE_FILE_ID",
+          "target_file_id": "REPLACE_WITH_TARGET_FILE_ID",
+          "duration": 30,
+          "type": "showcase"
+        },
+        {
+          "name": "Edition D · Gift Card v1",
+          "template_file_id": "REPLACE_WITH_DRIVE_FILE_ID",
+          "target_file_id": "REPLACE_WITH_TARGET_FILE_ID",
+          "duration": 30,
+          "type": "gift"
+        }
+      ]
+    },
+    {
+      "id": "E",
+      "label": "📓 Edition E — Community",
+      "color": "#8b5cf6",
+      "templates": [
+        {
+          "name": "Edition E · Showcase v1",
+          "template_file_id": "REPLACE_WITH_DRIVE_FILE_ID",
+          "target_file_id": "REPLACE_WITH_TARGET_FILE_ID",
+          "duration": 30,
+          "type": "showcase"
+        },
+        {
+          "name": "Edition E · Gift Card v1",
+          "template_file_id": "REPLACE_WITH_DRIVE_FILE_ID",
+          "target_file_id": "REPLACE_WITH_TARGET_FILE_ID",
+          "duration": 30,
+          "type": "gift"
+        }
+      ]
+    },
+    {
+      "id": "F",
+      "label": "📔 Edition F — Legacy",
+      "color": "#ec4899",
+      "templates": [
+        {
+          "name": "Edition F · Showcase v1",
+          "template_file_id": "REPLACE_WITH_DRIVE_FILE_ID",
+          "target_file_id": "REPLACE_WITH_TARGET_FILE_ID",
+          "duration": 30,
+          "type": "showcase"
+        },
+        {
+          "name": "Edition F · Gift Card v1",
+          "template_file_id": "REPLACE_WITH_DRIVE_FILE_ID",
+          "target_file_id": "REPLACE_WITH_TARGET_FILE_ID",
+          "duration": 30,
+          "type": "gift"
+        }
+      ]
+    },
+    {
+      "id": "G",
+      "label": "🌿 Edition G — LifeQuest 50+",
+      "color": "#14b8a6",
+      "templates": [
+        {
+          "name": "Edition G · Showcase v1",
+          "template_file_id": "REPLACE_WITH_DRIVE_FILE_ID",
+          "target_file_id": "REPLACE_WITH_TARGET_FILE_ID",
+          "duration": 30,
+          "type": "showcase"
+        },
+        {
+          "name": "Edition G · Gift Card v1",
+          "template_file_id": "REPLACE_WITH_DRIVE_FILE_ID",
+          "target_file_id": "REPLACE_WITH_TARGET_FILE_ID",
+          "duration": 30,
+          "type": "gift"
+        }
+      ]
+    }
+  ]
+}
