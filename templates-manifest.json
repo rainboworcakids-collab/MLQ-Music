@@ -1,14 +1,17 @@
 {
-  "_version": "1.1",
+  "_version": "1.2",
   "_updated": "2026-08-01",
   "_repo": "rainboworcakids-collab/MLQ-Music",
-  "_note": "แก้ไขไฟล์นี้โดยตรงใน GitHub เพื่ออัปเดต Template ที่แสดงใน Composer",
+  "_branch": "Basic",
+  "_manifest_url": "https://raw.githubusercontent.com/rainboworcakids-collab/MLQ-Music/Basic/templates-manifest.json",
+  "_note": "แก้ไขไฟล์นี้โดยตรงใน GitHub (branch: Basic) เพื่ออัปเดต Template ที่แสดงใน Composer",
+  "_warning": "template_file_id ≠ target_file_id เสมอ — ถ้าเหมือนกัน Cloud Run จะทับทำลาย template ต้นฉบับ",
 
   "series": [
     {
-      "id": "Aquarium Bangkok 2026",
-      "label": "🌟 Sea Life Bangkok Ocean World 2026 - Aquarium Bangkok Sea Life",
-      "color": "#f59e0b",
+      "id": "Aquarium_Bangkok_2026",
+      "label": "🌊 Sea Life Bangkok Ocean World 2026",
+      "color": "#0ea5e9",
       "templates": [
         {
           "name": "Aquarium Bangkok · Showcase กระเบน",
@@ -18,9 +21,31 @@
           "type": "showcase"
         },
         {
-          "name": "Parent Edition · Gift Card ท่องเรือ",
+          "name": "Aquarium Bangkok · Gift Card ท่องเรือ",
           "template_file_id": "1pPnR-gLTsPL-BlFXCBYtBdHmx2E6vtvq",
-          "target_file_id": "1pPnR-gLTsPL-BlFXCBYtBdHmx2E6vtvq",
+          "target_file_id": "REPLACE_WITH_SEPARATE_TARGET_FILE_ID",
+          "duration": 30,
+          "type": "gift",
+          "_note": "⚠️ target_file_id ต้องเป็น ID ของไฟล์ output แยกต่างหาก ไม่ใช่ ID เดียวกับ template_file_id"
+        }
+      ]
+    },
+    {
+      "id": "parent",
+      "label": "🌟 Parent Edition — Origin",
+      "color": "#f59e0b",
+      "templates": [
+        {
+          "name": "Parent Edition · Showcase v1",
+          "template_file_id": "REPLACE_WITH_DRIVE_FILE_ID",
+          "target_file_id": "REPLACE_WITH_TARGET_FILE_ID",
+          "duration": 30,
+          "type": "showcase"
+        },
+        {
+          "name": "Parent Edition · Gift Card v1",
+          "template_file_id": "REPLACE_WITH_DRIVE_FILE_ID",
+          "target_file_id": "REPLACE_WITH_TARGET_FILE_ID",
           "duration": 30,
           "type": "gift"
         }
