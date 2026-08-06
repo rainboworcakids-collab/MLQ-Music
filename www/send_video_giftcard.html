@@ -1,0 +1,1433 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>MLQ Video Giftcard — send_video_giftcard v0.1</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root{
+      --bg-1:#0f172a;
+      --bg-2:#111827;
+      --panel:#111827cc;
+      --panel-solid:#111827;
+      --line:#243041;
+      --line-soft:#1f2937;
+      --text:#e5e7eb;
+      --muted:#94a3b8;
+      --brand:#8b5cf6;
+      --brand-2:#6366f1;
+      --ok:#10b981;
+      --warn:#f59e0b;
+      --danger:#ef4444;
+      --input:#0b1220;
+      --chip:#1f2937;
+      --shadow:0 18px 40px rgba(0,0,0,0.35);
+      --radius:18px;
+      --radius-sm:12px;
+    }
+
+    * { box-sizing: border-box; }
+    html, body {
+      margin:0;
+      padding:0;
+      min-height:100%;
+      background:
+        radial-gradient(circle at top left, rgba(99,102,241,0.18), transparent 28%),
+        radial-gradient(circle at top right, rgba(139,92,246,0.16), transparent 25%),
+        linear-gradient(180deg, var(--bg-1), var(--bg-2));
+      color:var(--text);
+      font-family:'Inter','Sarabun',system-ui,sans-serif;
+    }
+
+    a { color:inherit; }
+
+    .page {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 22px 16px 48px;
+    }
+
+    .hero {
+      display:flex;
+      flex-wrap:wrap;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:16px;
+      margin-bottom:18px;
+    }
+
+    .hero-left h1{
+      margin:0;
+      font-size: clamp(1.6rem, 3vw, 2.4rem);
+      line-height:1.1;
+      font-weight:800;
+      letter-spacing:-0.02em;
+    }
+
+    .hero-left p{
+      margin:10px 0 0;
+      color:var(--muted);
+      max-width:900px;
+      line-height:1.6;
+      font-size:0.98rem;
+    }
+
+    .hero-badges{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:12px;
+    }
+
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      background:rgba(255,255,255,0.06);
+      border:1px solid rgba(255,255,255,0.08);
+      padding:8px 12px;
+      border-radius:999px;
+      color:#dbeafe;
+      font-size:0.86rem;
+      white-space:nowrap;
+    }
+
+    .hero-right{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:flex-end;
+    }
+
+    .btn{
+      appearance:none;
+      border:none;
+      cursor:pointer;
+      border-radius:14px;
+      padding:12px 16px;
+      font-size:0.95rem;
+      font-weight:700;
+      transition:transform .18s ease, opacity .18s ease, background .18s ease;
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      min-height:46px;
+    }
+
+    .btn:hover { transform: translateY(-1px); }
+    .btn:disabled { opacity:0.6; cursor:not-allowed; transform:none; }
+
+    .btn-primary{
+      background:linear-gradient(135deg, var(--brand-2), var(--brand));
+      color:white;
+      box-shadow:0 10px 30px rgba(99,102,241,0.35);
+    }
+
+    .btn-secondary{
+      background:#1f2937;
+      color:#e5e7eb;
+      border:1px solid #334155;
+    }
+
+    .btn-danger{
+      background:#7f1d1d;
+      color:#fff;
+      border:1px solid #b91c1c;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1.25fr 0.95fr;
+      gap:18px;
+      align-items:start;
+    }
+
+    @media (max-width: 1100px){
+      .grid{
+        grid-template-columns:1fr;
+      }
+    }
+
+    .stack{
+      display:flex;
+      flex-direction:column;
+      gap:18px;
+    }
+
+    .card{
+      background:linear-gradient(180deg, rgba(17,24,39,0.96), rgba(15,23,42,0.98));
+      border:1px solid rgba(255,255,255,0.08);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+
+    .card-header{
+      padding:16px 18px 14px;
+      border-bottom:1px solid rgba(255,255,255,0.06);
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:12px;
+    }
+
+    .card-header h2{
+      margin:0;
+      font-size:1.08rem;
+      font-weight:800;
+      letter-spacing:-0.01em;
+    }
+
+    .card-header p{
+      margin:6px 0 0;
+      color:var(--muted);
+      font-size:0.9rem;
+      line-height:1.55;
+    }
+
+    .card-body{
+      padding:18px;
+    }
+
+    .section-note{
+      margin-top:10px;
+      padding:12px 14px;
+      background:rgba(59,130,246,0.08);
+      border:1px solid rgba(59,130,246,0.18);
+      color:#cbd5e1;
+      border-radius:14px;
+      line-height:1.6;
+      font-size:0.9rem;
+    }
+
+    .form-grid{
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap:14px;
+    }
+
+    .form-grid-3{
+      display:grid;
+      grid-template-columns: repeat(3, minmax(0,1fr));
+      gap:14px;
+    }
+
+    @media (max-width: 780px){
+      .form-grid, .form-grid-3{
+        grid-template-columns:1fr;
+      }
+    }
+
+    .field{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+      min-width:0;
+    }
+
+    .field.full{
+      grid-column:1 / -1;
+    }
+
+    .label{
+      font-size:0.92rem;
+      font-weight:700;
+      color:#f3f4f6;
+      display:flex;
+      align-items:center;
+      gap:8px;
+    }
+
+    .sub-label{
+      font-size:0.8rem;
+      color:var(--muted);
+      line-height:1.5;
+      margin-top:-2px;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="url"],
+    textarea,
+    select {
+      width:100%;
+      border:1px solid #334155;
+      background:var(--input);
+      color:var(--text);
+      border-radius:14px;
+      padding:12px 14px;
+      font-size:0.96rem;
+      outline:none;
+      transition:border-color .18s ease, box-shadow .18s ease;
+      font-family:inherit;
+    }
+
+    textarea{
+      min-height:100px;
+      resize:vertical;
+      line-height:1.55;
+    }
+
+    input:focus, textarea:focus, select:focus{
+      border-color:#818cf8;
+      box-shadow:0 0 0 3px rgba(129,140,248,0.18);
+    }
+
+    .row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:12px;
+      align-items:center;
+    }
+
+    .chip-row{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:4px;
+    }
+
+    .chip{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      background:var(--chip);
+      border:1px solid #374151;
+      padding:9px 12px;
+      border-radius:999px;
+      cursor:pointer;
+      user-select:none;
+      font-size:0.92rem;
+      transition:border-color .18s ease, transform .18s ease, background .18s ease;
+    }
+
+    .chip:hover{ transform:translateY(-1px); }
+    .chip input{ display:none; }
+
+    .chip.active{
+      border-color:#818cf8;
+      background:rgba(99,102,241,0.18);
+      color:#eef2ff;
+    }
+
+    .inline-help{
+      color:var(--muted);
+      font-size:0.82rem;
+      line-height:1.5;
+      margin-top:4px;
+    }
+
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-width:24px;
+      height:24px;
+      border-radius:999px;
+      background:rgba(255,255,255,0.08);
+      font-size:0.8rem;
+      font-weight:800;
+    }
+
+    .mode-panel{
+      border:1px dashed rgba(255,255,255,0.12);
+      border-radius:16px;
+      padding:14px;
+      background:rgba(255,255,255,0.02);
+      margin-top:14px;
+    }
+
+    .hidden{ display:none !important; }
+
+    .status-box{
+      border-radius:16px;
+      padding:14px 16px;
+      line-height:1.6;
+      font-size:0.92rem;
+      border:1px solid transparent;
+      white-space:pre-wrap;
+      word-break:break-word;
+    }
+
+    .status-info{
+      background:rgba(59,130,246,0.08);
+      border-color:rgba(59,130,246,0.22);
+      color:#dbeafe;
+    }
+
+    .status-ok{
+      background:rgba(16,185,129,0.1);
+      border-color:rgba(16,185,129,0.25);
+      color:#d1fae5;
+    }
+
+    .status-warn{
+      background:rgba(245,158,11,0.1);
+      border-color:rgba(245,158,11,0.25);
+      color:#fde68a;
+    }
+
+    .status-error{
+      background:rgba(239,68,68,0.1);
+      border-color:rgba(239,68,68,0.25);
+      color:#fecaca;
+    }
+
+    .summary-list{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:10px;
+      margin:0;
+      padding:0;
+      list-style:none;
+    }
+
+    .summary-item{
+      border:1px solid rgba(255,255,255,0.06);
+      background:rgba(255,255,255,0.02);
+      border-radius:14px;
+      padding:12px 14px;
+    }
+
+    .summary-item .k{
+      display:block;
+      font-size:0.78rem;
+      color:var(--muted);
+      margin-bottom:6px;
+    }
+
+    .summary-item .v{
+      display:block;
+      font-size:0.96rem;
+      color:#f8fafc;
+      word-break:break-word;
+      line-height:1.55;
+    }
+
+    .code-box{
+      background:#020617;
+      border:1px solid #1e293b;
+      border-radius:16px;
+      padding:14px;
+      overflow:auto;
+      max-height:420px;
+      font-size:0.85rem;
+      line-height:1.55;
+      color:#dbeafe;
+      white-space:pre-wrap;
+      word-break:break-word;
+    }
+
+    .result-links{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      margin-top:10px;
+    }
+
+    .result-link{
+      display:block;
+      padding:12px 14px;
+      border-radius:14px;
+      background:rgba(255,255,255,0.04);
+      border:1px solid rgba(255,255,255,0.08);
+      text-decoration:none;
+      color:#e0e7ff;
+      word-break:break-all;
+    }
+
+    .divider{
+      height:1px;
+      background:rgba(255,255,255,0.06);
+      margin:18px 0;
+    }
+
+    .footer-note{
+      margin-top:18px;
+      color:var(--muted);
+      font-size:0.86rem;
+      line-height:1.7;
+    }
+
+    .small-actions{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:12px;
+    }
+
+    .top-mini{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      margin-top:10px;
+    }
+
+    .mini-stat{
+      background:rgba(255,255,255,0.04);
+      border:1px solid rgba(255,255,255,0.08);
+      border-radius:14px;
+      padding:10px 12px;
+      min-width:120px;
+    }
+
+    .mini-stat .k{
+      font-size:0.76rem;
+      color:var(--muted);
+      margin-bottom:6px;
+      display:block;
+    }
+
+    .mini-stat .v{
+      font-size:0.96rem;
+      font-weight:700;
+      color:#fff;
+    }
+
+    .danger-note{
+      margin-top:12px;
+      border-radius:14px;
+      padding:12px 14px;
+      background:rgba(239,68,68,0.08);
+      border:1px solid rgba(239,68,68,0.18);
+      color:#fecaca;
+      font-size:0.9rem;
+      line-height:1.6;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="hero">
+      <div class="hero-left">
+        <h1>🎬 MLQ Video Giftcard — send_video_giftcard v0.1</h1>
+        <p>
+          หน้าแยกสำหรับ “ประกอบวิดีโอ” โดยใช้ <strong>Video Template จาก Google Drive</strong> +
+          <strong>Music File</strong> + <strong>ข้อความ</strong> แล้วส่งไปยัง <strong>Cloud Run</strong> เพื่อ Render Output กลับมาเป็นวิดีโอจริง
+        </p>
+        <div class="hero-badges">
+          <span class="badge">⚙️ v0.1 = Single Video Template Only</span>
+          <span class="badge">☁️ Cloud Run Render</span>
+          <span class="badge">🎵 Google Drive Music File ID</span>
+          <span class="badge">🪪 ยังไม่ผูก DNA Engine เต็มระบบ</span>
+        </div>
+      </div>
+
+      <div class="hero-right">
+        <button class="btn btn-secondary" id="fillDemoBtn">เติมข้อมูลตัวอย่าง</button>
+        <button class="btn btn-secondary" id="copyPayloadBtn">คัดลอก Payload</button>
+        <button class="btn btn-primary" id="renderBtnTop">🚀 สร้างวิดีโอ</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <!-- LEFT -->
+      <div class="stack">
+        <!-- SECTION 1 -->
+        <section class="card">
+          <div class="card-header">
+            <div>
+              <h2>1) Render Mode + Cloud Run</h2>
+              <p>เลือกประเภทงานที่จะส่งไป render และระบุ base URL ของ Cloud Run service</p>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="field">
+                <label class="label">🎞️ Render Type</label>
+                <div class="chip-row" id="renderTypeChips">
+                  <label class="chip active" data-chip-group="renderType">
+                    <input type="radio" name="renderType" value="showcase" checked />
+                    <span>Showcase</span>
+                  </label>
+                  <label class="chip" data-chip-group="renderType">
+                    <input type="radio" name="renderType" value="gift" />
+                    <span>Gift</span>
+                  </label>
+                </div>
+                <div class="inline-help">
+                  v0.1 รองรับ 2 mode ก่อน: <strong>showcase</strong> และ <strong>gift</strong>
+                </div>
+              </div>
+
+              <div class="field">
+                <label class="label" for="cloudRunBaseUrl">☁️ Cloud Run Base URL</label>
+                <input id="cloudRunBaseUrl" type="url" placeholder="https://mlq-video-worker-xxxxx-uc.a.run.app" />
+                <div class="inline-help">
+                  ไม่ต้องใส่ path เช่น <code>/render/showcase</code> — ระบบจะต่อ endpoint ให้เองตาม render type
+                </div>
+              </div>
+
+              <div class="field">
+                <label class="label" for="compositionType">🧱 Composition Type</label>
+                <select id="compositionType">
+                  <option value="single" selected>single (v0.1 ใช้งานจริง)</option>
+                  <option value="with_intro">with_intro (reserved v0.2)</option>
+                  <option value="concat">concat (reserved v0.2)</option>
+                </select>
+                <div class="inline-help">
+                  ตอนนี้ให้ใช้ <strong>single</strong> เท่านั้น ตัวอื่นเก็บเป็นโครงสำหรับ v0.2
+                </div>
+              </div>
+
+              <div class="field">
+                <label class="label" for="outputFolderHint">📁 Output Hint (optional)</label>
+                <input id="outputFolderHint" type="text" placeholder="showcase / gift / calm / hook" />
+                <div class="inline-help">
+                  ช่องนี้ยังไม่ถูกส่งให้ backend โดยตรงใน v0.1 แต่เก็บไว้ใน preview เพื่อช่วยจัดระเบียบงาน
+                </div>
+              </div>
+            </div>
+
+            <div class="section-note">
+              <strong>Endpoint mapping v0.1</strong><br>
+              - ถ้า Render Type = <code>showcase</code> → POST ไป <code>/render/showcase</code><br>
+              - ถ้า Render Type = <code>gift</code> → POST ไป <code>/render/gift</code>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 2 -->
+        <section class="card">
+          <div class="card-header">
+            <div>
+              <h2>2) Video Template จาก Google Drive</h2>
+              <p>ระบุไฟล์วิดีโอ template ที่จะใช้เป็นภาพหลักในการ render</p>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="field">
+                <label class="label" for="templateType">🗂️ Template Category</label>
+                <select id="templateType">
+                  <option value="showcase">showcase</option>
+                  <option value="gift">gift</option>
+                  <option value="calm">calm</option>
+                  <option value="hook">hook</option>
+                </select>
+                <div class="inline-help">
+                  หมวดนี้เป็น metadata ฝั่งหน้าเว็บ เพื่อช่วยคุมการเลือก template ให้ตรง usage
+                </div>
+              </div>
+
+              <div class="field">
+                <label class="label" for="templateLabel">🏷️ Template Label (optional)</label>
+                <input id="templateLabel" type="text" placeholder="aq_showcase_jelly_white_01" />
+                <div class="inline-help">
+                  ใช้เก็บชื่อที่คนอ่านรู้เรื่อง ไม่จำเป็นต้องตรงกับชื่อไฟล์จริง
+                </div>
+              </div>
+
+              <div class="field full">
+                <label class="label" for="templateFileId">🎥 Google Drive Template File ID</label>
+                <input id="templateFileId" type="text" placeholder="เช่น 1ABCDEFxxxxxx..." />
+                <div class="inline-help">
+                  ใส่ <strong>File ID</strong> ของวิดีโอ template จาก Google Drive — นี่คือค่าหลักที่ Cloud Run จะใช้ดาวน์โหลดไฟล์จริง
+                </div>
+              </div>
+
+              <div class="field full">
+                <label class="label" for="templateDriveUrl">🔗 Google Drive URL (optional)</label>
+                <input id="templateDriveUrl" type="url" placeholder="https://drive.google.com/file/d/FILE_ID/view" />
+                <div class="inline-help">
+                  ใส่ไว้เพื่ออ้างอิง/เปิดดูเองจากหน้าเว็บ ไม่จำเป็นต่อ backend ถ้ามี file id อยู่แล้ว
+                </div>
+              </div>
+            </div>
+
+            <div class="small-actions">
+              <button class="btn btn-secondary" type="button" id="extractTemplateIdBtn">ดึง File ID จาก URL</button>
+              <button class="btn btn-secondary" type="button" id="openTemplateUrlBtn">เปิดลิงก์ Template</button>
+            </div>
+
+            <div class="danger-note">
+              v0.1 ยังเป็น <strong>single video template</strong> เท่านั้น — ยังไม่รับหลายคลิป / intro / outro ใน payload จริง
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 3 -->
+        <section class="card">
+          <div class="card-header">
+            <div>
+              <h2>3) Music / DNA Audio Source</h2>
+              <p>v0.1 ใช้แนวทางง่ายก่อน: ใส่ Music File ID จาก Google Drive โดยตรง</p>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="field">
+                <label class="label" for="musicSourceMode">🎵 Music Source Mode</label>
+                <select id="musicSourceMode">
+                  <option value="drive_file" selected>Google Drive File ID</option>
+                  <option value="none">No Music (ใช้เสียงจาก template หรือเงียบ)</option>
+                </select>
+                <div class="inline-help">
+                  v0.2 ค่อยต่อกับระบบ DNA music ที่สร้างไฟล์เพลงอัตโนมัติจากหน้าเดิม
+                </div>
+              </div>
+
+              <div class="field">
+                <label class="label" for="musicLabel">🏷️ Music Label (optional)</label>
+                <input id="musicLabel" type="text" placeholder="MLQ DNA Track A / Piano Calm 01" />
+              </div>
+
+              <div class="field full" id="musicFileIdField">
+                <label class="label" for="musicFileId">🎼 Google Drive Music File ID</label>
+                <input id="musicFileId" type="text" placeholder="เช่น 1XYZmusicFileId..." />
+                <div class="inline-help">
+                  ใส่ File ID ของไฟล์เพลง MP3 / WAV ที่ต้องการใช้แทนเสียงเดิมของวิดีโอ
+                </div>
+              </div>
+
+              <div class="field full" id="musicDriveUrlField">
+                <label class="label" for="musicDriveUrl">🔗 Google Drive Music URL (optional)</label>
+                <input id="musicDriveUrl" type="url" placeholder="https://drive.google.com/file/d/FILE_ID/view" />
+              </div>
+            </div>
+
+            <div class="small-actions">
+              <button class="btn btn-secondary" type="button" id="extractMusicIdBtn">ดึง Music File ID จาก URL</button>
+              <button class="btn btn-secondary" type="button" id="openMusicUrlBtn">เปิดลิงก์เพลง</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 4 -->
+        <section class="card">
+          <div class="card-header">
+            <div>
+              <h2>4) Render Settings</h2>
+              <p>กำหนดช่วงเวลาที่จะใช้จากคลิปต้นฉบับ และข้อความ overlay ที่ต้องการส่งไป render</p>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="form-grid-3">
+              <div class="field">
+                <label class="label" for="startTime">⏱️ Start Time (sec)</label>
+                <input id="startTime" type="number" min="0" step="1" value="0" />
+                <div class="inline-help">เช่น 60 = เริ่มที่นาที 1 ของ template</div>
+              </div>
+
+              <div class="field">
+                <label class="label" for="durationSec">🎬 Duration (sec)</label>
+                <input id="durationSec" type="number" min="1" step="1" value="30" />
+                <div class="inline-help">เช่น 30, 45, 60</div>
+              </div>
+
+              <div class="field">
+                <label class="label" for="renderPreset">⚙️ Render Preset (front-end note)</label>
+                <select id="renderPreset">
+                  <option value="youtube_showcase">youtube_showcase</option>
+                  <option value="gift_page">gift_page</option>
+                  <option value="calm_loop">calm_loop</option>
+                  <option value="hook_short">hook_short</option>
+                </select>
+                <div class="inline-help">
+                  ยังเป็น metadata ฝั่งหน้าเว็บเพื่อช่วยจัด flow / naming
+                </div>
+              </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <div class="form-grid">
+              <div class="field full">
+                <label class="label" for="titleText">📝 Title Text</label>
+                <input id="titleText" type="text" placeholder="MLQ-Music · DNA of Your Life" />
+                <div class="inline-help">
+                  ใช้กับ showcase เป็นหลัก แต่ใน gift ก็ยังส่งไปได้หาก backend รองรับ
+                </div>
+              </div>
+            </div>
+
+            <div id="giftFields" class="mode-panel hidden">
+              <div class="form-grid">
+                <div class="field">
+                  <label class="label" for="recipientName">🎁 Recipient Name</label>
+                  <input id="recipientName" type="text" placeholder="ชื่อผู้รับ" />
+                </div>
+
+                <div class="field">
+                  <label class="label" for="senderName">✍️ Sender Name (front-end note)</label>
+                  <input id="senderName" type="text" placeholder="ชื่อผู้ส่ง" />
+                </div>
+
+                <div class="field full">
+                  <label class="label" for="giftMessage">💌 Gift Message</label>
+                  <textarea id="giftMessage" placeholder="ข้อความอวยพร / ข้อความสำหรับ overlay"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <div id="showcaseFields" class="mode-panel">
+              <div class="inline-help">
+                สำหรับ <strong>showcase</strong> v0.1 ใช้ <code>title_text</code> เป็นข้อความหลัก และไม่บังคับ recipient/message
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION 5 -->
+        <section class="card">
+          <div class="card-header">
+            <div>
+              <h2>5) Meta / Job Notes (ไม่บังคับ)</h2>
+              <p>เก็บบริบทของงานไว้กับ payload preview เพื่อช่วยจัดระเบียบการทดสอบและตามผล</p>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="form-grid">
+              <div class="field">
+                <label class="label" for="jobName">🧾 Job Name</label>
+                <input id="jobName" type="text" placeholder="showcase_test_01" />
+              </div>
+
+              <div class="field">
+                <label class="label" for="jobTag">🏷️ Job Tag</label>
+                <input id="jobTag" type="text" placeholder="aquarium / jellyfish / july-test" />
+              </div>
+
+              <div class="field full">
+                <label class="label" for="jobNotes">🗒️ Notes</label>
+                <textarea id="jobNotes" placeholder="โน้ตสำหรับตัวเอง เช่น ใช้คลิปแมงกะพรุนขาวตัวแรก, เอาไปลง YouTube showcase, ต้องลอง start_time 12 วินาที"></textarea>
+              </div>
+            </div>
+
+            <div class="footer-note">
+              ข้อมูลชุดนี้จะไม่ทำให้ Cloud Run render เก่งขึ้นใน v0.1 แต่ช่วยให้ payload preview อ่านรู้เรื่องและย้อนดูงานทดสอบได้ง่ายขึ้น
+            </div>
+          </div>
+        </section>
+      </div>
+
+      <!-- RIGHT -->
+      <div class="stack">
+        <section class="card">
+          <div class="card-header">
+            <div>
+              <h2>Payload Preview</h2>
+              <p>สรุป payload ที่จะยิงไป Cloud Run ก่อนกด render จริง</p>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="top-mini">
+              <div class="mini-stat">
+                <span class="k">Endpoint</span>
+                <span class="v" id="previewEndpoint">-</span>
+              </div>
+              <div class="mini-stat">
+                <span class="k">Mode</span>
+                <span class="v" id="previewMode">showcase</span>
+              </div>
+              <div class="mini-stat">
+                <span class="k">Composition</span>
+                <span class="v" id="previewComposition">single</span>
+              </div>
+            </div>
+
+            <div class="divider"></div>
+
+            <ul class="summary-list" id="summaryList">
+              <li class="summary-item">
+                <span class="k">Template File ID</span>
+                <span class="v" id="summaryTemplateId">-</span>
+              </li>
+              <li class="summary-item">
+                <span class="k">Music File ID</span>
+                <span class="v" id="summaryMusicId">-</span>
+              </li>
+              <li class="summary-item">
+                <span class="k">Title / Gift Text</span>
+                <span class="v" id="summaryText">-</span>
+              </li>
+              <li class="summary-item">
+                <span class="k">Start / Duration</span>
+                <span class="v" id="summaryTiming">0s / 30s</span>
+              </li>
+            </ul>
+
+            <div class="divider"></div>
+
+            <pre class="code-box" id="payloadPreview">{}</pre>
+
+            <div class="small-actions">
+              <button class="btn btn-secondary" type="button" id="refreshPreviewBtn">รีเฟรช Preview</button>
+              <button class="btn btn-primary" type="button" id="renderBtn">🚀 สร้างวิดีโอ</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-header">
+            <div>
+              <h2>Render Result</h2>
+              <p>ผลลัพธ์หลังยิง Cloud Run สำเร็จ/ไม่สำเร็จ</p>
+            </div>
+          </div>
+          <div class="card-body">
+            <div id="renderStatus" class="status-box status-info">
+พร้อมเมื่อคุณกด “สร้างวิดีโอ”
+            </div>
+
+            <div id="resultBox" class="hidden">
+              <div class="divider"></div>
+              <ul class="summary-list">
+                <li class="summary-item">
+                  <span class="k">Output File ID</span>
+                  <span class="v" id="resultFileId">-</span>
+                </li>
+                <li class="summary-item">
+                  <span class="k">Result Type</span>
+                  <span class="v" id="resultType">-</span>
+                </li>
+              </ul>
+
+              <div class="result-links" id="resultLinks"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card">
+          <div class="card-header">
+            <div>
+              <h2>v0.1 Scope Guard</h2>
+              <p>สิ่งที่หน้านี้ตั้งใจ “ทำ” และ “ยังไม่ทำ” เพื่อกันหลุด scope</p>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="status-box status-warn">
+<strong>ทำใน v0.1</strong>
+- เลือก render type = showcase / gift
+- ส่ง template_file_id + music_file_id + text + duration ไป Cloud Run
+- แสดง payload preview และ render result
+
+<strong>ยังไม่ทำใน v0.1</strong>
+- concat หลายคลิป
+- intro / outro image
+- auto browse Google Drive
+- template registry เต็มระบบ
+- ผูก DNA music engine เดิมเข้ามาอัตโนมัติ
+- save job ลงฐานข้อมูล / output registry
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      const els = {
+        cloudRunBaseUrl: document.getElementById('cloudRunBaseUrl'),
+        compositionType: document.getElementById('compositionType'),
+        outputFolderHint: document.getElementById('outputFolderHint'),
+
+        templateType: document.getElementById('templateType'),
+        templateLabel: document.getElementById('templateLabel'),
+        templateFileId: document.getElementById('templateFileId'),
+        templateDriveUrl: document.getElementById('templateDriveUrl'),
+
+        musicSourceMode: document.getElementById('musicSourceMode'),
+        musicLabel: document.getElementById('musicLabel'),
+        musicFileId: document.getElementById('musicFileId'),
+        musicDriveUrl: document.getElementById('musicDriveUrl'),
+        musicFileIdField: document.getElementById('musicFileIdField'),
+        musicDriveUrlField: document.getElementById('musicDriveUrlField'),
+
+        startTime: document.getElementById('startTime'),
+        durationSec: document.getElementById('durationSec'),
+        renderPreset: document.getElementById('renderPreset'),
+
+        titleText: document.getElementById('titleText'),
+        recipientName: document.getElementById('recipientName'),
+        senderName: document.getElementById('senderName'),
+        giftMessage: document.getElementById('giftMessage'),
+
+        giftFields: document.getElementById('giftFields'),
+        showcaseFields: document.getElementById('showcaseFields'),
+
+        jobName: document.getElementById('jobName'),
+        jobTag: document.getElementById('jobTag'),
+        jobNotes: document.getElementById('jobNotes'),
+
+        previewEndpoint: document.getElementById('previewEndpoint'),
+        previewMode: document.getElementById('previewMode'),
+        previewComposition: document.getElementById('previewComposition'),
+        summaryTemplateId: document.getElementById('summaryTemplateId'),
+        summaryMusicId: document.getElementById('summaryMusicId'),
+        summaryText: document.getElementById('summaryText'),
+        summaryTiming: document.getElementById('summaryTiming'),
+        payloadPreview: document.getElementById('payloadPreview'),
+
+        renderStatus: document.getElementById('renderStatus'),
+        resultBox: document.getElementById('resultBox'),
+        resultFileId: document.getElementById('resultFileId'),
+        resultType: document.getElementById('resultType'),
+        resultLinks: document.getElementById('resultLinks'),
+
+        renderBtn: document.getElementById('renderBtn'),
+        renderBtnTop: document.getElementById('renderBtnTop'),
+        refreshPreviewBtn: document.getElementById('refreshPreviewBtn'),
+        copyPayloadBtn: document.getElementById('copyPayloadBtn'),
+        fillDemoBtn: document.getElementById('fillDemoBtn'),
+
+        extractTemplateIdBtn: document.getElementById('extractTemplateIdBtn'),
+        openTemplateUrlBtn: document.getElementById('openTemplateUrlBtn'),
+        extractMusicIdBtn: document.getElementById('extractMusicIdBtn'),
+        openMusicUrlBtn: document.getElementById('openMusicUrlBtn'),
+      };
+
+      function getSelectedRenderType() {
+        const checked = document.querySelector('input[name="renderType"]:checked');
+        return checked ? checked.value : 'showcase';
+      }
+
+      function setStatus(message, type = 'info') {
+        els.renderStatus.className = 'status-box';
+        if (type === 'ok') els.renderStatus.classList.add('status-ok');
+        else if (type === 'warn') els.renderStatus.classList.add('status-warn');
+        else if (type === 'error') els.renderStatus.classList.add('status-error');
+        else els.renderStatus.classList.add('status-info');
+
+        els.renderStatus.textContent = message;
+      }
+
+      function normalizeBaseUrl(url) {
+        return String(url || '').trim().replace(/\/+$/, '');
+      }
+
+      function getEndpointPath(renderType) {
+        return renderType === 'gift' ? '/render/gift' : '/render/showcase';
+      }
+
+      function buildEndpoint() {
+        const base = normalizeBaseUrl(els.cloudRunBaseUrl.value);
+        const renderType = getSelectedRenderType();
+        if (!base) return '';
+        return base + getEndpointPath(renderType);
+      }
+
+      function extractDriveFileId(input) {
+        if (!input) return '';
+        const raw = String(input).trim();
+
+        // If it already looks like an ID (no slash, reasonably compact)
+        if (/^[a-zA-Z0-9_-]{10,}$/.test(raw) && !raw.includes('/')) {
+          return raw;
+        }
+
+        // /file/d/FILE_ID/view
+        let m = raw.match(/\/file\/d\/([a-zA-Z0-9_-]+)/);
+        if (m && m[1]) return m[1];
+
+        // id=FILE_ID
+        m = raw.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+        if (m && m[1]) return m[1];
+
+        // folders/...
+        m = raw.match(/\/d\/([a-zA-Z0-9_-]+)/);
+        if (m && m[1]) return m[1];
+
+        return '';
+      }
+
+      function buildPayload() {
+        const renderType = getSelectedRenderType();
+        const compositionType = els.compositionType.value || 'single';
+        const musicSourceMode = els.musicSourceMode.value;
+
+        const templateFileId = (els.templateFileId.value || '').trim();
+        const musicFileId = (els.musicFileId.value || '').trim();
+
+        const payload = {
+          composition_type: compositionType,
+          type: renderType,
+
+          // v0.1: single template only
+          template_file_id: templateFileId,
+          template_file_ids: templateFileId ? [templateFileId] : [],
+
+          start_time: Number(els.startTime.value || 0),
+          duration: Number(els.durationSec.value || 30),
+
+          title_text: (els.titleText.value || '').trim(),
+
+          // metadata / notes (front-end side)
+          meta: {
+            template_type: (els.templateType.value || '').trim(),
+            template_label: (els.templateLabel.value || '').trim(),
+            template_drive_url: (els.templateDriveUrl.value || '').trim(),
+            music_source_mode: musicSourceMode,
+            music_label: (els.musicLabel.value || '').trim(),
+            music_drive_url: (els.musicDriveUrl.value || '').trim(),
+            render_preset: (els.renderPreset.value || '').trim(),
+            output_folder_hint: (els.outputFolderHint.value || '').trim(),
+            job_name: (els.jobName.value || '').trim(),
+            job_tag: (els.jobTag.value || '').trim(),
+            job_notes: (els.jobNotes.value || '').trim(),
+            sender_name: (els.senderName.value || '').trim()
+          }
+        };
+
+        if (musicSourceMode === 'drive_file' && musicFileId) {
+          payload.music_file_id = musicFileId;
+        }
+
+        if (renderType === 'gift') {
+          payload.recipient_name = (els.recipientName.value || '').trim();
+          payload.message = (els.giftMessage.value || '').trim();
+        }
+
+        return payload;
+      }
+
+      function buildBackendPayload(payload) {
+        // ส่งเฉพาะที่ backend v0.1 น่าจะใช้จริง + start_time เผื่อ backend พร้อมรองรับ
+        const renderType = getSelectedRenderType();
+        const base = {
+          template_file_id: payload.template_file_id,
+          duration: payload.duration,
+          start_time: payload.start_time,
+          title_text: payload.title_text || ''
+        };
+
+        if (payload.music_file_id) {
+          base.music_file_id = payload.music_file_id;
+        }
+
+        if (renderType === 'gift') {
+          base.recipient_name = payload.recipient_name || '';
+          base.message = payload.message || '';
+        }
+
+        return base;
+      }
+
+      function updateModeUI() {
+        const mode = getSelectedRenderType();
+        if (mode === 'gift') {
+          els.giftFields.classList.remove('hidden');
+          els.showcaseFields.classList.add('hidden');
+        } else {
+          els.giftFields.classList.add('hidden');
+          els.showcaseFields.classList.remove('hidden');
+        }
+      }
+
+      function updateMusicUI() {
+        const mode = els.musicSourceMode.value;
+        const hide = mode === 'none';
+        els.musicFileIdField.classList.toggle('hidden', hide);
+        els.musicDriveUrlField.classList.toggle('hidden', hide);
+      }
+
+      function updateChipActiveStates() {
+        document.querySelectorAll('[data-chip-group="renderType"]').forEach(label => {
+          const input = label.querySelector('input');
+          if (!input) return;
+          label.classList.toggle('active', input.checked);
+        });
+      }
+
+      function refreshPreview() {
+        updateModeUI();
+        updateMusicUI();
+        updateChipActiveStates();
+
+        const payload = buildPayload();
+        const endpoint = buildEndpoint();
+
+        els.previewEndpoint.textContent = endpoint || '-';
+        els.previewMode.textContent = payload.type || '-';
+        els.previewComposition.textContent = payload.composition_type || '-';
+
+        els.summaryTemplateId.textContent = payload.template_file_id || '-';
+        els.summaryMusicId.textContent = payload.music_file_id || '(none)';
+
+        let summaryText = payload.title_text || '-';
+        if (payload.type === 'gift') {
+          summaryText = `recipient: ${payload.recipient_name || '-'}\nmessage: ${payload.message || '-'}`;
+        }
+        els.summaryText.textContent = summaryText;
+        els.summaryTiming.textContent = `${payload.start_time || 0}s / ${payload.duration || 30}s`;
+
+        els.payloadPreview.textContent = JSON.stringify({
+          endpoint,
+          payload,
+          backend_payload: buildBackendPayload(payload)
+        }, null, 2);
+      }
+
+      function validateBeforeRender() {
+        const renderType = getSelectedRenderType();
+        const endpoint = buildEndpoint();
+        const payload = buildPayload();
+
+        if (!endpoint) {
+          return { ok:false, message:'กรุณากรอก Cloud Run Base URL ก่อน' };
+        }
+
+        if (!payload.template_file_id) {
+          return { ok:false, message:'กรุณากรอก Template File ID ก่อน' };
+        }
+
+        if (payload.duration <= 0) {
+          return { ok:false, message:'Duration ต้องมากกว่า 0' };
+        }
+
+        if (payload.start_time < 0) {
+          return { ok:false, message:'Start Time ต้องไม่ติดลบ' };
+        }
+
+        if (els.musicSourceMode.value === 'drive_file' && !payload.music_file_id) {
+          return { ok:false, message:'เลือกโหมดเพลงเป็น Google Drive File ID แต่ยังไม่ได้กรอก Music File ID' };
+        }
+
+        if (renderType === 'gift') {
+          if (!payload.recipient_name) {
+            return { ok:false, message:'Gift mode ต้องมีชื่อผู้รับ (recipient_name)' };
+          }
+          if (!payload.message) {
+            return { ok:false, message:'Gift mode ต้องมีข้อความอวยพร (message)' };
+          }
+        }
+
+        if (payload.composition_type !== 'single') {
+          return { ok:false, message:'v0.1 รองรับเฉพาะ composition_type = single เท่านั้น' };
+        }
+
+        return { ok:true, endpoint, payload };
+      }
+
+      async function copyPayload() {
+        refreshPreview();
+        const text = els.payloadPreview.textContent || '';
+        try {
+          await navigator.clipboard.writeText(text);
+          setStatus('คัดลอก payload preview แล้ว', 'ok');
+        } catch (err) {
+          setStatus('คัดลอก payload ไม่สำเร็จ — ลองคัดลอกเองจากกล่อง preview', 'warn');
+        }
+      }
+
+      function fillDemo() {
+        els.cloudRunBaseUrl.value = 'https://mlq-video-worker-xxxxx-uc.a.run.app';
+
+        const showcaseRadio = document.querySelector('input[name="renderType"][value="showcase"]');
+        if (showcaseRadio) showcaseRadio.checked = true;
+
+        els.compositionType.value = 'single';
+        els.outputFolderHint.value = 'showcase';
+
+        els.templateType.value = 'showcase';
+        els.templateLabel.value = 'aq_showcase_jelly_white_01';
+        els.templateFileId.value = '1DEMO_TEMPLATE_FILE_ID_SHOWCASE';
+        els.templateDriveUrl.value = 'https://drive.google.com/file/d/1DEMO_TEMPLATE_FILE_ID_SHOWCASE/view';
+
+        els.musicSourceMode.value = 'drive_file';
+        els.musicLabel.value = 'MLQ DNA Demo Track 01';
+        els.musicFileId.value = '1DEMO_MUSIC_FILE_ID';
+        els.musicDriveUrl.value = 'https://drive.google.com/file/d/1DEMO_MUSIC_FILE_ID/view';
+
+        els.startTime.value = '0';
+        els.durationSec.value = '30';
+        els.renderPreset.value = 'youtube_showcase';
+        els.titleText.value = 'MLQ-Music · DNA of Your Life';
+
+        els.recipientName.value = 'คุณ';
+        els.senderName.value = 'MLQ';
+        els.giftMessage.value = 'ขอให้มีความสุข';
+
+        els.jobName.value = 'showcase_test_01';
+        els.jobTag.value = 'aquarium';
+        els.jobNotes.value = 'ทดลอง render showcase ตัวแรกด้วยแมงกะพรุนขาว';
+
+        refreshPreview();
+        setStatus('เติมข้อมูลตัวอย่างแล้ว — ปรับต่อได้ก่อนกด render', 'info');
+      }
+
+      async function renderVideo() {
+        refreshPreview();
+        const check = validateBeforeRender();
+        if (!check.ok) {
+          setStatus(check.message, 'error');
+          return;
+        }
+
+        const { endpoint, payload } = check;
+        const backendPayload = buildBackendPayload(payload);
+
+        els.renderBtn.disabled = true;
+        els.renderBtnTop.disabled = true;
+        els.resultBox.classList.add('hidden');
+        els.resultLinks.innerHTML = '';
+        setStatus(`กำลังส่งงานไป Cloud Run...\n${endpoint}`, 'info');
+
+        try {
+          const res = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(backendPayload)
+          });
+
+          let data = null;
+          const text = await res.text();
+          try {
+            data = text ? JSON.parse(text) : {};
+          } catch (_) {
+            data = { raw_response: text };
+          }
+
+          if (!res.ok) {
+            const msg = data?.error || data?.message || `HTTP ${res.status}`;
+            throw new Error(msg);
+          }
+
+          setStatus('Render สำเร็จ', 'ok');
+          populateResult(data, payload.type);
+
+        } catch (err) {
+          console.error(err);
+          setStatus(`Render ไม่สำเร็จ\n${err.message || err}`, 'error');
+        } finally {
+          els.renderBtn.disabled = false;
+          els.renderBtnTop.disabled = false;
+        }
+      }
+
+      function populateResult(data, renderType) {
+        els.resultBox.classList.remove('hidden');
+
+        const output = data?.output || {};
+        const fileId = output.file_id || data.file_id || '-';
+        const type = data?.type || renderType || '-';
+
+        els.resultFileId.textContent = fileId;
+        els.resultType.textContent = type;
+
+        const links = [];
+        if (output.web_view_link) {
+          links.push({ label:'เปิดไฟล์บน Google Drive', url: output.web_view_link });
+        }
+        if (output.direct_link) {
+          links.push({ label:'Direct/View Link', url: output.direct_link });
+        }
+        if (data.url) {
+          links.push({ label:'Output URL', url: data.url });
+        }
+
+        if (!links.length) {
+          const raw = document.createElement('div');
+          raw.className = 'status-box status-info';
+          raw.textContent = 'Response สำเร็จ แต่ไม่พบลิงก์ output ในรูปแบบที่ UI รู้จัก';
+          els.resultLinks.innerHTML = '';
+          els.resultLinks.appendChild(raw);
+          return;
+        }
+
+        els.resultLinks.innerHTML = '';
+        links.forEach(item => {
+          const a = document.createElement('a');
+          a.className = 'result-link';
+          a.href = item.url;
+          a.target = '_blank';
+          a.rel = 'noopener noreferrer';
+          a.textContent = `${item.label}: ${item.url}`;
+          els.resultLinks.appendChild(a);
+        });
+      }
+
+      function bindDriveHelpers() {
+        els.extractTemplateIdBtn.addEventListener('click', () => {
+          const id = extractDriveFileId(els.templateDriveUrl.value || els.templateFileId.value);
+          if (!id) {
+            setStatus('ไม่พบ File ID จากช่อง Template URL/ID', 'warn');
+            return;
+          }
+          els.templateFileId.value = id;
+          refreshPreview();
+          setStatus('ดึง Template File ID สำเร็จ', 'ok');
+        });
+
+        els.extractMusicIdBtn.addEventListener('click', () => {
+          const id = extractDriveFileId(els.musicDriveUrl.value || els.musicFileId.value);
+          if (!id) {
+            setStatus('ไม่พบ Music File ID จากช่อง Music URL/ID', 'warn');
+            return;
+          }
+          els.musicFileId.value = id;
+          refreshPreview();
+          setStatus('ดึง Music File ID สำเร็จ', 'ok');
+        });
+
+        els.openTemplateUrlBtn.addEventListener('click', () => {
+          const url = (els.templateDriveUrl.value || '').trim();
+          if (!url) {
+            setStatus('ยังไม่มี Template URL ให้เปิด', 'warn');
+            return;
+          }
+          window.open(url, '_blank', 'noopener');
+        });
+
+        els.openMusicUrlBtn.addEventListener('click', () => {
+          const url = (els.musicDriveUrl.value || '').trim();
+          if (!url) {
+            setStatus('ยังไม่มี Music URL ให้เปิด', 'warn');
+            return;
+          }
+          window.open(url, '_blank', 'noopener');
+        });
+      }
+
+      function bindEvents() {
+        document.querySelectorAll('input, textarea, select').forEach(el => {
+          el.addEventListener('input', refreshPreview);
+          el.addEventListener('change', refreshPreview);
+        });
+
+        document.querySelectorAll('input[name="renderType"]').forEach(radio => {
+          radio.addEventListener('change', () => {
+            updateChipActiveStates();
+            refreshPreview();
+          });
+        });
+
+        els.refreshPreviewBtn.addEventListener('click', refreshPreview);
+        els.copyPayloadBtn.addEventListener('click', copyPayload);
+        els.fillDemoBtn.addEventListener('click', fillDemo);
+        els.renderBtn.addEventListener('click', renderVideo);
+        els.renderBtnTop.addEventListener('click', renderVideo);
+
+        bindDriveHelpers();
+      }
+
+      // Init defaults
+      function initDefaults() {
+        els.compositionType.value = 'single';
+        els.musicSourceMode.value = 'drive_file';
+        els.durationSec.value = '30';
+        els.startTime.value = '0';
+        els.renderPreset.value = 'youtube_showcase';
+        updateModeUI();
+        updateMusicUI();
+        updateChipActiveStates();
+        refreshPreview();
+      }
+
+      bindEvents();
+      initDefaults();
+    })();
+  </script>
+</body>
+</html>

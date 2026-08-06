@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="tailwind-built.css">
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="css/gift-card-base.css">
 
     <!-- QR Code Library -->
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
@@ -575,7 +576,11 @@
         } else {
             const oldLink = document.querySelector('link[data-edition-css]');
             if (oldLink) oldLink.remove();
-            const cssFile = `css/gift-card-${edition}.css?v=6.0`;
+
+//            const cssFile = `css/gift-card-${edition}.css?v=6.0`;
+            const cssFile = `css/gift-card-premium.css?v=6.1`;
+
+
             const link = document.createElement('link');
             link.rel = 'stylesheet';
             link.href = cssFile;
@@ -791,7 +796,7 @@
         <div style="font-size:3rem;">🎧✨</div>
         <h2 style="font-size:1.6rem;">หมดเวลาทดลองฟัง</h2>
         <p style="color:#5a3a2a;">คลิกปุ่มด้านล่างเพื่อรับประสบการณ์เต็มรูปแบบ</p>
-        <a href="https://mlq-music.com" target="_blank" style="display:inline-block; background:#f59e0b; color:white; padding:12px 24px; border-radius:40px;">✨ ลงทะเบียน รับเพลงเต็ม</a>
+        <a href="https://mlq-music.rainboworcakids.com/www/" target="_blank" style="display:inline-block; background:#f59e0b; color:white; padding:12px 24px; border-radius:40px;">✨ ลงทะเบียน รับเพลงเต็ม</a>
         <button id="closeInviteBtn" style="background:none; border:none; margin-top:20px; cursor:pointer;">ปิด</button>
     </div>
 </div>
