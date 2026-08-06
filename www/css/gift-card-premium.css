@@ -1,3 +1,257 @@
+/* THEME MODERN (basic) */
+.theme-modern {
+    --card-width: 480px;
+    --card-radius: 0px;
+    --glass-radius: 0px;
+    --bg-gradient: #ffffff;
+    --sender-color: #7c2d12;
+    --sender-border: #b45309;
+    --sender-bg: #fef3c7;
+    
+    position: relative;
+    border: 3px double #d97706;
+    outline: 8px solid #fef3c7;
+    outline-offset: -11px;
+    box-shadow: 0 35px 60px -15px rgba(0,0,0,0.3);
+    overflow: visible !important;
+}
+.theme-modern .mlq-card-bg-layer {
+    background-blend-mode: multiply !important;
+    background-image: url('https://www.transparenttextures.com/patterns/floral.png') !important;
+    background-size: 120px !important;
+    background-color: #fffbeb;
+    padding: 30px;
+}
+.theme-modern .mlq-glass-shield::before {
+    content: "";
+    position: absolute;
+    top: -15px;
+    left: -15px;
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, transparent 45%, #dc2626 45%, #b91c1c 55%, transparent 55%);
+    z-index: 5;
+    pointer-events: none;
+}
+.theme-modern .mlq-glass-shield::after {
+    content: "🎀";
+    position: absolute;
+    top: -25px;
+    left: 15px;
+    font-size: 3rem;
+    filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+    z-index: 25;
+    pointer-events: none;
+}
+.theme-modern .mlq-glass-shield {
+    position: relative;
+    background: #fdfaf2;
+    border: 1px solid rgba(217,119,6,0.25);
+    box-shadow: inset 0 0 15px rgba(217,119,6,0.05), 0 10px 25px -5px rgba(0,0,0,0.05);
+    z-index: 2;
+}
+
+
+
+
+
+/* ===== Premium full features (3D fold, die-cut) ===== */
+.theme-animate {
+    --card-width: 440px;
+    --card-radius: 28px;
+    --glass-radius: 20px;
+    
+    position: relative;
+    width: var(--card-width);
+    height: 580px;
+    background: #fffbf0;
+    border-radius: var(--card-radius);
+    border: 2px solid #b45309;
+    box-shadow: 0 35px 70px -15px rgba(0,0,0,0.3);
+    perspective: 2500px;
+    overflow: visible !important;
+}
+.theme-animate .mlq-card-bg-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 24px 18px !important;
+    background: #fffbeb !important;
+    border-radius: var(--card-radius);
+    z-index: 1;
+}
+.theme-animate .mlq-glass-shield {
+    background: #ffffff !important;
+    border: 1px solid rgba(217,119,6,0.2);
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+.theme-animate .mlq-glass-shield img, 
+.theme-animate .user-upload-avatar {
+    width: 145px !important;
+    height: 220px !important;
+    object-fit: cover !important;
+    border: 3px solid #d97706;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+    margin: 0 auto 12px auto;
+}
+.theme-animate .greeting-icon {
+    display: none;
+}
+.theme-animate::before {
+    content: "การ์ดอวยพรวันเกิด";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #f7df59;
+    background-image: 
+        url('https://img.icons8.com/ios/50/FD7E14/birthday.png'),
+        url('https://img.icons8.com/color/48/spa-flower.png'),
+        url("https://www.transparenttextures.com/patterns/gray-floral.png"),
+        radial-gradient(circle at 30% 45%, rgba(255,200,100,0.4) 0%, transparent 40%),
+        linear-gradient(135deg, #fff7ed, #ffefd6);
+    background-blend-mode: normal, overlay, normal, normal, normal;
+    background-size: 140px, 100px, cover, auto, auto;
+    background-repeat: no-repeat, repeat, repeat, no-repeat, no-repeat;
+    background-position: center 75%, center center, 0 0, 0 0, 0 0;
+    border-radius: var(--card-radius);
+    border-right: 1px solid rgba(180,83,9,0.2);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding-bottom: 280px;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: #7c2d12;
+    text-shadow: 1px 1px 0px #fef3c7, 0 4px 8px rgba(180,83,9,0.2);
+    -webkit-mask-image: radial-gradient(ellipse 70px 90px at 50% 28%, transparent 99%, black 100%);
+    mask-image: radial-gradient(ellipse 70px 90px at 50% 25%, transparent 99%, black 100%);
+    transform-origin: left center;
+    transition: transform 1.4s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 1.4s;
+    z-index: 10;
+    box-shadow: inset -10px 0 20px rgba(0,0,0,0.05), 10px 0 30px rgba(0,0,0,0.15);
+}
+.theme-animate::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    background-image: 
+        url('https://img.icons8.com/color/48/spa-flower.png'),
+        url('https://www.transparenttextures.com/patterns/floral.png');
+    background-repeat: repeat, repeat;
+    background-size: 120px, cover;
+    background-blend-mode: overlay;
+    opacity: 0.35;
+    border-radius: var(--card-radius);
+}
+.theme-animate:hover::before {
+    transform: rotateY(-180deg);
+    box-shadow: 15px 20px 40px rgba(0,0,0,0.15);
+}
+.theme-animate:hover::after {
+    opacity: 0;
+}
+
+.theme-animate.card-opened::before { transform: rotateY(-180deg); }
+.theme-animate.card-opened::after { opacity: 0; }
+
+
+/* ซ่อน pseudo-element ทั้งหมดเมื่อเปิดการ์ด (เพื่อให้ html2canvas เห็นเฉพาะเนื้อหาหลัก) */
+.theme-animate.card-opened::before,
+.theme-animate.card-opened::after,
+.theme-animate-wedding.card-opened::before,
+.theme-animate-wedding.card-opened::after,
+.theme-animate-birthday.card-opened::before,
+.theme-animate-birthday.card-opened::after {
+    display: none !important;
+}
+
+.theme-animate .qr-in-card {
+    text-align: left;
+    margin-top: -80px !important;
+    margin-bottom: 10px;
+    position: relative;
+    z-index: 5;
+}
+.theme-animate .qr-in-card img,
+.theme-animate .qr-in-card #qrcode img {
+    width: 90px !important;
+    height: 90px !important;
+    border-radius: 12px !important;
+    object-fit: contain !important;
+    background: white !important;
+    padding: 6px !important;
+    border: 1px solid #e5e7eb !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05) !important;
+    display: inline-block !important;
+}
+.html2canvas-container .theme-animate::after {
+    display: none !important;
+    content: none !important;
+}
+
+/* ===== Premium Variants ===== */
+/* Classic variants */
+.theme-classic-gold {
+    --bg-gradient: linear-gradient(135deg, #fdfbfb, #ebedee);
+    --sender-color: #b45309;
+    --badge-bg: rgba(217,119,6,0.2);
+}
+.theme-classic-rose {
+    --bg-gradient: linear-gradient(135deg, #ffe4e1, #ffd9e6);
+    --sender-color: #be185d;
+    --sender-border: #ec489a;
+    --badge-bg: rgba(236,72,153,0.15);
+}
+/* Modern variants */
+.theme-modern-dark {
+    --card-width: 500px;
+    --bg-gradient: #1f1f2e;
+    --sender-color: #fbbf24;
+    --sender-border: #d97706;
+}
+.theme-modern-dark .mlq-card-bg-layer {
+    background-color: #1f1f2e;
+    background-image: url('https://www.transparenttextures.com/patterns/dark-matter.png');
+    background-blend-mode: overlay;
+}
+/* Premium special editions (wedding, birthday) */
+.theme-animate-wedding {
+    --card-width: 460px;
+    --card-height: 600px;
+}
+.theme-animate-wedding::before {
+    background-color: #fdf2f8;
+    background-image: 
+        url('https://img.icons8.com/ios/50/FD7E14/wedding-ring.png'),
+        url('https://www.transparenttextures.com/patterns/floral.png');
+    content: "Wedding Blessing";
+    mask-image: radial-gradient(ellipse 80px 100px at 50% 35%, transparent 99%, black 100%);
+}
+.theme-animate-birthday::before {
+    background-color: #f7df59;
+    background-image: 
+        url('https://img.icons8.com/ios/50/FD7E14/birthday.png'),
+        url('https://www.transparenttextures.com/patterns/confetti.png');
+    content: "Happy Birthday";
+    mask-position: center 30%;
+}
+
+
+
+
+
 /* ===== Premium single page - นำลายดอกไม้จาก _2page.css มาใช้ ===== */
 .theme-premium,
 .theme-premium-wedding,
@@ -93,7 +347,7 @@
     width: auto !important;
     max-width: 85% !important;
     height: auto !important;
-    max-height: 220px !important;
+    max-height: 580px !important;
     object-fit: contain !important;   /* หรือ cover แล้วแต่ต้องการ */
     margin: 0 auto;
     /* รูปที่ผู้ใช้อัปโหลด - ลบเส้นกรอบและเงาทั้งหมด */
