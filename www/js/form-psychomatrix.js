@@ -1,7 +1,7 @@
-// v3.7.1 - form-psychomatrix.js
+// form-psychomatrix.js
 // -- ย้าย NumerologyToMusicConverter.js  ไปไว้ที่  Edge 
 
-window.FormPsychomatrix_VERSION = '3.7.1';
+window.FormPsychomatrix_VERSION = '3.8';
 
 console.log("[FormPsychomatrix] FORM-PSYCHOMATRIX.JS v' + window.FormPsychomatrix_VERSION + '  - INITIALIZING...");
 
@@ -183,7 +183,8 @@ class FormPsychomatrixController {
             const elementCap = window.DataContractConstants.ELEMENT_CAPITALIZE[elementEng];
 
             const personalYearNumber = lucky.PersonalYearNumber || numerologyResult.lifePath || 0;
-            const energy = lucky.LifePathEnergy || 'Yang';
+            const energy = lucky.LifePathEnergy ;
+           
             const currentDayElement = lucky.PersonalDayElement || elementCap;
 
             const elementRelations = {
@@ -512,7 +513,8 @@ async _buildPreferencesFromNumerology(numerologyData, style = 'lofi') {
         throw new Error("Cannot determine element for preferences");
     }
     const elementLower = element.toLowerCase();
-    const energy = numerologyData.luckyNumbers?.LifePathEnergy || 'Yang';
+    const energy = numerologyData.luckyNumbers?.LifePathEnergy || numerologyData.energy;
+
     const edition = window.AppMainController?.getState?.('trial.edition') || 'trial';
 
     // 2. เรียก MusicPresetCache (Fail-Fast)

@@ -1,11 +1,11 @@
-// form-ui.js v2.9.8 - Melody1/Melody2 with Base Style + Effect Mix
-// แก้ไขจาก v2.9.6:
-//   - populateFormWithData() แยก base/effect mix สำหรับ dropdown ใหม่
-//   - mapElements: silent fallback สำหรับ musicStyle/musicStyleCustom เดิม
-//   - minor cleanup
+// form-ui.js v3.0 - Global Effect Gain Panel — แทน per-melody sliders ที่ซ้ำซ้อน
+// [v3.0] setupEffectGainUI() ใช้ global panel (#effectGainPanel) แทน per-melody controls
+//        Keys ตรงกับ EffectGainState v6.10.10: 'natureVolume','animalVolume','mode','includeNature'
+//        ลบ includeNature1/2 checkbox และ natureVolume1/2, animalVolume1/2 sliders
+//        เพิ่ม Mode radio (full/no_animal/off) + Reset button + flash save indicator
 
-window.FormUI_VERSION = "2.9.8";
-console.log("[FormUI] FORM-UI.JS v" + window.FormUI_VERSION + " - Base+Effect Mix support");
+window.FormUI_VERSION = "3.0";
+console.log("[FormUI] FORM-UI.JS v" + window.FormUI_VERSION + " - Global EffectGain Panel");
 
 // ========== 0. HELPERS ==========
 function toYYYYMMDD(dateStr) {
@@ -47,6 +47,7 @@ const APPROVED_FUNCTIONS_FrmUI = {
     setupOptionListeners: true,
     setupFormListeners: true,
     setupMusicControlListeners: true,
+    setupEffectGainUI: true,
     handleFormSubmit: true,
     handleOptionChange: true,
     handleInputChange: true,
@@ -64,7 +65,8 @@ const APPROVED_FUNCTIONS_FrmUI = {
     hideLoading: true,
     showToast: true,
     showError: true,
-    cleanup: true
+    cleanup: true,
+    _applyEditionRestrictions: true
 };
 
 function verifyFunctionApproval(functionName) {
@@ -119,11 +121,12 @@ class FormUIController {
             this.loadSavedData();
             this.setupEventListeners();
             this.setupAppMainIntegration();
+            this.setupEffectGainUI(); // ✅ ใหม่: เชื่อมต่อ EffectGainState UI
             
             if (window.AppMainController?.subscribe) {
                 window.AppMainController.subscribe('trial', () => this._applyEditionRestrictions());
             }
-            this._applyEditionRestrictions(); // call ทันทีหลัง init
+            this._applyEditionRestrictions();
             
             console.log("[FormUI] ✅ Form UI v" + window.FormUI_VERSION + " initialized successfully");
         } catch (error) {
@@ -145,13 +148,11 @@ class FormUIController {
             birthDate: document.getElementById('birthDate'),
             birthTime: document.getElementById('birthTime'),
             
-            // New dropdowns (Base + Effect Mix)
             musicStyleBase1: document.getElementById('musicStyleBase1'),
             musicStyleBase2: document.getElementById('musicStyleBase2'),
             effectMix1: document.getElementById('effectMix1'),
             effectMix2: document.getElementById('effectMix2'),
             
-            // Legacy dropdowns (may not exist)
             musicStyle: document.getElementById('musicStyle'),
             musicStyleCustom: document.getElementById('musicStyleCustom'),
 
@@ -178,10 +179,16 @@ class FormUIController {
             toastIcon: document.getElementById('toastIcon'),
 
             errorContainer: document.getElementById('formErrorContainer'),
-            errorList: document.getElementById('errorList')
+            errorList: document.getElementById('errorList'),
+            
+            // ✅ EffectGainState UI elements
+            includeNatureGlobal: document.getElementById('includeNatureGlobal'),
+            natureVolumeGlobal: document.getElementById('natureVolumeGlobal'),
+            animalVolumeGlobal: document.getElementById('animalVolumeGlobal'),
+            natureVolumeDisplayGlobal: document.getElementById('natureVolumeDisplayGlobal'),
+            animalVolumeDisplayGlobal: document.getElementById('animalVolumeDisplayGlobal')
         };
 
-        // Soft check for legacy elements
         if (!this.elements.musicStyle) {
             console.log("[FormUI] ℹ️ #musicStyle not found (using new Base+Effect dropdowns)");
         }
@@ -217,6 +224,141 @@ class FormUIController {
         this.elements.errorContainer = errorContainer;
         this.elements.errorList = document.getElementById('errorList');
     }
+
+    // ========== EffectGainState Global Panel Setup (v3.0) ==========
+    // แทน per-melody sliders ด้วย Global Effect Gain Panel เดียว
+    // Keys ใน EffectGainState: 'natureVolume', 'animalVolume', 'includeNature', 'mode'
+    // ตรงกับ music-export.js และ music-audio.js v6.10.10
+    setupEffectGainUI() {
+        verifyFunctionApproval('setupEffectGainUI');
+        console.log("[FormUI] 🎛️ Setting up Global EffectGain Panel (v3.0)...");
+
+        var EGS = window.EffectGainState;
+
+        // ── Elements ──
+        var natureSlider  = document.getElementById('natureVolumeGlobal');
+        var animalSlider  = document.getElementById('animalVolumeGlobal');
+        var natureDisplay = document.getElementById('natureVolumeDisplayGlobal');
+        var animalDisplay = document.getElementById('animalVolumeDisplayGlobal');
+        var resetBtn      = document.getElementById('resetEffectGainBtn');
+        var saveIndicator = document.getElementById('effectGainSaveIndicator');
+        var modeRadios    = document.querySelectorAll('input[name="effectGainMode"]');
+        var slidersWrap   = document.getElementById('effectSlidersWrapper');
+
+        if (!natureSlider || !animalSlider) {
+            console.warn("[FormUI] ⚠️ effectGainPanel elements not found — skipping setup");
+            return;
+        }
+
+        // ── Helper: flash save indicator ──
+        function flashSaved() {
+            if (!saveIndicator) return;
+            saveIndicator.textContent = '✅ บันทึกแล้ว';
+            saveIndicator.style.color = '#34d399';
+            setTimeout(function() {
+                saveIndicator.textContent = '💾 บันทึกอัตโนมัติ';
+                saveIndicator.style.color = '#6ee7b7';
+            }, 1200);
+        }
+
+        // ── Helper: sync slider UI from EffectGainState ──
+        function syncSlidersFromState() {
+            if (!EGS) return;
+            var nv = EGS.get('natureVolume') || 0.70;
+            var av = EGS.get('animalVolume') || 0.70;
+            natureSlider.value = nv;
+            animalSlider.value = av;
+            if (natureDisplay) natureDisplay.textContent = nv.toFixed(2);
+            if (animalDisplay) animalDisplay.textContent = av.toFixed(2);
+        }
+
+        // ── Helper: sync mode radio from EffectGainState ──
+        function syncModeFromState() {
+            if (!EGS) return;
+            var currentMode = EGS.get('mode') || 'full';
+            modeRadios.forEach(function(r) {
+                r.checked = (r.value === currentMode);
+            });
+            applyModeVisibility(currentMode);
+        }
+
+        // ── Helper: show/hide sliders based on mode ──
+        function applyModeVisibility(mode) {
+            if (!slidersWrap) return;
+            if (mode === 'off') {
+                slidersWrap.style.opacity = '0.35';
+                slidersWrap.style.pointerEvents = 'none';
+            } else {
+                slidersWrap.style.opacity = '1';
+                slidersWrap.style.pointerEvents = '';
+            }
+            // hide animal slider when no_animal
+            var animalRow = animalSlider ? animalSlider.closest('label') : null;
+            if (animalRow) {
+                animalRow.style.opacity = (mode === 'no_animal') ? '0.35' : '1';
+                animalRow.style.pointerEvents = (mode === 'no_animal') ? 'none' : '';
+            }
+        }
+
+        // ── Init: load stored values ──
+        syncSlidersFromState();
+        syncModeFromState();
+
+        // ── Mode radio change ──
+        modeRadios.forEach(function(radio) {
+            radio.addEventListener('change', function() {
+                if (!this.checked) return;
+                var mode = this.value;
+                if (EGS) EGS.set('mode', mode);
+                applyModeVisibility(mode);
+                // sync sliders (mode may have reset animalVolume)
+                syncSlidersFromState();
+                flashSaved();
+                console.log("[FormUI] EffectGainState mode →", mode);
+            });
+        });
+
+        // ── Nature volume slider ──
+        natureSlider.addEventListener('input', function() {
+            var val = Math.min(1, Math.max(0, parseFloat(this.value) || 0.70));
+            if (natureDisplay) natureDisplay.textContent = val.toFixed(2);
+            if (EGS) EGS.set('natureVolume', val);
+            flashSaved();
+        });
+
+        // ── Animal volume slider ──
+        animalSlider.addEventListener('input', function() {
+            var val = Math.min(1, Math.max(0, parseFloat(this.value) || 0.70));
+            if (animalDisplay) animalDisplay.textContent = val.toFixed(2);
+            if (EGS) EGS.set('animalVolume', val);
+            flashSaved();
+        });
+
+        // ── Reset button ──
+        if (resetBtn) {
+            resetBtn.addEventListener('click', function() {
+                if (EGS) {
+                    EGS.set('natureVolume', 0.70);
+                    EGS.set('animalVolume', 0.70);
+                    EGS.set('mode', 'full');
+                }
+                try { localStorage.removeItem('mlq_effectGain'); } catch(e) {}
+                syncSlidersFromState();
+                syncModeFromState();
+                flashSaved();
+                console.log("[FormUI] EffectGainState reset to defaults");
+            });
+        }
+
+        // ── Update elements map ──
+        this.elements.natureVolumeGlobal        = natureSlider;
+        this.elements.animalVolumeGlobal        = animalSlider;
+        this.elements.natureVolumeDisplayGlobal = natureDisplay;
+        this.elements.animalVolumeDisplayGlobal = animalDisplay;
+
+        console.log("[FormUI] ✅ Global EffectGain Panel setup complete");
+    }    
+
 
     setupEventListeners() {
         verifyFunctionApproval('setupEventListeners');
@@ -594,7 +736,6 @@ class FormUIController {
 
     populateFormWithData(formData) {
         if (!formData) return;
-        // personal data
         if (formData.personalData) {
             const { fullName, birthDate, birthTime, id_card } = formData.personalData;
             if (this.elements.fullName  && fullName)  this.elements.fullName.value  = fullName;
@@ -602,7 +743,6 @@ class FormUIController {
             if (this.elements.birthTime && birthTime) this.elements.birthTime.value = birthTime;
             if (this.elements.id_card   && id_card)   this.elements.id_card.value   = id_card;
         }
-        // music preferences (base + effect)
         if (formData.musicPreference) {
             const def = formData.musicPreference.defaultStyle || '';
             const cus = formData.musicPreference.customStyle || '';
@@ -610,9 +750,7 @@ class FormUIController {
             const splitStyle = (fullStyle) => {
                 if (!fullStyle) return { base: 'lofi', effect: 'full' };
                 const parts = fullStyle.split('_');
-                // ถ้าไม่มี '_' แสดงว่าเป็น full effect แนวเดี่ยว
                 if (parts.length === 1) return { base: parts[0], effect: 'full' };
-                // ถ้ามี '_' เช่น lofi_no_animal → base=lofi, effect=no_animal
                 return { base: parts[0], effect: parts.slice(1).join('_') };
             };
 
@@ -625,7 +763,6 @@ class FormUIController {
             if (this.elements.musicStyleBase2) this.elements.musicStyleBase2.value = cusSplit.base;
             if (this.elements.effectMix2) this.elements.effectMix2.value = cusSplit.effect;
         }
-        // option
         if (formData.option) {
             const optInput = document.querySelector(`input[name="calculationOption"][value="${formData.option}"]`);
             if (optInput) {
@@ -647,31 +784,14 @@ class FormUIController {
     }
 
     // ========== 11. UI UTILITIES ==========
-    /*
-    showForm() {
-        if (this.elements.formModal) {
-    
-            this.elements.formModal.classList.remove('hidden');
-            this.state.formVisible = true;
-            this._applyEditionRestrictions(); // 🔁 refresh เมื่อเปิดฟอร์ม
-        }
-    }
-    
-    hideForm() {
-        if (this.elements.formModal) {
-            this.elements.formModal.classList.add('hidden');
-            this.elements.formModal.style.display = 'none';
-            this.state.formVisible = false;
-        }
-    }
-    */
-    
     showForm() {
         if (this.elements.formModal) {
             this.elements.formModal.style.display = '';   
             this.elements.formModal.classList.remove('hidden');
             this.state.formVisible = true;
             this._applyEditionRestrictions();
+            // ✅ เปิดฟอร์มแล้ว refresh EffectGainState UI
+            this.setupEffectGainUI();
         }
     }
 
@@ -818,21 +938,14 @@ class FormUIController {
     }
     
     
-    // ✅ v2.9.8: ปรับ UI ตาม Edition Features
+    // ✅ v2.9.9: ปรับ UI ตาม Edition Features
     _applyEditionRestrictions() {
         const trial = window.AppMainController?.getState?.('trial');
         if (!trial || !trial.features) return;
 
         const features = trial.features;
-        
-        
-        //const melody1Allowed = features.melody1_styles?.allowed !== false;
         const melody1Styles   = features.melody1_styles?.options || features.melody1_styles || [];
-        
-        //const melody2Allowed  = features.melody2_styles?.allowed !== false;
         const melody2Styles   = features.melody2_styles?.options || features.melody2_styles || [];
-        
-        
         const effectAllowed   = features.effect_mix_allowed?.allowed !== false;
 
         // === Melody1 ===
@@ -841,12 +954,10 @@ class FormUIController {
         if (base1) {
             base1.disabled = false;
             if (melody1Styles.length > 0 && Array.isArray(melody1Styles)) {
-                // จำกัด options ให้ตรงตามที่อนุญาต
                 const currentValue = base1.value;
                 base1.querySelectorAll('option').forEach(opt => {
                     opt.style.display = melody1Styles.includes(opt.value) ? '' : 'none';
                 });
-                // ถ้า current value ไม่อยู่ใน allowed → เปลี่ยนไปใช้ตัวแรกที่อนุญาต
                 if (!melody1Styles.includes(currentValue) && melody1Styles.length > 0) {
                     base1.value = melody1Styles[0];
                 }
@@ -855,7 +966,7 @@ class FormUIController {
         if (effect1) {
             effect1.disabled = !effectAllowed;
             if (!effectAllowed) {
-                effect1.value = 'full'; // force full เมื่อปิด
+                effect1.value = 'full';
             }
         }
 
@@ -864,7 +975,6 @@ class FormUIController {
         const effect2 = document.getElementById('effectMix2');
         if (base2) {
              base2.disabled = false;
-            // option filtering เหมือน Melody1
             if (melody2Styles.length > 0 && Array.isArray(melody2Styles)) {
                 const currentValue = base2.value;
                 base2.querySelectorAll('option').forEach(opt => {
@@ -882,7 +992,6 @@ class FormUIController {
             }
         }
 
-        // ✅ แสดง locked_reason ถ้ามี
         const lockedReason = features.melody2_styles?.locked_reason || '';
         const reasonEl = document.getElementById('melody2LockedReason');
         if (reasonEl) {

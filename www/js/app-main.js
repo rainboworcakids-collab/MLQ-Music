@@ -546,6 +546,8 @@ class AppMainController {
                 })();
             }
         
+            console.log('[AppMain] 📤 Triggering numerology with formData:', formData);
+            
             this.triggerFormPsychomatrixCalculation(formData);
         
             this.setState('ui.loading', true);

@@ -11,6 +11,7 @@
   // ── Fetch single preset from Edge Function (real call) ──
   async function fetchPresetFromEdge(edition, element, style) {
     const url = `${window.SUPABASE_URL}/functions/v1/get-music-preset`;
+
     const apiKey = window.SUPABASE_ANON_KEY || '';
     console.log(`[PresetCache] Fetching ${edition}.${element}.${style} from Edge...`);
     const resp = await fetch(url, {

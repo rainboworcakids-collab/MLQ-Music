@@ -10,7 +10,7 @@
 //       - ลบ hardcoded URL getters ทั้งหมด
 //       - เพิ่ม _buildURL() helper
 
-window.EdgeIntegration_VERSION = 5.3;
+window.EdgeIntegration_VERSION = 5.0;
 
 console.log("[EdgeIntegration] 🔧 client_edge-function-integration v" + window.EdgeIntegration_VERSION + " - INITIALIZING...");
 
@@ -138,18 +138,25 @@ class EdgeFunctionIntegration {
     console.log("[EdgeIntegration] ✅ v" + window.EdgeIntegration_VERSION + " initialized (centralized config)");
   }
 
-   // ---- SUPABASE_URL WAITER ----
-   _waitForSupabaseURL(maxWaitMs = 5000, intervalMs = 100) {
-        // Set fallback ทันทีเลย ไม่ต้องรอ
-        if (!window.SUPABASE_URL) {
-            window.SUPABASE_URL = 'https://oibubvhuiuurkxhnefsw.supabase.co';
-            window.SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY 
-            || 'sb_publishable_tDw0VvUdJsLrETh25IKCRA_VG-telwP';
-            console.warn('[EdgeIntegration] ⚠️ SUPABASE_URL not found – using hardcoded fallback');
+  // ---- SUPABASE_URL WAITER ----
+  _waitForSupabaseURL(maxWaitMs = 5000, intervalMs = 100) {
+    if (window.SUPABASE_URL) return Promise.resolve(window.SUPABASE_URL);
+    return new Promise((resolve, reject) => {
+      const start = Date.now();
+      const timer = setInterval(() => {
+        if (window.SUPABASE_URL) {
+          clearInterval(timer);
+          console.log('[EdgeIntegration] ✅ SUPABASE_URL ready after ' + (Date.now() - start) + 'ms');
+          resolve(window.SUPABASE_URL);
+        } else if (Date.now() - start >= maxWaitMs) {
+          clearInterval(timer);
+          reject(new Error(
+            '[EdgeIntegration] SUPABASE_URL ไม่พร้อมภายใน ' + maxWaitMs + 'ms'
+          ));
         }
-        return Promise.resolve(window.SUPABASE_URL);
-    }
-  
+      }, intervalMs);
+    });
+  }
 
   // ---- BASE URL ----
   getBaseURL() {
@@ -680,8 +687,7 @@ class EdgeFunctionIntegration {
       return result;
     } catch (err) {
       clearTimeout(timeoutId);
-      console.error('[EdgeIntegration] trial-check error:', err?.message || String(err), err);
-      
+      console.error('[EdgeIntegration] trial-check error:', err);
       return {
         trial: false,
         edition: 'basic',

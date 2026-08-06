@@ -1,12 +1,68 @@
-// nature-sounds.js v2.0
-// แก้ไข: Race condition ของ Tone.Player — สร้าง Player แยกต่อ interval สำหรับเสียงสัตว์ทุกตัว
-console.log("[NatureSounds] 🎵 Nature Sounds Module v2.0 - LOADING...");
+// nature-sounds.js v2.05
+// [v2.05] เพิ่ม EffectGainState (shared state สำหรับระดับเสียง), แก้ hardcode metal_vibrations ให้ใช้ intensity โดยตรง
 
+console.log("[NatureSounds] 🎵 Nature Sounds Module v2.05 - LOADING...");
+
+// ==========================================
+// 1. Shared Gain State (EffectGainState)
+//    ใช้ร่วมกันระหว่าง Live Play และ Export
+// ==========================================
+if (!window.EffectGainState) {
+    const _effectState = {
+        // Melody1
+        natureVolume1: 0.8,
+        animalVolume1: 0.8,
+        includeNature1: true,
+        // Melody2
+        natureVolume2: 0.8,
+        animalVolume2: 0.8,
+        includeNature2: true
+    };
+
+    // หมวดหมู่ของเสียง (ใช้แยก nature/animal)
+    const ANIMAL_TYPES = new Set(['birds','cricket','frogs','chicken','lamb']);
+    const SYNTH_TYPES = new Set([
+        'rain','wind','stream','water_stream','water_drip','water_ocean',
+        'fire_crackle','fire_embers','fire_embers_low',
+        'metal_wind_chimes','metal_bell','metal_vibrations',
+        'wind_gentle','wood_creak','wood_wind'
+    ]);
+
+
+    window.EffectGainState = {
+        get(key) {
+            return _effectState[key] !== undefined ? _effectState[key] : 1.0;
+        },
+        set(key, value) {
+            const numVal = Math.min(1, Math.max(0, parseFloat(value) || 0));
+            if (_effectState[key] !== numVal) {
+                _effectState[key] = numVal;
+                window.dispatchEvent(new CustomEvent('effectGainChanged', {
+                    detail: { key, value: numVal, state: { ..._effectState } }
+                }));
+            }
+        },
+        getAll() {
+            return { ..._effectState };
+        },
+
+        getGainForType(type, melodyId = 1) {
+            if (!_effectState[`includeNature${melodyId}`]) return 0;
+            const natureKey = `natureVolume${melodyId}`;
+            const animalKey = `animalVolume${melodyId}`;
+            if (ANIMAL_TYPES.has(type)) return _effectState[animalKey] || 0.8;
+            if (SYNTH_TYPES.has(type)) return _effectState[natureKey] || 0.8;
+            return _effectState[natureKey] || 0.8;
+        }
+    };
+    console.log("[NatureSounds] ✅ EffectGainState initialized");
+}
+
+// ==========================================
+// 2. BUFFER CACHE
+// ==========================================
 const NatureSounds = {
 
-    // ─────────────────────────────────────────
-    // BUFFER CACHE
-    // ─────────────────────────────────────────
     buffers: {},
 
     async loadBuffer(url) {
@@ -125,20 +181,27 @@ const NatureSounds = {
             const popNoise  = new Tone.Noise('white');
             const popFilter = new Tone.Filter(3000, 'bandpass').connect(vol);
             const popGain   = new Tone.Gain(0).connect(popFilter);
+
             noise.connect(filter);
             popNoise.connect(popGain);
             noise.start(time);
             popNoise.start(time);
-            const popCount = Math.floor(duration * 3) || 6;
+    
+            const popCount = Math.floor((duration || 3) * 3) || 6;
             for (let i = 0; i < popCount; i++) {
-                const t = time + i * (duration / popCount) + Math.random() * 0.2;
+                const t = time + i * ((duration || 3) / popCount) + Math.random() * 0.2;
                 popGain.gain.setValueAtTime(0.8, t);
                 popGain.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
             }
-            if (duration) { noise.stop(time + duration); popNoise.stop(time + duration); }
+    
+            if (duration) {
+                noise.stop(time + duration);
+                popNoise.stop(time + duration);
+            }
+
             return {
                 id: `fire_${Date.now()}`,
-                stop: () => {
+                    stop: () => {
                     noise.stop(); noise.dispose();
                     popNoise.stop(); popNoise.dispose();
                     filter.dispose(); popFilter.dispose(); popGain.dispose(); vol.dispose();
@@ -198,8 +261,9 @@ const NatureSounds = {
             };
         },
 
+        // ✅ FIX: metal_vibrations ใช้ intensity โดยตรง (ไม่คูณ 0.3)
         metal_vibrations: (intensity, time, duration, destination) => {
-            const vol = new Tone.Gain(intensity * 0.3).connect(destination);
+            const vol = new Tone.Gain(intensity).connect(destination); // เปลี่ยนจาก intensity * 0.3 เป็น intensity
             const osc = new Tone.Oscillator({ frequency: 200, type: 'sine' }).connect(vol);
             const lfo = new Tone.LFO(5, 180, 220).connect(osc.frequency);
             lfo.start();
@@ -259,15 +323,8 @@ const NatureSounds = {
 
         // ══════════════════════════════════════
         // เสียงสัตว์ (ใช้ไฟล์ MP3)
-        //
-        // FIX v2.0: สร้าง Tone.Player แยกต่อแต่ละ interval
-        // เพราะ Tone.Player ไม่รองรับการเรียก .start()/.stop()
-        // หลายรอบบน instance เดียวกัน → Race condition
-        //
-        // Pattern: [[startOffset, stopOffset], ...]  (วินาที)
         // ══════════════════════════════════════
 
-        // Helper ภายใน — ใช้ร่วมกันทุก animal
         _createAnimalPlayers(buffer, intensity, time, destination, intervals) {
             return intervals.map(([startOffset, stopOffset]) => {
                 const p = new Tone.Player(buffer).connect(destination);
@@ -282,7 +339,6 @@ const NatureSounds = {
             const buffer  = await NatureSounds.loadBuffer("sounds/birds.mp3");
             const players = NatureSounds.creators._createAnimalPlayers(
                 buffer, intensity, time, destination,
-/*                [[3, 5], [6, 8], [9, 11]]  */
                 [[0, 2], [2, 4], [3.5, 4]]
             );
             return {
@@ -295,7 +351,6 @@ const NatureSounds = {
             const buffer  = await NatureSounds.loadBuffer("sounds/cricket.mp3");
             const players = NatureSounds.creators._createAnimalPlayers(
                 buffer, intensity, time, destination,
-/*                [[3, 5], [6, 8], [9, 11]]  */
                 [[0, 2], [2, 4], [3.5, 4]]
             );
             return {
@@ -308,9 +363,7 @@ const NatureSounds = {
             const buffer  = await NatureSounds.loadBuffer("sounds/frogs.mp3");
             const players = NatureSounds.creators._createAnimalPlayers(
                 buffer, intensity, time, destination,
-/*                [[3, 5], [6, 8], [9, 11]]  */
                 [[0, 2], [2, 4], [3.5, 4]]
-
             );
             return {
                 id: `frogs_${Date.now()}_${Math.random()}`,
@@ -322,7 +375,6 @@ const NatureSounds = {
             const buffer  = await NatureSounds.loadBuffer("sounds/chicken.mp3");
             const players = NatureSounds.creators._createAnimalPlayers(
                 buffer, intensity, time, destination,
-/*                [[3, 5], [6, 8], [9, 11]]  */
                 [[0, 2], [2, 4], [3.5, 4]]
             );
             return {
@@ -335,7 +387,6 @@ const NatureSounds = {
             const buffer  = await NatureSounds.loadBuffer("sounds/lamb.mp3");
             const players = NatureSounds.creators._createAnimalPlayers(
                 buffer, intensity, time, destination,
-/*                [[3, 5], [6, 8], [9, 11]]  */
                 [[0, 2], [2, 4], [3.5, 4]]
             );
             return {
@@ -350,7 +401,6 @@ const NatureSounds = {
     // PUBLIC API
     // ─────────────────────────────────────────
     async create(type, intensity, time, duration, destination = Tone.Destination) {
-        // ข้าม helper ภายใน ไม่ให้เรียกจากภายนอก
         if (type.startsWith('_')) {
             console.warn(`[NatureSounds] "${type}" is an internal helper, not a sound type`);
             return null;
@@ -371,6 +421,5 @@ const NatureSounds = {
 
 window.NatureSounds = NatureSounds;
 
-// แสดงเฉพาะ type จริง (กรอง helper ออก)
 const publicTypes = Object.keys(NatureSounds.creators).filter(k => !k.startsWith('_'));
-console.log("[NatureSounds] ✅ v2.0 loaded. Available types:", publicTypes);
+console.log("[NatureSounds] ✅ v2.05 loaded. Available types:", publicTypes);

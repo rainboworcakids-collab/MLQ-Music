@@ -10,7 +10,9 @@ const CACHE_TTL = 5 * 60 * 1000;
 const SUPABASE_CONFIG = {
     url: window.SUPABASE_URL || 'https://oibubvhuiuurkxhnefsw.supabase.co',
     anonKey: window.SUPABASE_ANON_KEY || 'sb_publishable_VY1yVYms2SrzuUFGFO2fpQ_MRmriNsh'
+  //  anonKey: window.SUPABASE_ANON_KEY || 'sb_publishable_tDw0VvUdJsLrETh25IKCRA_VG-telwP'
 };
+
 
 async function getSupabaseClient() {
     if (window.SupabaseConfig && typeof window.SupabaseConfig.client === 'function') {

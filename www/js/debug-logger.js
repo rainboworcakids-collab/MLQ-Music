@@ -1,24 +1,11 @@
 // ===============================================
 // debug-logger-v2.js - Modular Debug Log System
-// ===============================================
-// เวอร์ชัน: 2.1.1
-// วันที่: เมษายน 2026
-// ปรับปรุง: เพิ่มปุ่ม download ที่หายไป
-// เวอร์ชัน: 2.1.0
-// วันที่: มีนาคม 2026
-// ปรับปรุง: เพิ่มแท็บ Versions สำหรับแสดง window.*VERSION และ module versions ต่างๆ
-// ===============================================
-// ===============================================
-// debug-logger-v2.js - Modular Debug Log System
-// ===============================================
-// เวอร์ชัน: 2.1.0
-// วันที่: มีนาคม 2026
-// ปรับปรุง: เพิ่มแท็บ Versions สำหรับแสดง window.*VERSION และ module versions ต่างๆ
+// version = '2.1.2'
 // ===============================================
 
 class DebugLogger {
     constructor(options = {}) {
-        this.version = '2.1.0';   // อัปเดตเวอร์ชัน
+        this.version = '2.1.2';   // ✅ อัปเดตเวอร์ชัน
 
         this.options = {
             containerId: 'debugLogContainer',
@@ -28,7 +15,7 @@ class DebugLogger {
             clearBtnId: 'clearLogBtn',
             timeDisplayId: 'currentTime',
             countDisplayId: 'logCount',
-            maxLogs: 1000,
+            maxLogs: 500, // ✅ ปรับตามแผน Ring Buffer (จาก 1000)
             autoOpen: false,
             enableConsoleOverride: true,
             ...options
@@ -36,11 +23,11 @@ class DebugLogger {
 
         this.logCount = 0;
         this.logs = [];
-        this.modules = new Set();          // เก็บชื่อ modules ที่เจอ
+        this.modules = new Set();
         this.currentTypeFilter = 'all';
         this.currentModuleFilter = 'all';
         this.isInitialized = false;
-        this.currentTab = 'logs';          // tabs: logs, versions
+        this.currentTab = 'logs';
 
         // Icon mapping
         this.typeIcons = {
@@ -122,7 +109,7 @@ class DebugLogger {
         if (!finalModule) {
             const extracted = this._extractModuleFromMessage(message);
             finalModule = extracted.module;
-            finalMessage = extracted.message;   // เอาส่วน prefix ออก
+            finalMessage = extracted.message;
         }
 
         // เก็บ module name
@@ -145,12 +132,12 @@ class DebugLogger {
             color: this.typeColors[type] || 'text-gray-400'
         };
 
-        // บันทึก logs
+        // บันทึก logs แบบ Ring Buffer
         this.logs.push(logEntry);
         this.logCount++;
 
         if (this.logs.length > this.options.maxLogs) {
-            this.logs.shift();
+            this.logs.shift(); // ✅ ตัดตัวเก่าสุดออกเมื่อเกิน
         }
 
         // ถ้า initialized แล้ว และ log นี้ตรงกับ filter ปัจจุบัน -> แสดงทันที
@@ -159,7 +146,7 @@ class DebugLogger {
                 this._appendLogToUI(logEntry);
             }
             this._updateCounter();
-            this._updateModuleDropdown();   // เพิ่ม module ใหม่ใน dropdown
+            this._updateModuleDropdown();
         }
 
         return logEntry.id;
@@ -281,36 +268,27 @@ class DebugLogger {
         this._refreshDisplay();
     }
 
-    // ========== NEW: VERSIONS TAB METHODS ==========
-    /**
-     * เรียกใช้เมื่อสลับมาแท็บ Versions
-     */
+    // ========== VERSIONS TAB METHODS ==========
     showVersionsTab() {
         this.currentTab = 'versions';
         
-        // ซ่อน logs area, แสดง versions panel
         const logArea = this._getElement(this.options.logAreaId);
         const versionsPanel = this._getElement(this.options.versionsPanelId);
         const filterRow = document.getElementById('logFilters');
-        const moduleRow = document.querySelector('.module-filter-row'); // หาโดย class หรือ id
+        const moduleRow = document.querySelector('.module-filter-row');
         
         if (logArea) logArea.classList.add('hidden');
         if (versionsPanel) {
             versionsPanel.classList.remove('hidden');
-            this._renderVersions(); // อัปเดตข้อมูลทุกครั้งที่เปิดแท็บ
+            this._renderVersions();
         }
         
-        // ซ่อนตัวกรอง logs
         if (filterRow) filterRow.style.display = 'none';
         if (moduleRow) moduleRow.style.display = 'none';
         
-        // อัปเดต active tab style
         this._updateTabButtons('versions');
     }
 
-    /**
-     * เรียกใช้เมื่อสลับมาแท็บ Logs
-     */
     showLogsTab() {
         this.currentTab = 'logs';
         
@@ -322,15 +300,12 @@ class DebugLogger {
         if (logArea) logArea.classList.remove('hidden');
         if (versionsPanel) versionsPanel.classList.add('hidden');
         
-        if (filterRow) filterRow.style.display = 'flex'; // หรือ block ตามเดิม
+        if (filterRow) filterRow.style.display = 'flex';
         if (moduleRow) moduleRow.style.display = 'flex';
         
         this._updateTabButtons('logs');
     }
 
-    /**
-     * อัปเดตปุ่มแท็บให้แสดงสถานะ active
-     */
     _updateTabButtons(activeTab) {
         const logsTab = document.getElementById('logsTabBtn');
         const versionsTab = document.getElementById('versionsTabBtn');
@@ -349,10 +324,6 @@ class DebugLogger {
         }
     }
 
-    /**
-     * รวบรวมเวอร์ชันจาก window.*VERSION และ objects ต่างๆ
-     * @returns {Array<{module: string, version: string}>}
-     */
     _getVersions() {
         const versions = [];
         const seen = new Set();
@@ -368,25 +339,21 @@ class DebugLogger {
             }
         };
 
-        // 1. ไล่ property ใน window
         for (const key in window) {
             try {
                 const value = window[key];
                 if (!value) continue;
 
-                // ถ้า value เป็น object และมี property ชื่อ version
                 if (typeof value === 'object' && value !== null && 'version' in value) {
                     add(key, value.version);
                 }
 
-                // ถ้า key มีคำว่า version (ไม่สนตัวพิมพ์เล็กใหญ่) และ value เป็น string/number
                 if (key.toLowerCase().includes('version')) {
                     if (typeof value === 'string' || typeof value === 'number') {
                         add(key, value);
                     }
                 }
 
-                // ถ้า value เป็น function/constructor และมี static property VERSION
                 if (typeof value === 'function' && value.VERSION) {
                     add(`${key}.VERSION`, value.VERSION);
                 }
@@ -395,10 +362,8 @@ class DebugLogger {
             }
         }
 
-        // 2. เพิ่ม DebugLogger เอง
         add('DebugLogger', this.version);
 
-        // 3. ตรวจสอบตัวแปรทั่วไปเพิ่มเติม
         if (window.VERSION) add('VERSION', window.VERSION);
         if (window.APP_VERSION) add('APP_VERSION', window.APP_VERSION);
         if (window.LIB_VERSION) add('LIB_VERSION', window.LIB_VERSION);
@@ -406,9 +371,6 @@ class DebugLogger {
         return versions;
     }
 
-    /**
-     * แสดงตารางเวอร์ชันใน versionsPanel
-     */
     _renderVersions() {
         const panel = this._getElement(this.options.versionsPanelId);
         if (!panel) return;
@@ -419,7 +381,6 @@ class DebugLogger {
             return;
         }
 
-        // เรียงตามชื่อ module
         versions.sort((a, b) => a.module.localeCompare(b.module));
 
         let html = '<table class="w-full text-xs"><thead><tr class="bg-gray-800 text-gray-200"><th class="p-1 text-left">Module</th><th class="p-1 text-left">Version</th></tr></thead><tbody>';
@@ -432,7 +393,7 @@ class DebugLogger {
 
     // ========== PRIVATE METHODS ==========
     _extractModuleFromMessage(message) {
-        const match = message.match(/^\[(.*?)\]\s*(.*)/s);  // s flag เพื่อจับ newline
+        const match = message.match(/^\[(.*?)\]\s*(.*)/s);
         if (match) {
             return { module: match[1], message: match[2] };
         }
@@ -502,7 +463,6 @@ class DebugLogger {
         const currentModules = this.getModuleList();
         const selectedValue = select.value;
 
-        // เก็บ options เดิมไว้ (รวม All)
         let html = '<option value="all">All</option>';
         currentModules.forEach(mod => {
             html += `<option value="${mod}" ${mod === selectedValue ? 'selected' : ''}>${mod}</option>`;
@@ -516,7 +476,6 @@ class DebugLogger {
 
         logArea.innerHTML = '';
 
-        // กรอง logs ตาม filter ปัจจุบัน
         const filtered = this.logs.filter(entry => this._matchesCurrentFilters(entry));
         filtered.forEach(log => this._appendLogToUI(log));
         this._updateCounter();
@@ -598,7 +557,6 @@ class DebugLogger {
                     <button id="clearAllStorageBtn" class="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700" title="Clear all localStorage data">
                         <i class="fas fa-database mr-1"></i>Clear Storage
                     </button>
-                    <!-- ปุ่มดาวน์โหลด Logs ในส่วนหัว - แก้ไขให้มองเห็นชัดเจน -->
                     <button id="headerExportJSONBtn" class="px-2 py-1 text-xs text-white rounded hover:opacity-90 shadow-sm" style="background-color: #2563eb;" title="Download all logs as JSON">
                         <i class="fas fa-download mr-1"></i>JSON
                     </button>
@@ -614,7 +572,7 @@ class DebugLogger {
                 <button id="versionsTabBtn" class="tab-btn px-3 py-1 text-sm font-medium text-gray-600" data-tab="versions">Versions</button>
             </div>
             
-            <!-- Content Area (หุ้มด้วย wrapper สำหรับปรับขนาดโดย minimize) -->
+            <!-- Content Area -->
             <div id="debugContentWrapper" class="h-64">
                 <div id="${this.options.logAreaId}" class="debug-log-area h-full overflow-y-auto font-mono text-sm bg-gray-900 text-gray-100 p-2"></div>
                 <div id="${this.options.versionsPanelId}" class="versions-panel h-full overflow-y-auto font-mono text-sm bg-gray-900 text-gray-100 p-2 hidden"></div>
@@ -622,7 +580,6 @@ class DebugLogger {
             
             <!-- Bottom Controls -->
             <div class="p-2 bg-gray-50 border-t border-gray-200 rounded-b-lg flex flex-col space-y-2">
-                <!-- Filter Buttons Row (ซ่อนเมื่ออยู่แท็บ Versions) -->
                 <div id="logFilters" class="flex flex-wrap gap-1">
                     <button class="filter-type-btn px-2 py-1 text-xs rounded bg-blue-500 text-white" data-type="all">All</button>
                     <button class="filter-type-btn px-2 py-1 text-xs rounded bg-blue-100 text-blue-700" data-type="info">Info</button>
@@ -631,7 +588,6 @@ class DebugLogger {
                     <button class="filter-type-btn px-2 py-1 text-xs rounded bg-red-100 text-red-700" data-type="error">Error</button>
                     <button class="filter-type-btn px-2 py-1 text-xs rounded bg-purple-100 text-purple-700" data-type="debug">Debug</button>
                 </div>
-                <!-- Module Filter Row -->
                 <div class="module-filter-row flex items-center space-x-2">
                     <label class="text-xs text-gray-700">Module:</label>
                     <select id="moduleFilterSelect" class="text-xs p-1 border rounded flex-1">
@@ -713,7 +669,6 @@ class DebugLogger {
             });
         }
 
-        // Event listeners สำหรับปุ่มดาวน์โหลดที่เพิ่มใน header
         const headerJSONBtn = document.getElementById('headerExportJSONBtn');
         if (headerJSONBtn) headerJSONBtn.addEventListener('click', () => this.downloadAsJSON());
 
@@ -733,23 +688,29 @@ class DebugLogger {
             });
         }
 
+        // ✅ แก้ไข: exportModuleBtn – ใช้ warning แทน alert
         const exportModuleBtn = document.getElementById('exportModuleBtn');
         if (exportModuleBtn) {
             exportModuleBtn.addEventListener('click', () => {
                 const select = document.getElementById('moduleFilterSelect');
                 const module = select.value;
                 if (module === 'all') {
-                    alert('Please select a specific module to export.');
+                    this.warning('Please select a specific module to export.');
                     return;
                 }
                 this.downloadByModule(module);
             });
         }
 
-        // ปุ่ม Clear All Storage
+        // ✅ แก้ไข: clearAllStorage – ไม่ใช้ confirm/alert
         const clearStorageBtn = document.getElementById('clearAllStorageBtn');
         if (clearStorageBtn) {
-            clearStorageBtn.addEventListener('click', () => this.clearAllStorage());
+            clearStorageBtn.addEventListener('click', () => {
+                const keys = Object.keys(localStorage);
+                keys.forEach(key => localStorage.removeItem(key));
+                this.log(`All localStorage data cleared (${keys.length} items removed)`, 'system');
+                this.warning('All localStorage has been cleared.');
+            });
         }
 
         // Type filter buttons
@@ -759,11 +720,9 @@ class DebugLogger {
                 const type = e.target.dataset.type;
                 this.setTypeFilter(type);
 
-                // Update active state
                 typeButtons.forEach(b => {
                     if (b.dataset.type === type) {
                         b.classList.add('bg-blue-500', 'text-white');
-                        // remove specific color classes
                         b.classList.remove('bg-blue-100', 'text-blue-700', 'bg-green-100', 'text-green-700', 'bg-yellow-100', 'text-yellow-700', 'bg-red-100', 'text-red-700', 'bg-purple-100', 'text-purple-700');
                     } else {
                         b.classList.remove('bg-blue-500', 'text-white');
@@ -774,7 +733,6 @@ class DebugLogger {
             });
         });
 
-        // Module filter dropdown
         const moduleSelect = document.getElementById('moduleFilterSelect');
         if (moduleSelect) {
             moduleSelect.addEventListener('change', (e) => {
@@ -782,7 +740,6 @@ class DebugLogger {
             });
         }
 
-        // Tab buttons
         const logsTab = document.getElementById('logsTabBtn');
         const versionsTab = document.getElementById('versionsTabBtn');
         if (logsTab) {
@@ -842,14 +799,12 @@ class DebugLogger {
         URL.revokeObjectURL(url);
     }
 
-    // ========== NEW METHOD: Clear all localStorage ==========
+    // ✅ แก้ไข: clearAllStorage – ไม่ใช้ confirm/alert
     clearAllStorage() {
-        if (confirm('⚠️ Are you sure you want to clear ALL localStorage data? This action cannot be undone.')) {
-            const keys = Object.keys(localStorage);
-            keys.forEach(key => localStorage.removeItem(key));
-            this.log(`All localStorage data cleared (${keys.length} items removed)`, 'system');
-            alert('All localStorage has been cleared.');
-        }
+        const keys = Object.keys(localStorage);
+        keys.forEach(key => localStorage.removeItem(key));
+        this.log(`All localStorage data cleared (${keys.length} items removed)`, 'system');
+        this.warning('All localStorage has been cleared.');
     }
 
     // Convenience methods (without module)
@@ -862,9 +817,192 @@ class DebugLogger {
 
 // สร้าง singleton instance และ attach เข้ากับ window
 window.DebugLogger = new DebugLogger();
-console.log(`✅ debug-logger-v2.js v${window.DebugLogger.version} loaded (module-aware)`);
+console.log(`✅ debug-logger-v2.js v${window.DebugLogger.version} loaded (Ring Buffer, no side-effects)`);
 
 // Auto-initialize เมื่อ DOM พร้อม
 document.addEventListener('DOMContentLoaded', () => {
     window.DebugLogger.init();
 });
+
+// =====================================================
+// Stage A — Audio Evidence Collector (Pure Observer)
+// =====================================================
+(function() {
+  const EVIDENCE_KEY = 'mlq:audio:evidence';
+  const MAX_EVIDENCE = 50;
+
+  // Helper: อ่าน/เขียน Evidence
+  function getEvidenceLog() {
+    try {
+      return JSON.parse(localStorage.getItem(EVIDENCE_KEY) || '[]');
+    } catch { return []; }
+  }
+  function saveEvidence(entry) {
+    const log = getEvidenceLog();
+    log.push({ ...entry, collectedAt: new Date().toISOString() });
+    if (log.length > MAX_EVIDENCE) log.shift();
+    localStorage.setItem(EVIDENCE_KEY, JSON.stringify(log));
+  }
+
+  // Helper: ดึง Music DNA จาก AppMain (ถ้ามี)
+  function getActiveDNA() {
+    if (window.AppMainController && typeof window.AppMainController.getActiveMusicDNA === 'function') {
+      return window.AppMainController.getActiveMusicDNA();
+    }
+    return null;
+  }
+  function getNumerology() {
+    if (window.AppMainController && typeof window.AppMainController.getState === 'function') {
+      return window.AppMainController.getState('numerology');
+    }
+    return null;
+  }
+
+  // 1. ฟัง event เมื่อ Live Playback เริ่มต้น
+  window.addEventListener('musicStarted', (e) => {
+    const dna = getActiveDNA();
+    const num = getNumerology();
+    const entry = {
+      type: 'live_start',
+      timestamp: new Date().toISOString(),
+      dna: dna ? {
+        config: dna.config,
+        sequenceLength: dna.sequence?.length || 0,
+        instruments: dna.instruments || [],
+        natureEffects: dna.natureEffects || []
+      } : null,
+      numerology: num ? { lifePath: num.lifePath, element: num.element } : null,
+      // ข้อมูลเพิ่มเติมที่หาได้จาก AudioController
+      audioState: window.AudioController ? {
+        isPlaying: window.AudioController.isPlaying,
+        currentTempo: window.AudioController.currentTempo
+      } : null
+    };
+    saveEvidence(entry);
+    console.log('[Evidence] Live Playback STARTED', entry);
+  });
+
+  // 2. ฟังเมื่อ Live Playback หยุด
+  window.addEventListener('musicStopped', (e) => {
+    const dna = getActiveDNA();
+    const entry = {
+      type: 'live_stop',
+      timestamp: new Date().toISOString(),
+      dna: dna ? {
+        config: dna.config,
+        sequenceLength: dna.sequence?.length || 0,
+        instruments: dna.instruments || [],
+        natureEffects: dna.natureEffects || []
+      } : null,
+      actualDuration: window.AudioController?.transportPosition || null
+    };
+    saveEvidence(entry);
+    console.log('[Evidence] Live Playback STOPPED', entry);
+  });
+
+  // 3. ฟังเมื่อ Offline Render เสร็จ (prerenderComplete)
+  window.addEventListener('prerenderComplete', (e) => {
+    const detail = e.detail || {};
+    const dna = getActiveDNA();
+    const entry = {
+      type: 'offline_complete',
+      timestamp: new Date().toISOString(),
+      dna: dna ? {
+        config: dna.config,
+        sequenceLength: dna.sequence?.length || 0,
+        instruments: dna.instruments || [],
+        natureEffects: dna.natureEffects || []
+      } : null,
+      renderResult: {
+        duration: detail.duration || null,
+        size: detail.size || null,
+        blobUrl: detail.blobUrl || null
+      }
+    };
+    saveEvidence(entry);
+    console.log('[Evidence] Offline Render COMPLETE', entry);
+  });
+
+  // 4. ฟังเมื่อมีการเปลี่ยนแปลงสถานะการเล่น (playbackStateChanged)
+  window.addEventListener('playbackStateChanged', (e) => {
+    const isPlaying = e.detail?.isPlaying;
+    if (isPlaying === undefined) return;
+    // บันทึกเฉพาะสถานะการเล่นที่เปลี่ยนไป (ไม่ต้องเก็บทุกครั้ง)
+    const entry = {
+      type: 'playback_state_change',
+      timestamp: new Date().toISOString(),
+      isPlaying: isPlaying,
+      audioState: window.AudioController ? {
+        currentTempo: window.AudioController.currentTempo,
+        isPlaying: window.AudioController.isPlaying
+      } : null
+    };
+    saveEvidence(entry);
+    // ไม่ log ทุกครั้งเพื่อไม่ให้รก
+  });
+
+  // 5. ฟังเมื่อ DNA ถูกสร้าง (musicDNAStarted) เพื่อบันทึก DNA เริ่มต้น
+  window.addEventListener('musicDNAStarted', (e) => {
+    const dna = e.detail || getActiveDNA();
+    const entry = {
+      type: 'dna_initialized',
+      timestamp: new Date().toISOString(),
+      dna: dna ? {
+        config: dna.config,
+        sequenceLength: dna.sequence?.length || 0,
+        instruments: dna.instruments || [],
+        natureEffects: dna.natureEffects || []
+      } : null
+    };
+    saveEvidence(entry);
+    console.log('[Evidence] DNA Initialized', entry);
+  });
+
+  // 6. ฟังก์ชันแสดงสรุปความแตกต่าง (เรียกผ่าน Console)
+  window.generateAudioEvidenceReport = function() {
+    const log = getEvidenceLog();
+    if (log.length < 2) {
+      console.warn('[Evidence] ยังมีข้อมูลไม่เพียงพอสำหรับการเปรียบเทียบ');
+      return;
+    }
+
+    // แยกประเภท
+    const liveStarts = log.filter(e => e.type === 'live_start');
+    const offlineCompletes = log.filter(e => e.type === 'offline_complete');
+
+    if (liveStarts.length === 0 || offlineCompletes.length === 0) {
+      console.warn('[Evidence] ขาดข้อมูล Live หรือ Offline');
+      return;
+    }
+
+    const lastLive = liveStarts[liveStarts.length - 1];
+    const lastOffline = offlineCompletes[offlineCompletes.length - 1];
+
+    // เปรียบเทียบ DNA
+    const dnaSame = JSON.stringify(lastLive.dna) === JSON.stringify(lastOffline.dna);
+    const durationDiff = lastOffline.renderResult?.duration !== null &&
+                         lastLive.actualDuration !== null &&
+                         Math.abs(lastOffline.renderResult.duration - lastLive.actualDuration) > 0.5;
+
+    console.group('📊 Audio Evidence Report');
+    console.log('Live DNA:', lastLive.dna);
+    console.log('Offline DNA:', lastOffline.dna);
+    console.log('DNA Match:', dnaSame);
+    console.log('Live Duration (approx):', lastLive.actualDuration || 'N/A');
+    console.log('Offline Duration:', lastOffline.renderResult?.duration || 'N/A');
+    console.log('Duration Difference > 0.5s:', durationDiff);
+    console.log('Full Evidence Log:', log);
+    console.groupEnd();
+
+    return {
+      dnaMatch: dnaSame,
+      durationDiff: durationDiff,
+      lastLive,
+      lastOffline,
+      log
+    };
+  };
+
+  console.log('[Stage A] Audio Evidence Collector เปิดใช้งานแล้ว');
+  console.log('[Stage A] ใช้ window.generateAudioEvidenceReport() เพื่อดูรายงาน');
+})();

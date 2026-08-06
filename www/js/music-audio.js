@@ -1,8 +1,127 @@
-// music-audio.js v6.9.4
+// music-audio.js v6.10.10 - สร้าง window.EffectGainState module (ขาดหายไปใน v6.10.9)
+// [v6.10.10] เพิ่ม EffectGainState IIFE ก่อน class: .get(), .set(), .getGainForType(), .loadFromPreset()
+//            Persists to localStorage 'mlq_effectGain' — ทำให้ Export ได้ค่าเดียวกับ Live playback
+//            (v6.10.9) เพิ่ม _sectionIndex ให้ defaultDNA.natureEffects (0) และ customDNA.natureEffects (1) ใน handleCombinedDNA()
 
-window.MusicAudio_VERSION = "6.9.4";
+window.MusicAudio_VERSION = "6.10.10";
  
-console.log("[MusicAudio] 🎵 Music-Audio Module version v'+ window.MusicAudio_VERSION + '  - INITIALIZING...");
+console.log("[MusicAudio] 🎵 Music-Audio Module version v' + window.MusicAudio_VERSION + '  - INITIALIZING...");
+
+// ========== EffectGainState — Single Source of Truth for Nature/Effect Volumes ==========
+// v6.10.10: สร้าง module ที่ขาดหายไป ให้ music-export.js, music-prerender.js, music-audio.js ใช้ร่วมกัน
+// API: .get(key), .set(key, value), .getGainForType(type, melodyId), .loadFromPreset(presetData)
+// Persists: localStorage key 'mlq_effectGain'
+window.EffectGainState = (function () {
+    const STORAGE_KEY = 'mlq_effectGain';
+
+    // MP3-based animal sounds (vs synthetic nature sounds)
+    const ANIMAL_TYPES = new Set(['birds', 'cricket', 'frogs', 'chicken', 'lamb']);
+
+    // Defaults — ใช้เมื่อไม่มีข้อมูลจาก preset หรือ localStorage
+    const _defaults = {
+        includeNature : true,
+        natureVolume  : 0.70,   // synthetic: rain, wind, metal_wind_chimes, etc.
+        animalVolume  : 0.70,   // MP3 files: birds, lamb, etc.
+        effectMix     : 0.50,   // future: music effects mix level
+        mode          : 'full'  // 'full' | 'no_animal' | 'off'
+    };
+
+    let _state = Object.assign({}, _defaults);
+    let _presetLoaded = false;
+
+    // ---- persistence ----
+    function _save() {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(
+                Object.assign({}, _state, { _savedAt: Date.now() })
+            ));
+        } catch (e) { /* silent — private browsing */ }
+    }
+
+    function _load() {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) return false;
+            const stored = JSON.parse(raw);
+            if (stored && typeof stored === 'object') {
+                Object.keys(_defaults).forEach(function (k) {
+                    if (stored[k] !== undefined) _state[k] = stored[k];
+                });
+                console.log('[EffectGainState] Loaded from localStorage:', JSON.stringify(_state));
+                return true;
+            }
+        } catch (e) { /* silent */ }
+        return false;
+    }
+
+    // ---- mode logic ----
+    function _applyMode(mode) {
+        _state.mode = mode;
+        if (mode === 'off') {
+            _state.includeNature = false;
+        } else if (mode === 'no_animal') {
+            _state.includeNature = true;
+            // natureVolume ยังคงเดิม, animalVolume = 0 (ซ่อนเฉพาะสัตว์)
+            _state.animalVolume = 0;
+        } else {                         // 'full'
+            _state.includeNature = true;
+            // restore animalVolume ถ้าเคยถูก set เป็น 0 โดย mode
+            if (_state.animalVolume === 0) _state.animalVolume = _defaults.animalVolume;
+        }
+    }
+
+    // ---- public API ----
+    function get(key) {
+        return _state[key];
+    }
+
+    function set(key, value) {
+        if (key === 'mode') {
+            _applyMode(value);
+        } else {
+            _state[key] = value;
+        }
+        _save();
+    }
+
+    // ใช้ใน playNatureEffectFromObject (live playback)
+    // คืน gain multiplier สำหรับ type นั้น (ไม่ใช่ intensity โดยตรง)
+    function getGainForType(type /*, melodyId */) {
+        if (!_state.includeNature) return 0;
+        return ANIMAL_TYPES.has(type) ? _state.animalVolume : _state.natureVolume;
+    }
+
+    // โหลดจาก music_presets table — เรียกตอน preset load, ไม่ override user settings
+    function loadFromPreset(presetData) {
+        if (!presetData || _presetLoaded) return;
+        // ถ้า user มี custom settings ใน localStorage → ไม่ทับ
+        try {
+            if (localStorage.getItem(STORAGE_KEY)) {
+                console.log('[EffectGainState] Preset skipped (user localStorage exists)');
+                return;
+            }
+        } catch (e) { /* silent */ }
+
+        if (presetData.nature_vol  !== undefined) _state.natureVolume = presetData.nature_vol;
+        if (presetData.animal_vol  !== undefined) _state.animalVolume = presetData.animal_vol;
+        if (presetData.effect_mix  !== undefined) _state.effectMix    = presetData.effect_mix;
+        _presetLoaded = true;
+        _save();
+        console.log('[EffectGainState] Loaded from preset:', JSON.stringify(presetData));
+    }
+
+    // ---- snapshot ----
+    function snapshot() {
+        return Object.assign({}, _state);
+    }
+
+    // ---- init ----
+    _load();
+    console.log('[EffectGainState] initialized:', JSON.stringify(_state));
+
+    return { get: get, set: set, getGainForType: getGainForType, loadFromPreset: loadFromPreset, snapshot: snapshot };
+})();
+// ========== /EffectGainState ==========
 
 // ========== 1. APPROVED FUNCTIONS ==========
 const APPROVED_FUNCTIONS_MusicAudio = {
@@ -153,9 +272,6 @@ class MusicAudio {
         this._activePart = null;
         this._activeInstruments = [];
         this.instrumentSynths = {};
-
-        // FIX 4: ลบ fixed _instrumentDelay = [0, 0.5, 0.9]
-        // ใช้ _computeInstrumentDelays(bpm) แทน (dynamic per BPM)
 
         this.log = (msg) => console.log(`[${this.moduleName}] 🐛 DEBUG: ${msg}`);
         this.logWarning = (msg) => console.warn(`[${this.moduleName}] ⚠️ ${msg}`);
@@ -668,10 +784,23 @@ class MusicAudio {
 
             this.log(`defaultEndTime calculated: ${defaultEndTime} (from ${lastTimeSec}s + ${lastDurSec}s)`);
 
+            // ✅ FIX Bug B: tag natureEffects ด้วย _sectionIndex
+            // defaultDNA.natureEffects = Melody1 → _sectionIndex: 0
+            // customDNA.natureEffects = Melody2 → _sectionIndex: 1
+            const defaultNature = (defaultDNA.natureEffects || []).map(effect => ({
+                ...effect,
+                _sectionIndex: 0
+            }));
+
+            const customNature = (customDNA.natureEffects || []).map(effect => ({
+                ...effect,
+                _sectionIndex: 1
+            }));
+
             // Combine natureEffects (shifted by defaultEndSec)
-            let combinedNature = [...(defaultDNA.natureEffects || [])];
-            if (customDNA.natureEffects && customDNA.natureEffects.length > 0) {
-                const shiftedCustom = customDNA.natureEffects.map(effect => {
+            let combinedNature = [...defaultNature];
+            if (customNature.length > 0) {
+                const shiftedCustom = customNature.map(effect => {
                     let timecode = effect.timecode || '0:0';
                     let startSec, endSec = null;
                     if (typeof timecode === 'string' && timecode.includes('-')) {
@@ -791,20 +920,21 @@ class MusicAudio {
             throw new Error('[MusicAudio] Instrument name is empty');
         }
 
-        const camelName = name.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
-        let config;
-
-        if (forChord) {
-            config = INSTRUMENT_CHORD_CONFIG[camelName] || INSTRUMENT_CHORD_CONFIG[name];
-            if (!config) {
-                config = INSTRUMENT_SYNTH_CONFIG[camelName] || INSTRUMENT_SYNTH_CONFIG[name];
+        const configs = forChord ? INSTRUMENT_CHORD_CONFIG : INSTRUMENT_SYNTH_CONFIG;
+    
+        // ===== ค้นหาแบบ case-insensitive =====
+        let config = null;
+        for (const [key, value] of Object.entries(configs)) {
+            if (key.toLowerCase() === name) {
+                config = value;
+                break;
             }
-        } else {
-            config = INSTRUMENT_SYNTH_CONFIG[camelName] || INSTRUMENT_SYNTH_CONFIG[name];
         }
-
+    
+        // ถ้าไม่เจอ → fallback เป็น piano
         if (!config) {
-            throw new Error(`[MusicAudio] Unknown instrument "${instrumentName}" - no mapping available (No Fallback)`);
+            this.logWarning(`Unknown instrument "${instrumentName}" — fallback to piano`);
+            config = configs['piano'];
         }
 
         this.log(`Building Synth for instrument: ${instrumentName} → oscillator.type=${config.oscillator.type}`);
@@ -1111,9 +1241,18 @@ class MusicAudio {
                 time = Tone.Time(`${idx}:0`).toSeconds();
             }
 
+            // ✅ คำนวณ melodyId จาก _sectionIndex
+            let melodyId = 1; // default
+            if (effect._sectionIndex !== undefined && typeof effect._sectionIndex === 'number') {
+                // sectionIndex 0 = Melody1, 1 = Melody2
+                melodyId = effect._sectionIndex + 1;
+            } else {
+                this.logWarning(`natureEffect idx=${idx} missing _sectionIndex, using melodyId=1`);
+            }
+
             const ev = Tone.Transport.schedule((time) => {
                 try {
-                    this.playNatureEffectFromObject(effect, time, effectKey);
+                    this.playNatureEffectFromObject(effect, time, effectKey, melodyId);
                 } catch (err) {
                     this.logError(`Failed to play nature effect at ${time}:`, err);
                 }
@@ -1144,7 +1283,8 @@ class MusicAudio {
         this.activeNatureSounds.clear();
     }
 
-    async playNatureEffectFromObject(effect, time, effectKey) {
+    // ========== ✅ FIX v6.10.9: ใช้ EffectGainState ปรับระดับเสียงตาม Melody ==========
+    async playNatureEffectFromObject(effect, time, effectKey, melodyId = 1) {
         verifyFunctionApproval('playNatureEffectFromObject');
         if (!effect || !effect.type) {
             throw new Error('Invalid nature effect object');
@@ -1158,6 +1298,14 @@ class MusicAudio {
 
         if (!window.NatureSounds) {
             throw new Error('NatureSounds module not loaded');
+        }
+
+        // ✅ ใช้ EffectGainState ปรับ intensity ก่อนส่งให้ NatureSounds
+        let finalIntensity = intensity;
+        if (window.EffectGainState) {
+            const gainMultiplier = window.EffectGainState.getGainForType(type, melodyId);
+            finalIntensity = Math.min(1, Math.max(0, intensity * gainMultiplier));
+            this.log(`EffectGainState: type=${type}, melodyId=${melodyId}, base=${intensity}, multiplier=${gainMultiplier.toFixed(2)}, final=${finalIntensity.toFixed(3)}`);
         }
 
         const myGeneration = this._natureGeneration;
@@ -1174,7 +1322,7 @@ class MusicAudio {
         try {
             const soundControl = await window.NatureSounds.create(
                 type,
-                intensity,
+                finalIntensity,
                 time,
                 duration,
                 this.effectInput || Tone.Destination
@@ -1201,7 +1349,7 @@ class MusicAudio {
             }
 
             this.activeNatureSounds.set(effectKey, soundControl);
-            this.log(`✅ Nature effect triggered: ${type} (element: ${element}) at ${time}, intensity=${intensity}, key=${effectKey}`);
+            this.log(`✅ Nature effect triggered: ${type} (element: ${element}) at ${time}, melodyId=${melodyId}, finalIntensity=${finalIntensity.toFixed(3)}, key=${effectKey}`);
         } catch (err) {
             this.activeNatureSounds.delete(effectKey);
             this.logError(`Failed to create nature effect ${type}:`, err);
@@ -1393,10 +1541,11 @@ class MusicAudio {
             this.play();
         }
     }
-
+    
     play() {
         verifyFunctionApproval('play');
-        this.log(`play() called, isPlaying=${this.isPlaying}, musicDNA=`, this.musicDNA);
+        this.log(`play() called, isPlaying=${this.isPlaying}`);
+
         if (this.isPlaying) return;
         if (!this.musicDNA) {
             const err = new Error('No MusicDNA loaded. Generate music first.');
@@ -1405,14 +1554,57 @@ class MusicAudio {
             return;
         }
 
+        // ✅ v6.10.6: ตรวจสอบสถานะ Tone.context ถ้าถูกปิดให้กู้คืน
+        if (Tone.context.state === 'closed') {
+            this.logWarning('⚠️ Tone.context is closed. Attempting to resume...');
+            try {
+                // สร้าง AudioContext ใหม่โดยใช้ Tone.start()
+                Tone.context = new (window.AudioContext || window.webkitAudioContext)();
+                Tone.start().then(() => {
+                    this.log('✅ Tone.context restarted successfully');
+                }).catch(err => {
+                    this.logError('Failed to restart Tone.context', err);
+                    this._dispatchError(err);
+                    return;
+                });
+            } catch (e) {
+                this.logError('Failed to recreate AudioContext', e);
+                this._dispatchError(e);
+                return;
+            }
+        }
+
+        // ⭐ รีเซ็ต Transport
+        Tone.Transport.position = 0;
+        Tone.Destination.mute = false;
         if (Tone.Destination.volume.value === -Infinity) {
-            this.log('Destination volume was -Infinity, resetting to 0');
             Tone.Destination.volume.value = 0;
         }
 
+        // ========== FIX: สร้าง Effect Chain ใหม่ ==========
+        this.log('Re-creating effect chain and synths');
+        this.disposeEffects();
+        const effects = this.musicDNA.effects || [];
+        this.createEffectChain(effects);
+
+        // ========== ล้าง Synth เก่า ==========
+        this.disposeInstrumentSynths();
+
+        // Re-schedule events (จะสร้าง _activePart และ pre-warm synths ใหม่)
+        this.clearScheduledEvents();
+        this._stopAllNatureSounds();
+        this.scheduleMusicEvents();
+        this.scheduleNatureEffects();
+        this.setLoopEnabled(this._loopEnabled);
+
+        // ✅ รีเซ็ต _transportStarted ก่อนเริ่ม
+        this._transportStarted = false;
+
+        // เริ่มเล่น
         const startPlayback = () => {
             try {
                 Tone.Transport.start();
+                this._transportStarted = true;  // ✅ ตั้งค่าเมื่อ start จริง
                 this.isPlaying = true;
                 this.log('Playback started');
 
@@ -1455,7 +1647,7 @@ class MusicAudio {
         } else {
             startPlayback();
         }
-    }
+    }    
 
     pause() {
         verifyFunctionApproval('pause');
@@ -1507,8 +1699,13 @@ class MusicAudio {
         try {
             Tone.Transport.stop();
             Tone.Transport.cancel();
+            Tone.Transport.position = 0;  // ✅ รีเซ็ตตำแหน่ง
+
             this.isPlaying = false;
             this.transportPosition = 0;
+            this._transportStarted = false;  // ✅ สำคัญ: รีเซ็ตสถานะ Transport
+
+            // ✅ เรียก clearScheduledEvents เพื่อ dispose Part
             this.clearScheduledEvents();
 
             const icon = document.getElementById('playIcon');
@@ -1517,6 +1714,7 @@ class MusicAudio {
             this._stopAllNatureSounds();
             this.disposeInstrumentSynths();
 
+            // ✅ กระจาย Event
             window.dispatchEvent(new CustomEvent('musicStopped', {
                 detail: {},
                 bubbles: true
@@ -1535,12 +1733,11 @@ class MusicAudio {
                 EventBus.emit('playbackStopped');
                 EventBus.emit('playbackStateChanged', { isPlaying: false });
             }
-            
-            // กระจาย Event ออกไป (ส่งสัญญาณ)
-            window.dispatchEvent(new CustomEvent('music-stopped-event')); 
+
+            window.dispatchEvent(new CustomEvent('music-stopped-event'));
 
             this.log('Playback stopped');
-            
+
         } catch (err) {
             this.handleError('Failed to stop playback', err);
         }
@@ -1578,6 +1775,8 @@ class MusicAudio {
     // FIX 6: clearScheduledEvents — stop ก่อน dispose ทุกครั้ง
     clearScheduledEvents() {
         verifyFunctionApproval('clearScheduledEvents');
+        
+        // ✅ dispose Part ที่ค้างอยู่
         if (this._activePart) {
             try {
                 this._activePart.stop();
@@ -1585,12 +1784,13 @@ class MusicAudio {
             } catch (e) {
                 this.logWarning('Error disposing Part: ' + e.message);
             }
-            this._activePart = null;
+            this._activePart = null;  // ✅ สำคัญ: ล้าง reference
         }
+
         Tone.Transport.cancel();
         this.scheduledEvents.clear();
         this.log('Cleared all scheduled events');
-    }
+    }    
 
     parseTimecode(tc) {
         verifyFunctionApproval('parseTimecode');
@@ -1686,5 +1886,5 @@ class MusicAudio {
 }
 
 window.AudioController = new MusicAudio();
-console.log("[MusicAudio] ✅ MUSIC-AUDIO.JS v'+  window.MusicAudio_VERSION + 'LOADED");
+console.log("[MusicAudio] ✅ MUSIC-AUDIO.JS v' + window.MusicAudio_VERSION + ' LOADED");
 console.log("[MusicAudio] 📋 Approved Functions:", Object.keys(APPROVED_FUNCTIONS_MusicAudio));
