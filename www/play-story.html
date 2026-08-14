@@ -10,6 +10,7 @@
     <script src="https://unpkg.com/tone@14.7.77/build/Tone.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="config/supabase-config.js"></script>
+
     <!-- MLQ Music Engine Modules -->
     <script src="js/debug-logger.js"></script>
     <script src="js/data-contract.js"></script>
@@ -127,8 +128,9 @@
         const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY;
         if (!SUPABASE_URL || !SUPABASE_ANON_KEY) { alert("Config error"); return; }
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        
+     
         const params = new URLSearchParams(window.location.search);
+
         const templateId = params.get('tid');
         const songShortId = params.get('song');
         if (!templateId) { document.getElementById('loading').innerHTML = '<p class="text-red-500">❌ ไม่พบรหัสการ์ด</p>'; return; }
